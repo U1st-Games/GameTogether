@@ -7,6 +7,7 @@ import {
   useHistory,
 } from "react-router-dom";
 import styled from 'styled-components';
+import { OTSession, OTPublisher, OTStreams, OTSubscriber } from 'opentok-react';
 
 import Typography from '@material-ui/core/Typography';
 import Button from '@material-ui/core/Button';
@@ -28,17 +29,56 @@ const Container = styled.div`
     align-items: center;
     justify-content: center;
     width: 100%;
-    height: 100%;
-    flex-direction: column;
+    height: calc(100% - 64px);
     padding: 20px;
     box-sizing: border-box;
     text-align: center;
     overflow-y: auto;
 `;
 
+const QueueContainer = styled.div`
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: calc(100% - 64px);
+    padding: 20px;
+    box-sizing: border-box;
+    text-align: center;
+    overflow-y: auto;
+    flex-direction: column;
+`;
+
 const InnerContainer = styled.div`
     max-width: 480px;
     width: 100%;
+`;
+
+//Call related components
+const CallContainer = styled.div`
+    width: 100%;
+    height: calc(100% - 64px);
+`;
+
+const CallContainerLeft = styled.div`
+  width: 100%;
+  height: 100%;
+  
+  & > div {
+    height: 100%;
+  }
+`;
+const CallContainerRight = styled.div`
+  height: 100%;
+  width: 240px;
+`;
+
+const ChatContainer = styled.div`
+
+`;
+
+const SendMessageContainer = styled.div`
+
 `;
 
 const Gap = styled.div`
@@ -79,20 +119,53 @@ const useStylesCard = makeStyles({
   },
 });
 
-const initVideoCall = () => {
-  //opentok
-  const apiKey = '45828062';
-  const sessionId = '2_MX40NTgyODA2Mn5-MTU4NTAwNTU4OTU1NH5RUW9ReTVqdHB6Ym9NN0pXM3crcW1NQ1R-UH4';
-  const token = 'T1==cGFydG5lcl9pZD00NTgyODA2MiZzaWc9MTc2Y2Q4NzdmOGM0NGNhYTBhMDQxZDEyZTY4YWI3OWU3NzAwMzBkMDpzZXNzaW9uX2lkPTJfTVg0ME5UZ3lPREEyTW41LU1UVTROVEF3TlRVNE9UVTFOSDVSVVc5UmVUVnFkSEI2WW05Tk4wcFhNM2NyY1cxTlExUi1VSDQmY3JlYXRlX3RpbWU9MTU4NTAwNTY0NCZub25jZT0wLjQwOTU4ODg4MzU0OTc1NjUzJnJvbGU9cHVibGlzaGVyJmV4cGlyZV90aW1lPTE1ODUwOTIwNDQ=';
-  var session = window.OT.initSession(apiKey, sessionId);
-  var publisher = window.OT.initPublisher();
-  session.connect(token, function(err) {
-  });
-  session.publish(publisher);
-  session.on('streamCreated', function(event) {
-    session.subscribe(event.stream);
-  });
-};
+const Queue = () => {
+  const history = useHistory();
+
+  //countdown
+  const [currentCount, setCount] = useState(3);
+
+  useEffect(() => {
+      if (currentCount < 1) {
+          return;
+      }
+
+      setTimeout(function () {
+          setCount(currentCount => currentCount - 1);
+      }, 2000);
+
+  },[ currentCount ]);
+
+  return (
+      <QueueContainer>
+        <Typography variant="h6" gutterBottom id="scrollTarget">
+          You are number
+        </Typography>
+        <Typography variant="h1" component="h2">
+          {currentCount}
+        </Typography>
+        <Typography variant="h6" gutterBottom id="scrollTarget">
+          in the queue.
+        </Typography>
+          <Typography variant="h6" gutterBottom id="scrollTarget">
+              When it reaches zero click the join button!
+          </Typography>
+        <Button
+            variant="contained"
+            color="primary"
+            disabled={currentCount > 0}
+            onClick={() => {
+              history.push("/call");
+            }}
+        >
+          Join call
+        </Button>
+        <Gap/>
+        <Gap/>
+        <Gap/>
+      </QueueContainer>
+  );
+}
 
 function App() {
   //react-mui
@@ -102,32 +175,10 @@ function App() {
   //state
   const [userState, setUserState] = useState("");
 
-  //countdown
-  const [currentCount, setCount] = useState(3);
-  const [numberColor, setNumberColor] = useState('red');
-  useEffect(() => {
-    (function loop() {
-      setTimeout(function () {
-        setCount(currentCount => currentCount - 1);
-        setNumberColor(() => 'green');
-        setTimeout(function () {
-          setNumberColor(() => 'red');
-        }, 2000);
-
-        if (currentCount < 1) {
-          return;
-        }
-        loop();
-      }, 2000);
-    }());
-  }, []);
-
   //router
-  const history = useHistory();
 
   return (
-          <Router>
-            <div>
+          <>
               <AppBar position="static">
                 <Toolbar>
                   <Typography variant="h6" className={classes.title}>
@@ -137,11 +188,10 @@ function App() {
               </AppBar>
 
               <Switch>
-                <Route path="/">
+                <Route exact path="/">
                   <Container>
-
                     <Link to="/queue" onClick={() => setUserState("doctor")}>
-                    <Card className={classesCard.root}>
+                    <Card className={classesCard.root} style={{marginRight: '60px'}}>
                         <CardActionArea>
                           <CardContent>
                             <img
@@ -180,39 +230,25 @@ function App() {
                 </Route>
 
                 <Route path="/queue">
-                  <Container>
-                    <Typography variant="h6" gutterBottom id="scrollTarget">
-                      You are number
-                    </Typography>
-                      <Typography variant="h1" component="h2" style={{color: numberColor}}>
-                        {currentCount}
-                      </Typography>
-                      <Typography variant="h6" gutterBottom id="scrollTarget">
-                        in the queue. When it reaches zero click the join button!
-                      </Typography>
-                      <Button
-                          size="small"
-                          color="primary"
-                          disabled={currentCount > 0}
-                          onClick={() => {
-                            history.push("/call");
-                            initVideoCall();
-                          }}
-                      >
-                        Join call
-                      </Button>
-                      <Gap/>
-                      <Gap/>
-                      <Gap/>
-                  </Container>
+                  <Queue />
                 </Route>
 
                 <Route path="/call">
-                  <Container>
-                    <InnerContainer>
-
-                    </InnerContainer>
-                  </Container>
+                  <CallContainer>
+                    <CallContainerLeft id={"CallContainerLeft"}>
+                      <OTSession
+                          style={{ width: '100%', height: '100%'}}
+                          apiKey="45828062"
+                          sessionId="2_MX40NTgyODA2Mn5-MTU4NTAwNTU4OTU1NH5RUW9ReTVqdHB6Ym9NN0pXM3crcW1NQ1R-UH4"
+                          token="T1==cGFydG5lcl9pZD00NTgyODA2MiZzaWc9MTc2Y2Q4NzdmOGM0NGNhYTBhMDQxZDEyZTY4YWI3OWU3NzAwMzBkMDpzZXNzaW9uX2lkPTJfTVg0ME5UZ3lPREEyTW41LU1UVTROVEF3TlRVNE9UVTFOSDVSVVc5UmVUVnFkSEI2WW05Tk4wcFhNM2NyY1cxTlExUi1VSDQmY3JlYXRlX3RpbWU9MTU4NTAwNTY0NCZub25jZT0wLjQwOTU4ODg4MzU0OTc1NjUzJnJvbGU9cHVibGlzaGVyJmV4cGlyZV90aW1lPTE1ODUwOTIwNDQ="
+                      >
+                        <OTPublisher style={{ width: '100%', height: '100%'}} />
+                        <OTStreams>
+                          <OTSubscriber />
+                        </OTStreams>
+                      </OTSession>
+                    </CallContainerLeft>
+                  </CallContainer>
                 </Route>
 
                 <Route path="/provider">
@@ -232,9 +268,14 @@ function App() {
                 </Route>
 
               </Switch>
-            </div>
-          </Router>
+          </>
   );
 }
 
-export default App;
+const AppWrapper = () => (
+    <Router>
+      <App/>
+    </Router>
+);
+
+export default AppWrapper;
