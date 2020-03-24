@@ -44,6 +44,22 @@ html, body, #root {
 }
 
 .OTPublisherContainer {
+  position: fixed;
+  width: 264px;
+  height: 198px;
+  overflow: hidden;
+  z-index: 1;
+  top: 80px;
+  left: 20px;
+  border: 10px solid black;
+}
+
+.OTSubscriberContainer {
+  position: fixed;
+  top: 64px;
+  left: 0px;
+  right: 0px;
+  bottom: 0px;
   width: 100% !important;
   height: 100% !important;
 }

@@ -242,7 +242,7 @@ function App() {
                           sessionId="2_MX40NTgyODA2Mn5-MTU4NTAwNTU4OTU1NH5RUW9ReTVqdHB6Ym9NN0pXM3crcW1NQ1R-UH4"
                           token="T1==cGFydG5lcl9pZD00NTgyODA2MiZzaWc9MTc2Y2Q4NzdmOGM0NGNhYTBhMDQxZDEyZTY4YWI3OWU3NzAwMzBkMDpzZXNzaW9uX2lkPTJfTVg0ME5UZ3lPREEyTW41LU1UVTROVEF3TlRVNE9UVTFOSDVSVVc5UmVUVnFkSEI2WW05Tk4wcFhNM2NyY1cxTlExUi1VSDQmY3JlYXRlX3RpbWU9MTU4NTAwNTY0NCZub25jZT0wLjQwOTU4ODg4MzU0OTc1NjUzJnJvbGU9cHVibGlzaGVyJmV4cGlyZV90aW1lPTE1ODUwOTIwNDQ="
                       >
-                        <OTPublisher style={{ width: '100%', height: '100%'}} />
+                        <OTPublisher />
                         <OTStreams>
                           <OTSubscriber />
                         </OTStreams>
