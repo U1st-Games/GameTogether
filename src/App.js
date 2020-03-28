@@ -7,6 +7,7 @@ import {
   useHistory,
 } from "react-router-dom";
 import styled from 'styled-components';
+import uid from 'uid';
 import { OTSession, OTPublisher, OTStreams, OTSubscriber } from 'opentok-react';
 
 import Typography from '@material-ui/core/Typography';
@@ -23,6 +24,50 @@ import AppBar from '@material-ui/core/AppBar';
 import Toolbar from '@material-ui/core/Toolbar';
 
 import './App.css';
+
+var apiKey = "46617242";
+var sessionId = "1_MX40NjYxNzI0Mn5-MTU4NTI3ODQ1MTU3NH43Rm84SWRBbkN2QWh5dkUyUGJMZWlPTE1-fg";
+var token = "T1==cGFydG5lcl9pZD00NjYxNzI0MiZzaWc9ZGE0MGJmOThiMmM1MTQyMzFmOTUzZmY3Y2I3MmNlZjI0ZTQzYmYxMDpzZXNzaW9uX2lkPTFfTVg0ME5qWXhOekkwTW41LU1UVTROVEkzT0RRMU1UVTNOSDQzUm04NFNXUkJia04yUVdoNWRrVXlVR0pNWldsUFRFMS1mZyZjcmVhdGVfdGltZT0xNTg1Mjc4NDgwJm5vbmNlPTAuODQxMTM0Mzg4ODA3MTk4MyZyb2xlPXB1Ymxpc2hlciZleHBpcmVfdGltZT0xNTg3ODcwNDc5JmluaXRpYWxfbGF5b3V0X2NsYXNzX2xpc3Q9";
+
+// Handling all of our errors here by alerting them
+function handleError(error) {
+    if (error) {
+        alert(error.message);
+    }
+}
+
+function initializeSession(canvasElement) {
+    var session = window.OT.initSession(apiKey, sessionId);
+
+    // Subscribe to a newly created stream
+    session.on('streamCreated', function(event) {
+        session.subscribe(event.stream, 'subscriber', {
+            insertMode: 'append',
+            width: '100%',
+            height: '100%'
+        }, handleError);
+    });
+
+    console.log('video track: ', canvasElement.captureStream(1).getVideoTracks()[0]);
+
+    // Create a publisher
+    var publisher = window.OT.initPublisher('publisher', {
+        videoSource: canvasElement.captureStream(1).getVideoTracks()[0],
+        insertMode: 'append',
+        width: '100%',
+        height: '100%'
+    }, handleError);
+
+    // Connect to the session
+    session.connect(token, function(error) {
+        // If the connection is successful, initialize a publisher and publish to the session
+        if (error) {
+            handleError(error);
+        } else {
+            session.publish(publisher, handleError);
+        }
+    });
+}
 
 const Container = styled.div`
     display: flex;
@@ -68,33 +113,10 @@ const CallContainerLeft = styled.div`
     height: 100%;
   }
 `;
-const CallContainerRight = styled.div`
-  height: 100%;
-  width: 240px;
-`;
-
-const ChatContainer = styled.div`
-
-`;
-
-const SendMessageContainer = styled.div`
-
-`;
 
 const Gap = styled.div`
     width: 100%;
     height: 10px;
-`;
-
-const Img = styled.img`
-    width: 300px;
-    height: 270px;
-    border-radius: 50%;
-`;
-
-const ImageContainer = styled.div`
-    display: flex;
-    justify-content: space-between;
 `;
 
 const useStyles = makeStyles(theme => ({
@@ -119,53 +141,34 @@ const useStylesCard = makeStyles({
   },
 });
 
-const Queue = () => {
-  const history = useHistory();
+/*
+const gotRemoteStream = (e) => {
+    attachMediaStream(remoteVideo, e.stream);
+};
 
-  //countdown
-  const [currentCount, setCount] = useState(3);
+const gotAnswer = (desc) => {
+    pc.setRemoteDescription(desc);
+};
 
-  useEffect(() => {
-      if (currentCount < 1) {
-          return;
-      }
+const gotOffer = (desc) => {
+    pc.setLocalDescription(desc);
+    sendOffer(desc);
+};
 
-      setTimeout(function () {
-          setCount(currentCount => currentCount - 1);
-      }, 2000);
+const initRTCPeerConnection = () => {
+    const pc = new RTCPeerConnection(servers, {optional: [{RtpDataChannels: true}]});
+    pc.onAddStream = gotRemoteStream;
 
-  },[ currentCount ]);
+    pc.ondatachannel = event => {
+        recieveChannel = event.channel;
+        recieveChannel.onmessage = event => {
+            console.log('')
+        }
+    }
+};
 
-  return (
-      <QueueContainer>
-        <Typography variant="h6" gutterBottom id="scrollTarget">
-          You are number
-        </Typography>
-        <Typography variant="h1" component="h2">
-          {currentCount}
-        </Typography>
-        <Typography variant="h6" gutterBottom id="scrollTarget">
-          in the queue.
-        </Typography>
-          <Typography variant="h6" gutterBottom id="scrollTarget">
-              When it reaches zero click the join button!
-          </Typography>
-        <Button
-            variant="contained"
-            color="primary"
-            disabled={currentCount > 0}
-            onClick={() => {
-              history.push("/call");
-            }}
-        >
-          Join call
-        </Button>
-        <Gap/>
-        <Gap/>
-        <Gap/>
-      </QueueContainer>
-  );
-}
+ */
+
 
 function App() {
   //react-mui
@@ -174,15 +177,31 @@ function App() {
 
   //state
   const [userState, setUserState] = useState("");
+  const [childCanvas, setChildCanvas] = useState(null);
+    const [uid, setUid] = useState(null);
+
+    //init
+    useEffect(() => {
+        /*
+        var myIframe = document.getElementById('gameIframe');
+        myIframe.addEventListener("load", function() {
+            const canvasElement = myIframe.contentWindow.document.getElementById("c2canvas");
+            setChildCanvas(_ => canvasElement);
+            initializeSession(canvasElement);
+        });
+        */
+        //setUid(uid());
+
+        const canvasElement = document.getElementById("c2canvas");
+    }, []);
 
   //router
-
   return (
           <>
               <AppBar position="static">
                 <Toolbar>
                   <Typography variant="h6" className={classes.title}>
-                      Confinement Mental Health
+                      Game Together
                   </Typography>
                 </Toolbar>
               </AppBar>
@@ -190,83 +209,9 @@ function App() {
               <Switch>
                 <Route exact path="/">
                   <Container>
-                    <Link to="/queue" onClick={() => setUserState("doctor")}>
-                    <Card className={classesCard.root} style={{marginRight: '60px'}}>
-                        <CardActionArea>
-                          <CardContent>
-                            <img
-                                src="/doctor.png"
-                                style={{width: "300px"}}
-                            />
-                          </CardContent>
-                        </CardActionArea>
-                        <CardActions>
-                          <Button size="small" color="primary">
-                            Volunteer to help
-                          </Button>
-                        </CardActions>
-                      </Card>
-                    </Link>
-
-                    <Link to="/queue" onClick={() => setUserState("user")}>
-                      <Card className={classesCard.root}>
-                        <CardActionArea>
-                          <CardContent>
-                            <img
-                                src="/patient.png"
-                                style={{width: "300px"}}
-                            />
-                          </CardContent>
-                        </CardActionArea>
-                        <CardActions>
-                          <Button size="small" color="primary">
-                            Get help
-                          </Button>
-                        </CardActions>
-                      </Card>
-                    </Link>
-
+                      <iframe id="gameIframe" src={"/pacman-canvas/index.htm"} />
                   </Container>
                 </Route>
-
-                <Route path="/queue">
-                  <Queue />
-                </Route>
-
-                <Route path="/call">
-                  <CallContainer>
-                    <CallContainerLeft id={"CallContainerLeft"}>
-                      <OTSession
-                          style={{ width: '100%', height: '100%'}}
-                          apiKey="45828062"
-                          sessionId="2_MX40NTgyODA2Mn5-MTU4NTAwNTU4OTU1NH5RUW9ReTVqdHB6Ym9NN0pXM3crcW1NQ1R-UH4"
-                          token="T1==cGFydG5lcl9pZD00NTgyODA2MiZzaWc9MTc2Y2Q4NzdmOGM0NGNhYTBhMDQxZDEyZTY4YWI3OWU3NzAwMzBkMDpzZXNzaW9uX2lkPTJfTVg0ME5UZ3lPREEyTW41LU1UVTROVEF3TlRVNE9UVTFOSDVSVVc5UmVUVnFkSEI2WW05Tk4wcFhNM2NyY1cxTlExUi1VSDQmY3JlYXRlX3RpbWU9MTU4NTAwNTY0NCZub25jZT0wLjQwOTU4ODg4MzU0OTc1NjUzJnJvbGU9cHVibGlzaGVyJmV4cGlyZV90aW1lPTE1ODUwOTIwNDQ="
-                      >
-                        <OTPublisher />
-                        <OTStreams>
-                          <OTSubscriber />
-                        </OTStreams>
-                      </OTSession>
-                    </CallContainerLeft>
-                  </CallContainer>
-                </Route>
-
-                <Route path="/provider">
-                  <Container>
-                    <InnerContainer>
-
-                    </InnerContainer>
-                  </Container>
-                </Route>
-
-                <Route path="/user">
-                  <Container>
-                    <InnerContainer>
-
-                    </InnerContainer>
-                  </Container>
-                </Route>
-
               </Switch>
           </>
   );
