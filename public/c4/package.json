@@ -1,0 +1,49 @@
+{
+  "name": "@kenrick95/c4",
+  "version": "3.0.5",
+  "description": "Connect Four game",
+  "main": "./dist/lib.js",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/kenrick95/c4.git"
+  },
+  "author": {
+    "name": "Kenrick",
+    "email": "kenrick95@gmail.com",
+    "url": "https://kenrick95.org"
+  },
+  "bugs": {
+    "url": "https://github.com/kenrick95/c4/issues"
+  },
+  "homepage": "https://github.com/kenrick95/c4",
+  "license": "MIT",
+  "files": [
+    "src/",
+    "dist/"
+  ],
+  "scripts": {
+    "start": "parcel index.html",
+    "build": "yarn clean && parcel build index.html",
+    "build:lib": "yarn clean && parcel build ./src/lib.ts",
+    "prettier": "prettier --write \"src/**/*.?(ts|scss|css)\"",
+    "prepublishOnly": "yarn build:lib",
+    "clean": "shx rm -rf dist/"
+  },
+  "keywords": [
+    "c4",
+    "connect-four",
+    "game"
+  ],
+  "devDependencies": {
+    "parcel-bundler": "^1.12.4",
+    "prettier": "^1.19.1",
+    "shx": "^0.3.2",
+    "typescript": "^3.8.3"
+  },
+  "dependencies": {
+    "es6-promise": "^4.2.8"
+  },
+  "resolutions": {
+    "minimist": "^1.2.2"
+  }
+}
