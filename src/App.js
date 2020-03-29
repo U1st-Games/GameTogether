@@ -192,12 +192,236 @@ function App() {
         */
         //setUid(uid());
 
-        const canvasElement = document.getElementById("c2canvas");
+        //const canvass = document.querySelector('canvas');
+        var myIframe = document.getElementById('gameIframe');
+        myIframe.addEventListener("load", function() {
+            const canvass = myIframe.contentWindow.document.getElementById("myCanvas");
+
+            let localVideo = document.querySelector('#localVideo');
+            let remoteVideo = document.querySelector('#remoteVideo');
+
+            let localStream;
+            let remoteStream;
+
+            var pc;
+            const offerOptions = {
+                offerToReceiveAudio: 1,
+                offerToReceiveVideo: 1
+            };
+
+            let isChannelReady = false;
+            let isInitiator = false;
+            let isStarted = false;
+
+            function getArrayWithLimitedLength(length) {
+                var array = new Array();
+
+                array.push = function () {
+                    if (this.length >= length) {
+                        this.shift();
+                    }
+                    return Array.prototype.push.apply(this,arguments);
+                };
+
+                return array;
+            }
+            const logArray = getArrayWithLimitedLength(5);
+
+            function customLog(message) {
+                console.log('customlog: ', message);
+                logArray.push(message);
+                logArray.forEach((x, idx) => {
+                    if(x){
+                        document.getElementById('log' + (idx + 1)).innerText = x;
+                    }
+                })
+            }
+
+            //Begin socket.io --------------------------------------------
+            let room = 'foo';
+            let socket = window.io.connect('https://rust-sandpaper.glitch.me');
+            if (room !== '') {
+                socket.emit('create or join', room);
+                customLog('Attempted to create or  join room', room);
+            }
+
+            socket.on('created', function(room) {
+                customLog('Created room ' + room);
+                isInitiator = true;
+            });
+
+            socket.on('full', function(room) {
+                customLog('Room ' + room + ' is full');
+            });
+
+            socket.on('join', function (room){
+                customLog('Another peer made a request to join room ' + room);
+                customLog('This peer is the initiator of room ' + room + '!');
+                isChannelReady = true;
+            });
+
+            socket.on('joined', function(room) {
+                customLog('joined: ' + room);
+                isChannelReady = true;
+            });
+
+            socket.on('log', function(array) {
+                customLog(array)
+            });
+
+            function sendMessage(message) {
+                console.log('Client sending message: ', message);
+                socket.emit('message', message);
+            }
+
+// This client receives a message
+            socket.on('message', function(message) {
+                customLog('Client received message:', message);
+                if (message === 'got user media') {
+                    maybeStart();
+                } else if (message.type === 'offer') {
+                    if (!isInitiator && !isStarted) {
+                        maybeStart();
+                    }
+                    pc.setRemoteDescription(new RTCSessionDescription(message));
+                    doAnswer();
+                } else if (message.type === 'answer' && isStarted) {
+                    pc.setRemoteDescription(new RTCSessionDescription(message));
+                } else if (message.type === 'candidate' && isStarted) {
+                    var candidate = new RTCIceCandidate({
+                        sdpMLineIndex: message.label,
+                        candidate: message.candidate
+                    });
+                    pc.addIceCandidate(candidate);
+                } else if (message === 'bye' && isStarted) {
+                    handleRemoteHangup();
+                }
+            });
+            //End socket.io -----------------------------------------------------------
+
+            const stream = canvass.captureStream();
+            console.log('Got stream from canvas');
+
+            localStream = stream;
+            localVideo.srcObject = stream;
+            sendMessage('got user media');
+            if (isInitiator) {
+                maybeStart();
+            }
+
+            function maybeStart() {
+                console.log('>>>>>>> maybeStart() ', isStarted, localStream, isChannelReady);
+                if (!isStarted && typeof localStream !== 'undefined' && isChannelReady) {
+                    console.log('>>>>>> creating peer connection');
+                    createPeerConnection();
+                    pc.addStream(localStream);
+                    isStarted = true;
+                    console.log('isInitiator', isInitiator);
+                    if (isInitiator) {
+                        doCall();
+                    }
+                }
+            }
+
+            function createPeerConnection() {
+                try {
+                    pc = new RTCPeerConnection(null);
+                    pc.onicecandidate = handleIceCandidate;
+                    pc.onaddstream = handleRemoteStreamAdded;
+                    pc.onremovestream = handleRemoteStreamRemoved;
+                    console.log('Created RTCPeerConnnection');
+                } catch (e) {
+                    console.log('Failed to create PeerConnection, exception: ' + e.message);
+                    alert('Cannot create RTCPeerConnection object.');
+                    return;
+                }
+            }
+
+            function handleIceCandidate(event) {
+                console.log('icecandidate event: ', event);
+                if (event.candidate) {
+                    sendMessage({
+                        type: 'candidate',
+                        label: event.candidate.sdpMLineIndex,
+                        id: event.candidate.sdpMid,
+                        candidate: event.candidate.candidate
+                    });
+                } else {
+                    console.log('End of candidates.');
+                }
+            }
+
+            function handleCreateOfferError(event) {
+                console.log('createOffer() error: ', event);
+            }
+
+            function doCall() {
+                console.log('Sending offer to peer');
+                pc.createOffer(setLocalAndSendMessage, handleCreateOfferError);
+            }
+
+            function doAnswer() {
+                console.log('Sending answer to peer.');
+                pc.createAnswer().then(
+                    setLocalAndSendMessage,
+                    onCreateSessionDescriptionError
+                );
+            }
+
+            function setLocalAndSendMessage(sessionDescription) {
+                pc.setLocalDescription(sessionDescription);
+                console.log('setLocalAndSendMessage sending message', sessionDescription);
+                sendMessage(sessionDescription);
+            }
+
+            function onCreateSessionDescriptionError(error) {
+                debugger;
+                //trace('Failed to create session description: ' + error.toString());
+            }
+
+            function handleRemoteStreamAdded(event) {
+                console.log('Remote stream added.');
+                remoteStream = event.stream;
+                remoteVideo.srcObject = remoteStream;
+            }
+
+            function handleRemoteStreamRemoved(event) {
+                console.log('Remote stream removed. Event: ', event);
+            }
+
+            function hangup() {
+                console.log('Hanging up.');
+                stop();
+                sendMessage('bye');
+            }
+
+            function handleRemoteHangup() {
+                console.log('Session terminated.');
+                stop();
+                isInitiator = false;
+            }
+
+            function stop() {
+                isStarted = false;
+                pc.close();
+                pc = null;
+            }
+
+            window.onbeforeunload = function() {
+                sendMessage('bye');
+            };
+        });
+        //const canvasElement = document.getElementById("c2canvas");
     }, []);
 
   //router
   return (
           <>
+            <div id="log1" style={{ background: 'red'}}>test</div>
+            <div id="log2" style={{ background: 'blue'}}>test</div>
+            <div id="log3" style={{ background: 'orange'}}>test</div>
+            <div id="log4" style={{ background: 'green'}}>test</div>
+            <div id="log5" style={{ background: 'black'}}>test</div>
               <AppBar position="static">
                 <Toolbar>
                   <Typography variant="h6" className={classes.title}>
@@ -210,6 +434,8 @@ function App() {
                 <Route exact path="/">
                   <Container>
                       <iframe id="gameIframe" src={"/pacman-canvas/index.htm"} />
+                      <video id="localVideo" playsinline autoPlay muted/>
+                      <video id="remoteVideo" playsinline autoPlay muted/>
                   </Container>
                 </Route>
               </Switch>
