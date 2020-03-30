@@ -62,11 +62,16 @@ const GameRoom = () => {
 
             let localVideo = document.querySelector('#localVideo');
             let remoteVideo = document.querySelector('#remoteVideo');
+            let cursor = document.querySelector('#remoteCursor');
 
             let localStream;
             let remoteStream;
 
             var pc;
+            var mouseDc;
+            var clickDc;
+            var keypressDc;
+
             const offerOptions = {
                 offerToReceiveAudio: 1,
                 offerToReceiveVideo: 1
@@ -174,6 +179,55 @@ const GameRoom = () => {
                     pc.onaddstream = handleRemoteStreamAdded;
                     pc.onremovestream = handleRemoteStreamRemoved;
                     console.log('Created RTCPeerConnnection');
+
+                    //Setup mouse data channel
+                    mouseDc = pc.createDataChannel(
+                        'mousePosition',
+                        {
+                            ordered: false,
+                            maxRetransmits: 0
+                        }
+                    );
+                    mouseDc.onerror = (error) => {
+                        console.log("Data Channel Error:", error);
+                    };
+                    mouseDc.onmessage = (event) => {
+                        console.log("Got Data Channel Message:", event.data);
+                        const split = event.data && event.data.split(',');
+                        cursor.style.left = split[0];
+                        cursor.style.top = split[1];
+                    };
+                    mouseDc.onopen = () => {
+                        mouseDc.send("Hello World!");
+                    };
+                    mouseDc.onclose = () => {
+                        console.log("The Data Channel is Closed");
+                    };
+                    //document.onmousemove = e => mouseDc.send(e.x + "," + e.y);
+
+                    //setup click data channel
+                    clickDc = pc.createDataChannel(
+                        'clickPosition',
+                        {
+                            ordered: false,
+                            maxRetransmits: 0
+                        }
+                    );
+                    clickDc.onerror = (error) => {
+                        console.log("Click Data Channel Error:", error);
+                    };
+                    clickDc.onmessage = (event) => {
+                        console.log("Click Got Data Channel Message:", event.data);
+                        const split = event.data && event.data.split(',');
+                        click(split[0], split[1]);
+                    };
+                    clickDc.onopen = () => {
+                        clickDc.send("Click Hello World!");
+                    };
+                    clickDc.onclose = () => {
+                        console.log("Click The Data Channel is Closed");
+                    };
+                    document.onClick = e => clickDc.send(e.clientX + "," + e.clientY);
                 } catch (e) {
                     console.log('Failed to create PeerConnection, exception: ' + e.message);
                     alert('Cannot create RTCPeerConnection object.');
