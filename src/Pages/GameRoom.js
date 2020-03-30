@@ -24,30 +24,6 @@ const SideBar = styled.div`
     position: relative;
 `;
 
-function getArrayWithLimitedLength(length) {
-    var array = new Array();
-
-    array.push = function () {
-        if (this.length >= length) {
-            this.shift();
-        }
-        return Array.prototype.push.apply(this,arguments);
-    };
-
-    return array;
-}
-const logArray = getArrayWithLimitedLength(5);
-
-function customLog(message) {
-    console.log('customlog: ', message);
-    logArray.push(message);
-    logArray.forEach((x, idx) => {
-        if(x){
-            document.getElementById('log' + (idx + 1)).innerText = x;
-        }
-    })
-}
-
 function click(x, y)
 {
     var ev = new MouseEvent('click', {
@@ -86,15 +62,11 @@ const GameRoom = () => {
 
             let localVideo = document.querySelector('#localVideo');
             let remoteVideo = document.querySelector('#remoteVideo');
-            let cursor = document.querySelector('#remoteCursor');
 
             let localStream;
             let remoteStream;
 
             var pc;
-            var mouseDc;
-            var clickDc;
-            var keypressDc;
             const offerOptions = {
                 offerToReceiveAudio: 1,
                 offerToReceiveVideo: 1
@@ -104,40 +76,41 @@ const GameRoom = () => {
             let isInitiator = false;
             let isStarted = false;
 
+
+            function customLog(message) {
+
+            }
+
             //Begin socket.io --------------------------------------------
             let room = 'foo';
             let socket = window.io.connect('https://rust-sandpaper.glitch.me');
-
             if (room !== '') {
                 socket.emit('create or join', room);
-                console.log('Attempted to create or  join room', room);
+                customLog('Attempted to create or  join room', room);
             }
 
             socket.on('created', function(room) {
-                console.log('Created room ' + room);
+                customLog('Created room ' + room);
                 isInitiator = true;
-
             });
 
             socket.on('full', function(room) {
-                console.log('Room ' + room + ' is full');
+                customLog('Room ' + room + ' is full');
             });
-            //Initiator will end here
 
             socket.on('join', function (room){
-                console.log('Another peer made a request to join room ' + room);
-                console.log('This peer is the initiator of room ' + room + '!');
+                customLog('Another peer made a request to join room ' + room);
+                customLog('This peer is the initiator of room ' + room + '!');
                 isChannelReady = true;
-                maybeStart();
             });
 
             socket.on('joined', function(room) {
-                console.log('joined: ' + room);
+                customLog('joined: ' + room);
                 isChannelReady = true;
             });
 
             socket.on('log', function(array) {
-                console.log(array)
+                customLog(array)
             });
 
             function sendMessage(message) {
@@ -147,7 +120,7 @@ const GameRoom = () => {
 
 // This client receives a message
             socket.on('message', function(message) {
-                console.log('Client received message:', message);
+                customLog('Client received message:', message);
                 if (message === 'got user media') {
                     maybeStart();
                 } else if (message.type === 'offer') {
@@ -158,8 +131,6 @@ const GameRoom = () => {
                     doAnswer();
                 } else if (message.type === 'answer' && isStarted) {
                     pc.setRemoteDescription(new RTCSessionDescription(message));
-                    //pc.addStream(localStream);
-                    debugger;
                 } else if (message.type === 'candidate' && isStarted) {
                     var candidate = new RTCIceCandidate({
                         sdpMLineIndex: message.label,
@@ -177,22 +148,21 @@ const GameRoom = () => {
 
             localStream = stream;
             localVideo.srcObject = stream;
-            //sendMessage('got user media');
-            // if (isInitiator) {
-            //     maybeStart();
-            // }
+            sendMessage('got user media');
+            if (isInitiator) {
+                maybeStart();
+            }
 
             function maybeStart() {
                 console.log('>>>>>>> maybeStart() ', isStarted, localStream, isChannelReady);
                 if (!isStarted && typeof localStream !== 'undefined' && isChannelReady) {
                     console.log('>>>>>> creating peer connection');
                     createPeerConnection();
-
+                    pc.addStream(localStream);
                     isStarted = true;
                     console.log('isInitiator', isInitiator);
                     if (isInitiator) {
                         doCall();
-                        pc.addStream(localStream);
                     }
                 }
             }
@@ -201,59 +171,9 @@ const GameRoom = () => {
                 try {
                     pc = new RTCPeerConnection(null);
                     pc.onicecandidate = handleIceCandidate;
-                    pc.onaddtrack = handleRemoteStreamAdded;
+                    pc.onaddstream = handleRemoteStreamAdded;
                     pc.onremovestream = handleRemoteStreamRemoved;
                     console.log('Created RTCPeerConnnection');
-
-                    //Setup mouse data channel
-                         mouseDc = pc.createDataChannel(
-                         'mousePosition',
-                         {
-                             ordered: false,
-                             maxRetransmits: 0
-                             }
-                         );
-                    mouseDc.onerror = (error) => {
-                        console.log("Data Channel Error:", error);
-                    };
-                    mouseDc.onmessage = (event) => {
-                        console.log("Got Data Channel Message:", event.data);
-                        const split = event.data && event.data.split(',');
-                        cursor.style.left = split[0];
-                        cursor.style.top = split[1];
-                    };
-                    mouseDc.onopen = () => {
-                        mouseDc.send("Hello World!");
-                    };
-                    mouseDc.onclose = () => {
-                        console.log("The Data Channel is Closed");
-                    };
-                    //document.onmousemove = e => mouseDc.send(e.x + "," + e.y);
-
-                    //setup click data channel
-                    clickDc = pc.createDataChannel(
-                        'clickPosition',
-                        {
-                            ordered: false,
-                            maxRetransmits: 0
-                        }
-                    );
-                    clickDc.onerror = (error) => {
-                        console.log("Click Data Channel Error:", error);
-                    };
-                    clickDc.onmessage = (event) => {
-                        console.log("Click Got Data Channel Message:", event.data);
-                        const split = event.data && event.data.split(',');
-                        click(split[0], split[1]);
-                    };
-                    clickDc.onopen = () => {
-                        clickDc.send("Click Hello World!");
-                    };
-                    clickDc.onclose = () => {
-                        console.log("Click The Data Channel is Closed");
-                    };
-                    document.onClick = e => clickDc.send(e.clientX + "," + e.clientY);
-
                 } catch (e) {
                     console.log('Failed to create PeerConnection, exception: ' + e.message);
                     alert('Cannot create RTCPeerConnection object.');
@@ -299,17 +219,14 @@ const GameRoom = () => {
             }
 
             function onCreateSessionDescriptionError(error) {
+                debugger;
                 //trace('Failed to create session description: ' + error.toString());
             }
 
             function handleRemoteStreamAdded(event) {
-                debugger;
                 console.log('Remote stream added.');
                 remoteStream = event.stream;
                 remoteVideo.srcObject = remoteStream;
-                if (!isInitiator) {
-                    setIsGuest(true);
-                }
             }
 
             function handleRemoteStreamRemoved(event) {
