@@ -319,12 +319,14 @@ const GameRoom = () => {
         //const canvasElement = document.getElementById("c2canvas");
     }, []);
 
+    console.log('gamename: ', gamename);
+
     return (
         <Container>
             <MainArea>
                 <iframe
                     id={'gameIframe'}
-                    src={`/${gamename}/index.htm`} width={"100%"} height={"100%"}
+                    src={`/${gamename}/index.html`} width={"100%"} height={"100%"}
                     style={{ display: isGuest ? 'none' : 'initial', border: 'none' }}
                 />
                 {/*<video id={"localVideo"} autoPlay muted playsInline/>*/}
