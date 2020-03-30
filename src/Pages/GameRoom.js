@@ -24,6 +24,13 @@ const SideBar = styled.div`
     position: relative;
 `;
 
+const Mouse = styled.img`
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 20px;
+`;
+
 function click(x, y)
 {
     var ev = new MouseEvent('click', {
@@ -340,7 +347,7 @@ const GameRoom = () => {
                     </OTStreams>
                 </OTSession>
             </SideBar>
-            <img id="remoteCursor" style={{position: 'position: fixed;'}} />
+            <Mouse src="/mouse.png" id="remoteCursor" />
         </Container>
     );
 };
