@@ -6,5 +6,9 @@
     <mapping directory="$PROJECT_DIR$/public/BitBot" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/public/DrunkenViking" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/public/follow_me_javascript_simon_clone" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/public/hex-2048" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/public/hextris" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/public/infectors" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/public/orbium" vcs="Git" />
   </component>
 </project>
