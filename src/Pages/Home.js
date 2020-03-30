@@ -21,7 +21,7 @@ const HomeContainer = styled(Container)`
 
 const useStyles = makeStyles({
     root: {
-        maxWidth: 345,
+        width: 345,
         marginRight: 20,
         marginBottom: 20
     },
@@ -53,7 +53,9 @@ const GameCard = ({ name, thumbnail, description, link }) => {
                 <Button
                     size="small"
                     color="primary"
+                    variant={"contained"}
                     onClick={() => history.push(`/gameroom/${link}`)}
+                    style={{ margin: '0 auto', backgroundColor: 'black' }}
                 >
                     Create game room
                 </Button>
