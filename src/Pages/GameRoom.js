@@ -349,8 +349,8 @@ const GameRoom = () => {
                     src={`/${gamename}/index.htm`} width={"100%"} height={"100%"}
                     style={{ display: isGuest ? 'none' : 'initial', border: 'none' }}
                 />
-                <video id={"localVideo"} />
-                <video id={"remoteVideo"} />
+                <video id={"localVideo"} autoPlay muted playsInline/>
+                <video id={"remoteVideo"} autoPlay muted playsInline/>
             </MainArea>
             {/*<SideBar>*/}
             {/*    <OTSession apiKey={apiKey} sessionId={sessionId} token={token}>*/}
