@@ -112,6 +112,7 @@ const GameRoom = () => {
             socket.on('joined', function(room) {
                 customLog('joined: ' + room);
                 isChannelReady = true;
+                setIsGuest(true);
             });
 
             socket.on('log', function(array) {
@@ -152,7 +153,7 @@ const GameRoom = () => {
             console.log('Got stream from canvas');
 
             localStream = stream;
-            localVideo.srcObject = stream;
+            //localVideo.srcObject = stream;
             sendMessage('got user media');
             if (isInitiator) {
                 maybeStart();
@@ -168,6 +169,8 @@ const GameRoom = () => {
                     console.log('isInitiator', isInitiator);
                     if (isInitiator) {
                         doCall();
+                    } else {
+
                     }
                 }
             }
@@ -308,6 +311,10 @@ const GameRoom = () => {
             window.onbeforeunload = function() {
                 sendMessage('bye');
             };
+
+            return () => {
+                sendMessage('bye');
+            }
         });
         //const canvasElement = document.getElementById("c2canvas");
     }, []);
@@ -320,17 +327,17 @@ const GameRoom = () => {
                     src={`/${gamename}/index.htm`} width={"100%"} height={"100%"}
                     style={{ display: isGuest ? 'none' : 'initial', border: 'none' }}
                 />
-                <video id={"localVideo"} autoPlay muted playsInline/>
+                {/*<video id={"localVideo"} autoPlay muted playsInline/>*/}
                 <video id={"remoteVideo"} autoPlay muted playsInline/>
             </MainArea>
-            {/*<SideBar>*/}
-            {/*    <OTSession apiKey={apiKey} sessionId={sessionId} token={token}>*/}
-            {/*        <OTPublisher />*/}
-            {/*        <OTStreams>*/}
-            {/*            <OTSubscriber />*/}
-            {/*        </OTStreams>*/}
-            {/*    </OTSession>*/}
-            {/*</SideBar>*/}
+            <SideBar>
+                <OTSession apiKey={apiKey} sessionId={sessionId} token={token}>
+                    <OTPublisher />
+                    <OTStreams>
+                        <OTSubscriber />
+                    </OTStreams>
+                </OTSession>
+            </SideBar>
             <img id="remoteCursor" style={{position: 'position: fixed;'}} />
         </Container>
     );
