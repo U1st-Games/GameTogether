@@ -13,6 +13,7 @@ const Container = styled.div`
     width: 100vw;
     height: calc(100% - 64px);
     display: flex;
+    overflow: hidden;
 `;
 
 const MainArea = styled.div`
@@ -210,8 +211,6 @@ const GameRoom = () => {
                                     myIframe.contentWindow.document.dispatchEvent(event);
                                 }
 
-
-                                //119 97 115 100
                                 if (e.data === "119") {
                                     simulateKey(38);
                                 }
@@ -225,13 +224,6 @@ const GameRoom = () => {
                                     simulateKey(39);
                                 }
 
-
-                                // myIframe.contentWindow.document.dispatchEvent(
-                                //     new KeyboardEvent(
-                                //         'keydown',
-                                //         {key: 'ArrowRight'}
-                                //         )
-                                // );
                             }
                             if(channel.label === 'mousePosition') {
                                 const split = e.data && e.data.split(',');

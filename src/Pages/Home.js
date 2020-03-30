@@ -15,9 +15,15 @@ import Typography from '@material-ui/core/Typography';
 
 import { Container, GameInfo } from '../Shared';
 
+const HomeContainer = styled(Container)`
+    flex-wrap: wrap;
+`;
+
 const useStyles = makeStyles({
     root: {
         maxWidth: 345,
+        marginRight: 20,
+        marginBottom: 20
     },
 });
 
@@ -58,9 +64,9 @@ const GameCard = ({ name, thumbnail, description, link }) => {
 
 const Home = () => {
     return (
-        <Container>
+        <HomeContainer>
             {GameInfo.map(GameCard)}
-        </Container>
+        </HomeContainer>
     );
 };
 

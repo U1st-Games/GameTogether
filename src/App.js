@@ -29,29 +29,15 @@ import GameRoom from './Pages/GameRoom';
 
 import './App.css';
 
-const InnerContainer = styled.div`
-    max-width: 480px;
-    width: 100%;
-`;
-
-//Call related components
-const CallContainer = styled.div`
-    width: 100%;
-    height: calc(100% - 64px);
-`;
-
-const CallContainerLeft = styled.div`
-  width: 100%;
-  height: 100%;
+const MainContainer = styled.div`
+      background: url(https://wallpaperaccess.com/full/242332.jpg) no-repeat center center fixed; 
+  -webkit-background-size: cover;
+  -moz-background-size: cover;
+  -o-background-size: cover;
+  background-size: cover;
   
-  & > div {
-    height: 100%;
-  }
-`;
-
-const Gap = styled.div`
-    width: 100%;
-    height: 10px;
+  height: 100%;
+  width: 100%;
 `;
 
 const useStyles = makeStyles(theme => ({
@@ -88,8 +74,8 @@ function App() {
 
   //router
   return (
-          <>
-              <AppBar position="static">
+          <MainContainer>
+              <AppBar position="static" style={{ backgroundColor: 'black' }}>
                 <Toolbar>
                   <Typography variant="h6" className={classes.title}>
                       Game Together
@@ -110,7 +96,7 @@ function App() {
                   <GameRoom />
               </Route>
               </Switch>
-          </>
+          </MainContainer>
   );
 }
 
