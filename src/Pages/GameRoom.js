@@ -188,6 +188,15 @@ const GameRoom = () => {
                     pc.onicecandidate = handleIceCandidate;
                     pc.onaddstream = handleRemoteStreamAdded;
                     pc.onremovestream = handleRemoteStreamRemoved;
+                    pc.ondatachannel = ({channel}) => {
+                        channel.onmessage = e => {
+                            console.log(e.data);
+                            const split = e.data && e.data.split(',');
+                            cursor.style.left = split[0] + 'px';
+                            cursor.style.top = split[1] + 'px';
+                        }
+
+                    }
                     console.log('Created RTCPeerConnnection');
 
                     //Setup mouse data channel
@@ -209,11 +218,11 @@ const GameRoom = () => {
                     };
                     mouseDc.onopen = () => {
                         mouseDc.send("Hello World!");
+                        document.onmousemove = e => mouseDc.send(e.x + "," + e.y);
                     };
                     mouseDc.onclose = () => {
                         console.log("The Data Channel is Closed");
                     };
-                    //document.onmousemove = e => mouseDc.send(e.x + "," + e.y);
 
                     //setup click data channel
                     clickDc = pc.createDataChannel(
