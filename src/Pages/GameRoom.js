@@ -24,6 +24,30 @@ const SideBar = styled.div`
     position: relative;
 `;
 
+function getArrayWithLimitedLength(length) {
+    var array = new Array();
+
+    array.push = function () {
+        if (this.length >= length) {
+            this.shift();
+        }
+        return Array.prototype.push.apply(this,arguments);
+    };
+
+    return array;
+}
+const logArray = getArrayWithLimitedLength(5);
+
+function customLog(message) {
+    console.log('customlog: ', message);
+    logArray.push(message);
+    logArray.forEach((x, idx) => {
+        if(x){
+            document.getElementById('log' + (idx + 1)).innerText = x;
+        }
+    })
+}
+
 function click(x, y)
 {
     var ev = new MouseEvent('click', {
@@ -80,33 +104,10 @@ const GameRoom = () => {
             let isInitiator = false;
             let isStarted = false;
 
-            function getArrayWithLimitedLength(length) {
-                var array = new Array();
-
-                array.push = function () {
-                    if (this.length >= length) {
-                        this.shift();
-                    }
-                    return Array.prototype.push.apply(this,arguments);
-                };
-
-                return array;
-            }
-            const logArray = getArrayWithLimitedLength(5);
-
-            function customLog(message) {
-                console.log('customlog: ', message);
-                logArray.push(message);
-                logArray.forEach((x, idx) => {
-                    if(x){
-                        document.getElementById('log' + (idx + 1)).innerText = x;
-                    }
-                })
-            }
-
             //Begin socket.io --------------------------------------------
             let room = 'foo';
             let socket = window.io.connect('https://rust-sandpaper.glitch.me');
+
             if (room !== '') {
                 socket.emit('create or join', room);
                 console.log('Attempted to create or  join room', room);
@@ -115,16 +116,19 @@ const GameRoom = () => {
             socket.on('created', function(room) {
                 console.log('Created room ' + room);
                 isInitiator = true;
+
             });
 
             socket.on('full', function(room) {
                 console.log('Room ' + room + ' is full');
             });
+            //Initiator will end here
 
             socket.on('join', function (room){
                 console.log('Another peer made a request to join room ' + room);
                 console.log('This peer is the initiator of room ' + room + '!');
                 isChannelReady = true;
+                maybeStart();
             });
 
             socket.on('joined', function(room) {
@@ -154,6 +158,8 @@ const GameRoom = () => {
                     doAnswer();
                 } else if (message.type === 'answer' && isStarted) {
                     pc.setRemoteDescription(new RTCSessionDescription(message));
+                    //pc.addStream(localStream);
+                    debugger;
                 } else if (message.type === 'candidate' && isStarted) {
                     var candidate = new RTCIceCandidate({
                         sdpMLineIndex: message.label,
@@ -170,22 +176,23 @@ const GameRoom = () => {
             console.log('Got stream from canvas');
 
             localStream = stream;
-            //localVideo.srcObject = stream;
-            sendMessage('got user media');
-            if (isInitiator) {
-                maybeStart();
-            }
+            localVideo.srcObject = stream;
+            //sendMessage('got user media');
+            // if (isInitiator) {
+            //     maybeStart();
+            // }
 
             function maybeStart() {
                 console.log('>>>>>>> maybeStart() ', isStarted, localStream, isChannelReady);
                 if (!isStarted && typeof localStream !== 'undefined' && isChannelReady) {
                     console.log('>>>>>> creating peer connection');
                     createPeerConnection();
-                    pc.addStream(localStream);
+
                     isStarted = true;
                     console.log('isInitiator', isInitiator);
                     if (isInitiator) {
                         doCall();
+                        pc.addStream(localStream);
                     }
                 }
             }
@@ -194,7 +201,7 @@ const GameRoom = () => {
                 try {
                     pc = new RTCPeerConnection(null);
                     pc.onicecandidate = handleIceCandidate;
-                    pc.onaddstream = handleRemoteStreamAdded;
+                    pc.onaddtrack = handleRemoteStreamAdded;
                     pc.onremovestream = handleRemoteStreamRemoved;
                     console.log('Created RTCPeerConnnection');
 
@@ -292,15 +299,14 @@ const GameRoom = () => {
             }
 
             function onCreateSessionDescriptionError(error) {
-                debugger;
                 //trace('Failed to create session description: ' + error.toString());
             }
 
             function handleRemoteStreamAdded(event) {
+                debugger;
                 console.log('Remote stream added.');
                 remoteStream = event.stream;
                 remoteVideo.srcObject = remoteStream;
-                debugger;
                 if (!isInitiator) {
                     setIsGuest(true);
                 }
@@ -343,6 +349,7 @@ const GameRoom = () => {
                     src={`/${gamename}/index.htm`} width={"100%"} height={"100%"}
                     style={{ display: isGuest ? 'none' : 'initial', border: 'none' }}
                 />
+                <video id={"localVideo"} />
                 <video id={"remoteVideo"} />
             </MainArea>
             {/*<SideBar>*/}
