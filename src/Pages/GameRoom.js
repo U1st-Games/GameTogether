@@ -195,23 +195,6 @@ const GameRoom = () => {
                             if(channel.label === 'keyPress') {
                                 console.log('keyPress: ', e.data);
 
-                                // var keyboardEvent = document.createEvent("KeyboardEvent");
-                                // var initMethod = typeof keyboardEvent.initKeyboardEvent !== 'undefined' ? "initKeyboardEvent" : "initKeyEvent";
-                                // keyboardEvent[initMethod](
-                                //     "keypress", // event type: keydown, keyup, keypress
-                                //     true,      // bubbles
-                                //     true,      // cancelable
-                                //     window,    // view: should be window
-                                //     false,     // ctrlKey
-                                //     false,     // altKey
-                                //     false,     // shiftKey
-                                //     false,     // metaKey
-                                //     e.data,        // keyCode: unsigned long - the virtual key code, else 0
-                                //     0          // charCode: unsigned long - the Unicode character associated with the depressed key, else 0
-                                // );
-                                // document.dispatchEvent(keyboardEvent);
-
-
                                 function simulateKey (keyCode, type, modifiers) {
                                     var evtName = (typeof(type) === "string") ? "key" + type : "keydown";
                                     var modifier = (typeof(modifiers) === "object") ? modifier : {};
@@ -227,14 +210,28 @@ const GameRoom = () => {
                                     myIframe.contentWindow.document.dispatchEvent(event);
                                 }
 
-                                simulateKey(39);
 
-                                myIframe.contentWindow.document.dispatchEvent(
-                                    new KeyboardEvent(
-                                        'keydown',
-                                        {key: 'ArrowRight'}
-                                        )
-                                );
+                                //119 97 115 100
+                                if (e.data === "119") {
+                                    simulateKey(38);
+                                }
+                                if (e.data === "97") {
+                                    simulateKey(37);
+                                }
+                                if (e.data === "115") {
+                                    simulateKey(40);
+                                }
+                                if (e.data === "100") {
+                                    simulateKey(39);
+                                }
+
+
+                                // myIframe.contentWindow.document.dispatchEvent(
+                                //     new KeyboardEvent(
+                                //         'keydown',
+                                //         {key: 'ArrowRight'}
+                                //         )
+                                // );
                             }
                             if(channel.label === 'mousePosition') {
                                 const split = e.data && e.data.split(',');
