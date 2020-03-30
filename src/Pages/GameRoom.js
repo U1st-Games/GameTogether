@@ -191,12 +191,58 @@ const GameRoom = () => {
                     pc.ondatachannel = ({channel}) => {
                         channel.onmessage = e => {
                             console.log(e.data);
-                            const split = e.data && e.data.split(',');
-                            cursor.style.left = split[0] + 'px';
-                            cursor.style.top = split[1] + 'px';
-                        }
 
-                    }
+                            if(channel.label === 'keyPress') {
+                                console.log('keyPress: ', e.data);
+
+                                // var keyboardEvent = document.createEvent("KeyboardEvent");
+                                // var initMethod = typeof keyboardEvent.initKeyboardEvent !== 'undefined' ? "initKeyboardEvent" : "initKeyEvent";
+                                // keyboardEvent[initMethod](
+                                //     "keypress", // event type: keydown, keyup, keypress
+                                //     true,      // bubbles
+                                //     true,      // cancelable
+                                //     window,    // view: should be window
+                                //     false,     // ctrlKey
+                                //     false,     // altKey
+                                //     false,     // shiftKey
+                                //     false,     // metaKey
+                                //     e.data,        // keyCode: unsigned long - the virtual key code, else 0
+                                //     0          // charCode: unsigned long - the Unicode character associated with the depressed key, else 0
+                                // );
+                                // document.dispatchEvent(keyboardEvent);
+
+
+                                function simulateKey (keyCode, type, modifiers) {
+                                    var evtName = (typeof(type) === "string") ? "key" + type : "keydown";
+                                    var modifier = (typeof(modifiers) === "object") ? modifier : {};
+
+                                    var event = myIframe.contentWindow.document.createEvent("HTMLEvents");
+                                    event.initEvent(evtName, true, false);
+                                    event.keyCode = keyCode;
+
+                                    for (var i in modifiers) {
+                                        event[i] = modifiers[i];
+                                    }
+
+                                    myIframe.contentWindow.document.dispatchEvent(event);
+                                }
+
+                                simulateKey(39);
+
+                                myIframe.contentWindow.document.dispatchEvent(
+                                    new KeyboardEvent(
+                                        'keydown',
+                                        {key: 'ArrowRight'}
+                                        )
+                                );
+                            }
+                            if(channel.label === 'mousePosition') {
+                                const split = e.data && e.data.split(',');
+                                cursor.style.left = split[0] + 'px';
+                                cursor.style.top = split[1] + 'px';
+                            }
+                        }
+                    };
                     console.log('Created RTCPeerConnnection');
 
                     //Setup mouse data channel
@@ -226,7 +272,7 @@ const GameRoom = () => {
 
                     //setup click data channel
                     clickDc = pc.createDataChannel(
-                        'clickPosition',
+                        'keyPress',
                         {
                             ordered: false,
                             maxRetransmits: 0
@@ -245,6 +291,11 @@ const GameRoom = () => {
                     };
                     clickDc.onclose = () => {
                         console.log("Click The Data Channel is Closed");
+                    };
+                    document.onkeypress = function (e) {
+                        e = e || window.event;
+                        // use e.keyCode
+                        clickDc.send(e.keyCode);
                     };
                     document.onClick = e => clickDc.send(e.clientX + "," + e.clientY);
                 } catch (e) {
