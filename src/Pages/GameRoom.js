@@ -40,7 +40,9 @@ const GameRoom = () => {
     const isGuest = useWebRTCCanvasShare(
         'gameIframe',
         'remoteCursor',
-        'remoteVideo');
+        'remoteVideo',
+        'https://rust-sandpaper.glitch.me',
+    );
 
     return (
         <Container>
