@@ -1,4 +1,4 @@
-import {useEffect} from "react";
+import {useEffect, useState} from "react";
 
 function click(x, y)
 {
@@ -15,16 +15,17 @@ function click(x, y)
     el.dispatchEvent(ev);
 }
 
-const useWebRTCCanvasShare = (setIsGuest) => {
+const useWebRTCCanvasShare = (iframeId, remoteCursorId, remoteVideoId) => {
+    const [ isGuest, setIsGuest ] = useState(false);
+
     useEffect(() => {
         //const canvass = document.querySelector('canvas');
-        var myIframe = document.getElementById('gameIframe');
+        var myIframe = document.getElementById(iframeId);
         myIframe.addEventListener("load", function() {
             const canvass = myIframe.contentWindow.document.getElementById("myCanvas");
 
-            let localVideo = document.querySelector('#localVideo');
-            let remoteVideo = document.querySelector('#remoteVideo');
-            let cursor = document.querySelector('#remoteCursor');
+            let remoteVideo = document.querySelector('#' + remoteVideoId);
+            let cursor = document.querySelector('#' + remoteCursorId);
 
             let localStream;
             let remoteStream;
@@ -328,6 +329,8 @@ const useWebRTCCanvasShare = (setIsGuest) => {
         });
         //const canvasElement = document.getElementById("c2canvas");
     }, []);
+
+    return isGuest;
 };
 
 export default useWebRTCCanvasShare;

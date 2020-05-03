@@ -36,11 +36,11 @@ const Mouse = styled.img`
 
 const GameRoom = () => {
     const { gamename } = useParams();
-    const [ isGuest, setIsGuest ] = useState(false);
 
-    useWebRTCCanvasShare(setIsGuest);
-
-    console.log('gamename: ', gamename);
+    const isGuest = useWebRTCCanvasShare(
+        'gameIframe',
+        'remoteCursor',
+        'remoteVideo');
 
     return (
         <Container>
