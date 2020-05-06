@@ -21,6 +21,8 @@ function click(x: number, y: number) {
     el?.dispatchEvent(ev);
 }
 
+
+
 interface Return {
     isGuest: boolean;
     start: () => void;
@@ -34,6 +36,7 @@ const useWebRTCCanvasShare = (
     roomid: string,
     startOnLoad: boolean = true,
 ): Return => {
+    const [hasInit, setHasInit] = useState(false);
     const [isGuest, setIsGuest] = useState(false);
     const [hasStart, setHasStart] = useState(startOnLoad);
 
@@ -44,7 +47,8 @@ const useWebRTCCanvasShare = (
     };
 
     useEffect(() => {
-        if (hasStart) {
+        if (hasStart && !hasInit) {
+            setHasInit(true);
             var myIframe = document.getElementById(iframeId) as HTMLIFrameElement;
             myIframe.addEventListener('load', function () {
                 const canvass = myIframe?.contentWindow?.document.getElementById('myCanvas');
@@ -372,7 +376,7 @@ const useWebRTCCanvasShare = (
                 };
             });
         }
-    }, [ hasStart ]);
+    }, [ hasStart, hasInit ]);
 
     return { isGuest, start };
 };
