@@ -41,8 +41,8 @@ const GameRoom = () => {
         'gameIframe',
         'remoteCursor',
         'remoteVideo',
-        roomid,
         'https://rust-sandpaper.glitch.me',
+        roomid,
     );
 
     return (
