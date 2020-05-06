@@ -35,12 +35,13 @@ const Mouse = styled.img`
 `;
 
 const GameRoom = () => {
-    const { gamename } = useParams();
+    const { gamename, roomid } = useParams();
 
-    const isGuest = useWebRTCCanvasShare(
+    const { isGuest } = useWebRTCCanvasShare(
         'gameIframe',
         'remoteCursor',
         'remoteVideo',
+        roomid,
         'https://rust-sandpaper.glitch.me',
     );
 

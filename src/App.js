@@ -3,26 +3,13 @@ import {
   BrowserRouter as Router,
   Switch,
   Route,
-  Link,
-  useHistory,
 } from "react-router-dom";
 import styled from 'styled-components';
-import uid from 'uid';
 
 import Typography from '@material-ui/core/Typography';
-import Button from '@material-ui/core/Button';
-import FormGroup from '@material-ui/core/FormGroup';
-import FormControlLabel from '@material-ui/core/FormControlLabel';
-import Checkbox from '@material-ui/core/Checkbox';
-import Card from '@material-ui/core/Card';
-import CardActionArea from '@material-ui/core/CardActionArea';
-import CardActions from '@material-ui/core/CardActions';
-import CardContent from '@material-ui/core/CardContent';
 import {makeStyles} from '@material-ui/core/styles';
 import AppBar from '@material-ui/core/AppBar';
 import Toolbar from '@material-ui/core/Toolbar';
-
-import { Container } from './Shared';
 
 import Home from './Pages/Home';
 import GameRoom from './Pages/GameRoom';
@@ -81,7 +68,7 @@ function App() {
                       Game Together
                   </Typography>
                     <Switch>
-                        <Route exact path="/gameroom/:gamename">
+                        <Route exact path="/gameroom/:gamename/:roomid">
                             {`Invite others with this link: ${window.location}`}
                         </Route>
                     </Switch>
@@ -89,12 +76,12 @@ function App() {
               </AppBar>
 
               <Switch>
-                <Route exact path="/">
-                    <Home />
-                </Route>
-              <Route exact path="/gameroom/:gamename">
-                  <GameRoom />
-              </Route>
+                  <Route exact path="/">
+                      <Home />
+                  </Route>
+                  <Route exact path="/gameroom/:gamename/:roomid">
+                      <GameRoom />
+                  </Route>
               </Switch>
           </MainContainer>
   );

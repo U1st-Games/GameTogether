@@ -3,6 +3,7 @@ import styled from 'styled-components';
 import {
     useHistory,
 } from "react-router-dom";
+import { v4 as uuidv4 } from 'uuid';
 
 import { makeStyles } from '@material-ui/core/styles';
 import Card from '@material-ui/core/Card';
@@ -54,7 +55,10 @@ const GameCard = ({ name, thumbnail, description, link }) => {
                     size="small"
                     color="primary"
                     variant={"contained"}
-                    onClick={() => history.push(`/gameroom/${link}`)}
+                    onClick={() => {
+                        const roomid = uuidv4();
+                        history.push(`/gameroom/${link}/${roomid}`)
+                    }}
                     style={{ margin: '0 auto', backgroundColor: 'black' }}
                 >
                     Create game room
