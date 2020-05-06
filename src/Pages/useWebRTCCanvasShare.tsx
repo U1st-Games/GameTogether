@@ -22,7 +22,6 @@ function click(x: number, y: number) {
 }
 
 
-
 interface Return {
     isGuest: boolean;
     start: () => void;
@@ -49,12 +48,14 @@ const useWebRTCCanvasShare = (
     useEffect(() => {
         if (hasStart && !hasInit) {
             setHasInit(true);
-            var myIframe = document.getElementById(iframeId) as HTMLIFrameElement;
-            myIframe.addEventListener('load', function () {
+
+            const myIframe = document.getElementById(iframeId) as HTMLIFrameElement;
+
+            const onIframeLoaded = () => {
                 const canvass = myIframe?.contentWindow?.document.getElementById('myCanvas');
 
-                let remoteVideo = document.querySelector('#' + remoteVideoId);
-                let cursor = document.querySelector('#' + remoteCursorId);
+                const remoteVideo = document.querySelector('#' + remoteVideoId);
+                const cursor = document.querySelector('#' + remoteCursorId);
 
                 let localStream: MediaStream;
                 let remoteStream;
@@ -62,12 +63,6 @@ const useWebRTCCanvasShare = (
                 var pc: RTCPeerConnection;
                 var mouseDc: RTCDataChannel;
                 var clickDc: RTCDataChannel;
-                var keypressDc;
-
-                const offerOptions = {
-                    offerToReceiveAudio: 1,
-                    offerToReceiveVideo: 1,
-                };
 
                 let isChannelReady = false;
                 let isInitiator = false;
@@ -77,11 +72,16 @@ const useWebRTCCanvasShare = (
                 let room = roomid;
                 //@ts-ignore
                 let socket = window.io.connect(socketUrl);
-                if (room !== '') {
-                    socket.emit('create or join', room);
-                    //@ts-ignore
-                    console.log('Attempted to create or  join room', room);
+
+                if (!roomid) {
+                    console.error('no roomid');
+                    return;
                 }
+                ;
+
+                socket.emit('create or join', room);
+                //@ts-ignore
+                console.log('Attempted to create or  join room', room);
 
                 socket.on('created', function (room: string) {
                     console.log('Created room ' + room);
@@ -374,11 +374,11 @@ const useWebRTCCanvasShare = (
                 return () => {
                     sendMessage('bye');
                 };
-            });
+            };
+            myIframe.addEventListener('load', onIframeLoaded);
         }
-    }, [ hasStart, hasInit ]);
-
-    return { isGuest, start };
+    }, [hasStart, hasInit]);
+    return {isGuest, start};
 };
 
 export default useWebRTCCanvasShare;
