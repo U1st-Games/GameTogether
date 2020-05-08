@@ -180,10 +180,9 @@ const useWebRTCCanvasShare = (
 
                 socket.on('joined', function (room: string) {
                     console.log('joined: ' + room);
-                    initGuest(socket, maybeStart, peerConnections, pc, isStarted, doAnswer);
                     isChannelReady = true;
                     setIsGuest(true);
-                    sendMessage('got user media');
+                    socket.emit('gotUserMedia');
                 });
 
                 socket.on('log', function (array: any) {
@@ -195,14 +194,16 @@ const useWebRTCCanvasShare = (
                     socket.emit('message', message);
                 }
 
+                socket.on('gotUserMedia', function() {
+                    maybeStart();
+                });
+
                 // This client receives a message
                 //@ts-ignore
                 socket.on('message', function (message) {
                     //@ts-ignore
                     console.log('Client received message:', message);
-                    if (message === 'got user media') {
-                        maybeStart();
-                    } else if (message.type === 'offer') {
+                    if (message.type === 'offer') {
                         if (!isInitiator && !isStarted) {
                             maybeStart();
                         }
