@@ -146,6 +146,7 @@ const useWebRTCCanvasShare = (
                 socket.on('created', function (room: string) {
                     console.log('Created room ' + room);
                     isInitiator = true;
+                    //sendMessage('got user media');
                 });
 
                 socket.on('full', function (room: string) {
@@ -162,6 +163,7 @@ const useWebRTCCanvasShare = (
                     console.log('joined: ' + room);
                     isChannelReady = true;
                     setIsGuest(true);
+                    sendMessage('got user media');
                 });
 
                 socket.on('log', function (array: any) {
@@ -205,7 +207,6 @@ const useWebRTCCanvasShare = (
                 localStream = canvass.captureStream();
                 console.log('Got stream from canvas');
 
-                sendMessage('got user media');
                 if (isInitiator) {
                     maybeStart();
                 }
