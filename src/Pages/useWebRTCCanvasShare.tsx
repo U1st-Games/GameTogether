@@ -83,9 +83,17 @@ const getPeerConnection = (peerConnections: RTCPeerConnection[], peerConnection:
     }
 };
 
-const initHost = (socket: any, maybeStart: any, pc:any) => {
+const initHost = (
+    socket: any,
+    Start: any,
+    pc:any,
+    localStream: any,
+    isStarted: any,
+    isInitiator: any,
+    doCall: any
+) => {
     socket.on('gotUserMedia', function() {
-        maybeStart();
+        Start();
     });
     socket.on('answer', function(message: any) {
         console.log('answer');
@@ -95,17 +103,12 @@ const initHost = (socket: any, maybeStart: any, pc:any) => {
 
 const initGuest = (
     socket: any,
-    maybeStart: any,
     peerConnections: any,
     pc: any,
     isStarted: any,
     doAnswer: any
 ) => {
     socket.on('offer', function(message: any) {
-        console.log('offer');
-        if (!isStarted) {
-            maybeStart();
-        }
         console.log('offer message: ', message);
         getPeerConnection(peerConnections, pc, message)?.setRemoteDescription(new RTCSessionDescription(message));
         doAnswer();
@@ -174,7 +177,7 @@ const useWebRTCCanvasShare = (
 
                 socket.on('created', function (room: string) {
                     console.log('Created room ' + room);
-                    initHost(socket, maybeStart, pc);
+                    initHost(socket, Start, pc, localStream, isStarted, isInitiator, doCall);
                     isInitiator = true;
                 });
 
@@ -190,7 +193,7 @@ const useWebRTCCanvasShare = (
 
                 socket.on('joined', function (room: string) {
                     console.log('joined: ' + room);
-                    initGuest(socket, maybeStart, peerConnections, pc, isStarted, doAnswer);
+                    initGuest(socket, peerConnections, pc, isStarted, doAnswer);
                     isChannelReady = true;
                     setIsGuest(true);
                     socket.emit('gotUserMedia');
@@ -226,19 +229,12 @@ const useWebRTCCanvasShare = (
                 localStream = canvass.captureStream();
                 console.log('Got stream from canvas');
 
-                function maybeStart() {
-                    console.log('>>>>>>> maybeStart() ', isStarted, localStream, isChannelReady);
-                    if (!isStarted && typeof localStream !== 'undefined' && isChannelReady) {
-                        console.log('>>>>>> creating peer connection');
-                        //@ts-ignore
-                        pc.addStream(localStream);
-                        isStarted = true;
-                        console.log('isInitiator', isInitiator);
-                        if (isInitiator) {
-                            doCall();
-                        } else {
-                        }
-                    }
+                function Start() {
+                    //@ts-ignore
+                    pc.addStream(localStream);
+                    isStarted = true;
+                    console.log('isInitiator', isInitiator);
+                    doCall();
                 }
 
                 function createPeerConnection() {
