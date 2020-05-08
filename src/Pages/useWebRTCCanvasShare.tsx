@@ -101,6 +101,15 @@ const initGuest = (
     isStarted: any,
     doAnswer: any
 ) => {
+    socket.on('offer', function(message: any) {
+        console.log('offer');
+        if (!isStarted) {
+            maybeStart();
+        }
+        console.log('offer message: ', message);
+        getPeerConnection(peerConnections, pc, message)?.setRemoteDescription(new RTCSessionDescription(message));
+        doAnswer();
+    });
 };
 
 interface Return {
@@ -181,6 +190,7 @@ const useWebRTCCanvasShare = (
 
                 socket.on('joined', function (room: string) {
                     console.log('joined: ' + room);
+                    initGuest(socket, maybeStart, peerConnections, pc, isStarted, doAnswer);
                     isChannelReady = true;
                     setIsGuest(true);
                     socket.emit('gotUserMedia');
@@ -194,16 +204,6 @@ const useWebRTCCanvasShare = (
                     console.log('Client sending message: ', message);
                     socket.emit('message', message);
                 }
-
-                socket.on('offer', function(message: any) {
-                    console.log('offer');
-                    if (!isInitiator && !isStarted) {
-                        maybeStart();
-                    }
-                    console.log('offer message: ', message);
-                    getPeerConnection(peerConnections, pc, message)?.setRemoteDescription(new RTCSessionDescription(message));
-                    doAnswer();
-                });
 
                 // This client receives a message
                 //@ts-ignore
