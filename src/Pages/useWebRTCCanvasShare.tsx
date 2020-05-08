@@ -21,6 +21,61 @@ function click(x: number, y: number) {
     el?.dispatchEvent(ev);
 }
 
+const createMouseDataChannel = (pc: RTCPeerConnection) => {
+    const mouseDc = pc.createDataChannel('mousePosition', {
+        ordered: false,
+        maxRetransmits: 0,
+    });
+    mouseDc.onerror = error => {
+        console.log('Data Channel Error:', error);
+    };
+    mouseDc.onmessage = event => {
+        console.log('Got Data Channel Message:', event.data);
+        const split = event.data && event.data.split(',');
+        //@ts-ignore
+        cursor.style.left = split[0];
+        //@ts-ignore
+        cursor.style.top = split[1];
+    };
+    mouseDc.onopen = () => {
+        mouseDc.send('Hello World!');
+        document.onmousemove = e => mouseDc.send(e.x + ',' + e.y);
+    };
+    mouseDc.onclose = () => {
+        console.log('The Data Channel is Closed');
+    };
+};
+
+const createKeypressDataChannel = (pc: RTCPeerConnection) => {
+    //setup click data channel
+    const clickDc = pc.createDataChannel('keyPress', {
+        ordered: false,
+        maxRetransmits: 0,
+    });
+    clickDc.onerror = error => {
+        console.log('Click Data Channel Error:', error);
+    };
+    clickDc.onmessage = event => {
+        console.log('Click Got Data Channel Message:', event.data);
+        const split = event.data && event.data.split(',');
+        click(split[0], split[1]);
+    };
+    clickDc.onopen = () => {
+        clickDc.send('Click Hello World!');
+    };
+    clickDc.onclose = () => {
+        console.log('Click The Data Channel is Closed');
+    };
+    document.onkeypress = function (e) {
+        //@ts-ignore
+        e = e || window.event;
+        // use e.keyCode
+        //@ts-ignore
+        clickDc.send(e.keyCode);
+    };
+    //@ts-ignore
+    document.onClick = e => clickDc.send(e.clientX + ',' + e.clientY);
+};
 
 interface Return {
     isGuest: boolean;
@@ -61,7 +116,6 @@ const useWebRTCCanvasShare = (
                 let remoteStream;
 
                 var pc: RTCPeerConnection;
-                var mouseDc: RTCDataChannel;
                 var clickDc: RTCDataChannel;
 
                 let isChannelReady = false;
@@ -141,11 +195,9 @@ const useWebRTCCanvasShare = (
                 //End socket.io -----------------------------------------------------------
 
                 //@ts-ignore
-                const stream = canvass.captureStream();
+                localStream = canvass.captureStream();
                 console.log('Got stream from canvas');
 
-                localStream = stream;
-                //localVideo.srcObject = stream;
                 sendMessage('got user media');
                 if (isInitiator) {
                     maybeStart();
@@ -231,58 +283,9 @@ const useWebRTCCanvasShare = (
                         };
                         console.log('Created RTCPeerConnnection');
 
-                        //Setup mouse data channel
-                        mouseDc = pc.createDataChannel('mousePosition', {
-                            ordered: false,
-                            maxRetransmits: 0,
-                        });
-                        mouseDc.onerror = error => {
-                            console.log('Data Channel Error:', error);
-                        };
-                        mouseDc.onmessage = event => {
-                            console.log('Got Data Channel Message:', event.data);
-                            const split = event.data && event.data.split(',');
-                            //@ts-ignore
-                            cursor.style.left = split[0];
-                            //@ts-ignore
-                            cursor.style.top = split[1];
-                        };
-                        mouseDc.onopen = () => {
-                            mouseDc.send('Hello World!');
-                            document.onmousemove = e => mouseDc.send(e.x + ',' + e.y);
-                        };
-                        mouseDc.onclose = () => {
-                            console.log('The Data Channel is Closed');
-                        };
+                        createMouseDataChannel(pc);
+                        createKeypressDataChannel(pc);
 
-                        //setup click data channel
-                        clickDc = pc.createDataChannel('keyPress', {
-                            ordered: false,
-                            maxRetransmits: 0,
-                        });
-                        clickDc.onerror = error => {
-                            console.log('Click Data Channel Error:', error);
-                        };
-                        clickDc.onmessage = event => {
-                            console.log('Click Got Data Channel Message:', event.data);
-                            const split = event.data && event.data.split(',');
-                            click(split[0], split[1]);
-                        };
-                        clickDc.onopen = () => {
-                            clickDc.send('Click Hello World!');
-                        };
-                        clickDc.onclose = () => {
-                            console.log('Click The Data Channel is Closed');
-                        };
-                        document.onkeypress = function (e) {
-                            //@ts-ignore
-                            e = e || window.event;
-                            // use e.keyCode
-                            //@ts-ignore
-                            clickDc.send(e.keyCode);
-                        };
-                        //@ts-ignore
-                        document.onClick = e => clickDc.send(e.clientX + ',' + e.clientY);
                     } catch (e) {
                         console.log('Failed to create PeerConnection, exception: ' + e.message);
                         alert('Cannot create RTCPeerConnection object.');
