@@ -83,6 +83,60 @@ const getPeerConnection = (peerConnections: RTCPeerConnection[], peerConnection:
     }
 };
 
+const onDataChannelHandler = (myIframe: HTMLIFrameElement, cursor: Element) => ({ channel }: { channel: any }) => {
+    channel.onmessage = (e: any) => {
+        console.log(e.data);
+
+        if (channel.label === 'keyPress') {
+            console.log('keyPress: ', e.data);
+
+            //@ts-ignore
+            function simulateKey(keyCode, type, modifiers) {
+                var evtName = typeof type === 'string' ? 'key' + type : 'keydown';
+                //@ts-ignore
+                var modifier = typeof modifiers === 'object' ? modifier : {};
+
+                //@ts-ignore
+                var event = myIframe.contentWindow.document.createEvent('HTMLEvents');
+                event.initEvent(evtName, true, false);
+                //@ts-ignore
+                event.keyCode = keyCode;
+
+                for (var i in modifiers) {
+                    //@ts-ignore
+                    event[i] = modifiers[i];
+                }
+                //@ts-ignore
+                myIframe.contentWindow.document.dispatchEvent(event);
+            }
+
+            if (e.data === '119') {
+                //@ts-ignore
+                simulateKey(38);
+            }
+            if (e.data === '97') {
+                //@ts-ignore
+                simulateKey(37);
+            }
+            if (e.data === '115') {
+                //@ts-ignore
+                simulateKey(40);
+            }
+            if (e.data === '100') {
+                //@ts-ignore
+                simulateKey(39);
+            }
+        }
+        if (channel.label === 'mousePosition') {
+            const split = e.data && e.data.split(',');
+            //@ts-ignore
+            cursor.style.left = split[0] + 'px';
+            //@ts-ignore
+            cursor.style.top = split[1] + 'px';
+        }
+    };
+};
+
 const initHost = (
     socket: any,
     Start: any,
@@ -138,6 +192,8 @@ const useWebRTCCanvasShare = (
     };
 
     useEffect(() => {
+        const cursor = document.querySelector('#' + remoteCursorId);
+
         if (hasStart && !hasInit) {
             setHasInit(true);
 
@@ -149,7 +205,6 @@ const useWebRTCCanvasShare = (
                 const canvass = myIframe?.contentWindow?.document.getElementById('myCanvas');
 
                 const remoteVideo = document.querySelector('#' + remoteVideoId);
-                const cursor = document.querySelector('#' + remoteCursorId);
 
                 let localStream: MediaStream;
                 let remoteStream;
@@ -246,59 +301,14 @@ const useWebRTCCanvasShare = (
                         pc.onaddstream = handleRemoteStreamAdded;
                         //@ts-ignore
                         pc.onremovestream = handleRemoteStreamRemoved;
-                        pc.ondatachannel = ({channel}) => {
-                            channel.onmessage = e => {
-                                console.log(e.data);
 
-                                if (channel.label === 'keyPress') {
-                                    console.log('keyPress: ', e.data);
+                        //@ts-ignore
+                        pc.ondatachannel = onDataChannelHandler(myIframe, cursor);
 
-                                    //@ts-ignore
-                                    function simulateKey(keyCode, type, modifiers) {
-                                        var evtName = typeof type === 'string' ? 'key' + type : 'keydown';
-                                        //@ts-ignore
-                                        var modifier = typeof modifiers === 'object' ? modifier : {};
-
-                                        //@ts-ignore
-                                        var event = myIframe.contentWindow.document.createEvent('HTMLEvents');
-                                        event.initEvent(evtName, true, false);
-                                        //@ts-ignore
-                                        event.keyCode = keyCode;
-
-                                        for (var i in modifiers) {
-                                            //@ts-ignore
-                                            event[i] = modifiers[i];
-                                        }
-                                        //@ts-ignore
-                                        myIframe.contentWindow.document.dispatchEvent(event);
-                                    }
-
-                                    if (e.data === '119') {
-                                        //@ts-ignore
-                                        simulateKey(38);
-                                    }
-                                    if (e.data === '97') {
-                                        //@ts-ignore
-                                        simulateKey(37);
-                                    }
-                                    if (e.data === '115') {
-                                        //@ts-ignore
-                                        simulateKey(40);
-                                    }
-                                    if (e.data === '100') {
-                                        //@ts-ignore
-                                        simulateKey(39);
-                                    }
-                                }
-                                if (channel.label === 'mousePosition') {
-                                    const split = e.data && e.data.split(',');
-                                    //@ts-ignore
-                                    cursor.style.left = split[0] + 'px';
-                                    //@ts-ignore
-                                    cursor.style.top = split[1] + 'px';
-                                }
-                            };
-                        };
+                        if(cursor) {
+                        } else {
+                            console.error('cursor does not exist');
+                        }
 
                         console.log('Created RTCPeerConnnection');
                         createMouseDataChannel(pc);
