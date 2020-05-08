@@ -138,7 +138,6 @@ const useWebRTCCanvasShare = (
 
                 const peerConnections: RTCPeerConnection[] = [];
                 var pc: RTCPeerConnection;
-                var clickDc: RTCDataChannel;
 
                 let isChannelReady = false;
                 let isInitiator = false;
@@ -190,21 +189,27 @@ const useWebRTCCanvasShare = (
                     socket.emit('message', message);
                 }
 
+                socket.on('offer', function(message: any) {
+                    console.log('offer');
+                    if (!isInitiator && !isStarted) {
+                        maybeStart();
+                    }
+                    console.log('offer message: ', message);
+                    getPeerConnection(peerConnections, pc, message)?.setRemoteDescription(new RTCSessionDescription(message));
+                    doAnswer();
+                });
+
+                socket.on('answer', function(message: any) {
+                    console.log('answer');
+                    pc.setRemoteDescription(new RTCSessionDescription(message));
+                });
+
                 // This client receives a message
                 //@ts-ignore
                 socket.on('message', function (message) {
                     //@ts-ignore
                     console.log('Client received message:', message);
-                    if (message.type === 'offer') {
-                        if (!isInitiator && !isStarted) {
-                            maybeStart();
-                        }
-                        console.log('offer message: ', message);
-                        getPeerConnection(peerConnections, pc, message)?.setRemoteDescription(new RTCSessionDescription(message));
-                        doAnswer();
-                    } else if (message.type === 'answer' && isStarted) {
-                        pc.setRemoteDescription(new RTCSessionDescription(message));
-                    } else if (message.type === 'candidate' && isStarted) {
+                    if (message.type === 'candidate' && isStarted) {
                         var candidate = new RTCIceCandidate({
                             sdpMLineIndex: message.label,
                             candidate: message.candidate,
@@ -349,7 +354,7 @@ const useWebRTCCanvasShare = (
                 function setLocalAndSendMessage(sessionDescription) {
                     pc.setLocalDescription(sessionDescription);
                     console.log('setLocalAndSendMessage sending message', sessionDescription);
-                    sendMessage(sessionDescription);
+                    socket.emit(sessionDescription.type, sessionDescription);
                 }
 
                 //@ts-ignore
