@@ -77,6 +77,12 @@ const createKeypressDataChannel = (pc: RTCPeerConnection) => {
     document.onClick = e => clickDc.send(e.clientX + ',' + e.clientY);
 };
 
+const getPeerConnection = (peerConnections: RTCPeerConnection[], peerConnection: RTCPeerConnection, message: any) => {
+    if(message.type === 'offer') {
+        return peerConnection;
+    }
+};
+
 interface Return {
     isGuest: boolean;
     start: () => void;
@@ -115,6 +121,7 @@ const useWebRTCCanvasShare = (
                 let localStream: MediaStream;
                 let remoteStream;
 
+                const peerConnections: RTCPeerConnection[] = [];
                 var pc: RTCPeerConnection;
                 var clickDc: RTCDataChannel;
 
@@ -131,7 +138,6 @@ const useWebRTCCanvasShare = (
                     console.error('no roomid');
                     return;
                 }
-                ;
 
                 socket.emit('create or join', room);
                 //@ts-ignore
@@ -178,7 +184,8 @@ const useWebRTCCanvasShare = (
                         if (!isInitiator && !isStarted) {
                             maybeStart();
                         }
-                        pc.setRemoteDescription(new RTCSessionDescription(message));
+                        console.log('offer message: ', message);
+                        getPeerConnection(peerConnections, pc, message)?.setRemoteDescription(new RTCSessionDescription(message));
                         doAnswer();
                     } else if (message.type === 'answer' && isStarted) {
                         pc.setRemoteDescription(new RTCSessionDescription(message));
@@ -281,11 +288,10 @@ const useWebRTCCanvasShare = (
                                 }
                             };
                         };
-                        console.log('Created RTCPeerConnnection');
 
+                        console.log('Created RTCPeerConnnection');
                         createMouseDataChannel(pc);
                         createKeypressDataChannel(pc);
-
                     } catch (e) {
                         console.log('Failed to create PeerConnection, exception: ' + e.message);
                         alert('Cannot create RTCPeerConnection object.');
