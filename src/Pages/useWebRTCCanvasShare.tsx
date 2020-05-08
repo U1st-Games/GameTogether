@@ -301,14 +301,8 @@ const useWebRTCCanvasShare = (
                         pc.onaddstream = handleRemoteStreamAdded;
                         //@ts-ignore
                         pc.onremovestream = handleRemoteStreamRemoved;
-
                         //@ts-ignore
                         pc.ondatachannel = onDataChannelHandler(myIframe, cursor);
-
-                        if(cursor) {
-                        } else {
-                            console.error('cursor does not exist');
-                        }
 
                         console.log('Created RTCPeerConnnection');
                         createMouseDataChannel(pc);
