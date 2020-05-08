@@ -83,11 +83,31 @@ const getPeerConnection = (peerConnections: RTCPeerConnection[], peerConnection:
     }
 };
 
+const initGuest = (
+    socket: any,
+    maybeStart: any,
+    peerConnections: any,
+    pc: any,
+    isStarted: any,
+    doAnswer: any
+) => {
+    socket.on('message', function (message: any) {
+        //@ts-ignore
+        if (message.type === 'offer') {
+            if (!isStarted) {
+                maybeStart();
+            }
+            console.log('offer message: ', message);
+            getPeerConnection(peerConnections, pc, message)?.setRemoteDescription(new RTCSessionDescription(message));
+            doAnswer();
+        }
+    });
+};
+
 interface Return {
     isGuest: boolean;
     start: () => void;
 }
-
 const useWebRTCCanvasShare = (
     iframeId: string,
     remoteCursorId: string,
@@ -146,7 +166,6 @@ const useWebRTCCanvasShare = (
                 socket.on('created', function (room: string) {
                     console.log('Created room ' + room);
                     isInitiator = true;
-                    //sendMessage('got user media');
                 });
 
                 socket.on('full', function (room: string) {
@@ -161,6 +180,7 @@ const useWebRTCCanvasShare = (
 
                 socket.on('joined', function (room: string) {
                     console.log('joined: ' + room);
+                    initGuest(socket, maybeStart, peerConnections, pc, isStarted, doAnswer);
                     isChannelReady = true;
                     setIsGuest(true);
                     sendMessage('got user media');
