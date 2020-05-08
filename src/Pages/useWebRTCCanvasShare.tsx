@@ -226,10 +226,6 @@ const useWebRTCCanvasShare = (
                 localStream = canvass.captureStream();
                 console.log('Got stream from canvas');
 
-                if (isInitiator) {
-                    maybeStart();
-                }
-
                 function maybeStart() {
                     console.log('>>>>>>> maybeStart() ', isStarted, localStream, isChannelReady);
                     if (!isStarted && typeof localStream !== 'undefined' && isChannelReady) {
