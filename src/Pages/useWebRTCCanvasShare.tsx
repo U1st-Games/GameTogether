@@ -83,9 +83,13 @@ const getPeerConnection = (peerConnections: RTCPeerConnection[], peerConnection:
     }
 };
 
-const initHost = (socket: any, maybeStart: any) => {
+const initHost = (socket: any, maybeStart: any, pc:any) => {
     socket.on('gotUserMedia', function() {
         maybeStart();
+    });
+    socket.on('answer', function(message: any) {
+        console.log('answer');
+        pc.setRemoteDescription(new RTCSessionDescription(message));
     });
 };
 
@@ -128,6 +132,8 @@ const useWebRTCCanvasShare = (
             const myIframe = document.getElementById(iframeId) as HTMLIFrameElement;
 
             const onIframeLoaded = () => {
+                createPeerConnection();
+
                 const canvass = myIframe?.contentWindow?.document.getElementById('myCanvas');
 
                 const remoteVideo = document.querySelector('#' + remoteVideoId);
@@ -159,7 +165,7 @@ const useWebRTCCanvasShare = (
 
                 socket.on('created', function (room: string) {
                     console.log('Created room ' + room);
-                    initHost(socket, maybeStart);
+                    initHost(socket, maybeStart, pc);
                     isInitiator = true;
                 });
 
@@ -199,11 +205,6 @@ const useWebRTCCanvasShare = (
                     doAnswer();
                 });
 
-                socket.on('answer', function(message: any) {
-                    console.log('answer');
-                    pc.setRemoteDescription(new RTCSessionDescription(message));
-                });
-
                 // This client receives a message
                 //@ts-ignore
                 socket.on('message', function (message) {
@@ -233,7 +234,6 @@ const useWebRTCCanvasShare = (
                     console.log('>>>>>>> maybeStart() ', isStarted, localStream, isChannelReady);
                     if (!isStarted && typeof localStream !== 'undefined' && isChannelReady) {
                         console.log('>>>>>> creating peer connection');
-                        createPeerConnection();
                         //@ts-ignore
                         pc.addStream(localStream);
                         isStarted = true;
