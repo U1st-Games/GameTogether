@@ -266,19 +266,18 @@ const useWebRTCCanvasShare = (
                 //@ts-ignore
                 let socket = window.io.connect(socketUrl);
 
-                var pc: RTCPeerConnection | undefined;
-                pc = createPeerConnection(socket, myIframe, cursor, remoteVideo);
+                const peerConnections: RTCPeerConnection[] = [];
 
-                if(!pc) {
-                    console.error('could not create peer connection');
-                    return;
+                const newPeerConnection = createPeerConnection(socket, myIframe, cursor, remoteVideo);
+                if (newPeerConnection) {
+                    peerConnections.push(newPeerConnection);
+                } else {
+                    console.error('unable to create new peer connection');
                 }
 
                 const canvass = myIframe?.contentWindow?.document.getElementById('myCanvas');
 
                 let localStream: MediaStream;
-
-                const peerConnections: RTCPeerConnection[] = [];
 
                 let isChannelReady = false;
                 let isInitiator = false;
@@ -299,7 +298,7 @@ const useWebRTCCanvasShare = (
 
                 socket.on('created', function (room: string) {
                     console.log('Created room ' + room);
-                    initHost(socket, Start, pc, localStream, isStarted, isInitiator, doCall);
+                    initHost(socket, Start, peerConnections[0], localStream, isStarted, isInitiator, doCall);
                     isInitiator = true;
                 });
 
@@ -315,7 +314,7 @@ const useWebRTCCanvasShare = (
 
                 socket.on('joined', function (room: string) {
                     console.log('joined: ' + room);
-                    initGuest(socket, peerConnections, pc, isStarted, doAnswer);
+                    initGuest(socket, peerConnections, peerConnections[0], isStarted, doAnswer);
                     isChannelReady = true;
                     setIsGuest(true);
                     socket.emit('gotUserMedia');
@@ -335,7 +334,7 @@ const useWebRTCCanvasShare = (
                             sdpMLineIndex: message.label,
                             candidate: message.candidate,
                         });
-                        pc?.addIceCandidate(candidate);
+                        peerConnections[0]?.addIceCandidate(candidate);
                     } else if (message === 'bye' && isStarted) {
                         handleRemoteHangup();
                     }
@@ -348,7 +347,7 @@ const useWebRTCCanvasShare = (
 
                 function Start() {
                     //@ts-ignore
-                    pc.addStream(localStream);
+                    peerConnections[0].addStream(localStream);
                     isStarted = true;
                     console.log('isInitiator', isInitiator);
                     doCall();
@@ -362,17 +361,17 @@ const useWebRTCCanvasShare = (
                 function doCall() {
                     console.log('Sending offer to peer');
                     //@ts-ignore
-                    pc.createOffer(setLocalAndSendMessage, handleCreateOfferError);
+                    peerConnections[0].createOffer(setLocalAndSendMessage, handleCreateOfferError);
                 }
 
                 function doAnswer() {
                     console.log('Sending answer to peer.');
-                    pc?.createAnswer().then(setLocalAndSendMessage, onCreateSessionDescriptionError);
+                    peerConnections[0]?.createAnswer().then(setLocalAndSendMessage, onCreateSessionDescriptionError);
                 }
 
                 //@ts-ignore
                 function setLocalAndSendMessage(sessionDescription) {
-                    pc?.setLocalDescription(sessionDescription);
+                    peerConnections[0]?.setLocalDescription(sessionDescription);
                     console.log('setLocalAndSendMessage sending message', sessionDescription);
                     socket.emit(sessionDescription.type, sessionDescription);
                 }
@@ -397,9 +396,9 @@ const useWebRTCCanvasShare = (
 
                 function stop() {
                     isStarted = false;
-                    pc?.close();
+                    peerConnections[0]?.close();
                     //@ts-ignore
-                    pc = null;
+                    peerConnections[0] = null;
                 }
 
                 window.onbeforeunload = function () {
