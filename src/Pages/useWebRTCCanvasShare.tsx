@@ -1,4 +1,5 @@
 import {useEffect, useState, useRef} from 'react';
+import {Socket} from "socket.io";
 
 export function usePrevious<T>(value: T): T | undefined {
     const ref = useRef<T>();
@@ -6,7 +7,12 @@ export function usePrevious<T>(value: T): T | undefined {
         ref.current = value;
     });
     return ref.current;
-};
+}
+
+function sendMessage(socket: Socket, message: string) {
+    console.log('Client sending message: ', message);
+    socket.emit('message', message);
+}
 
 function click(x: number, y: number) {
     var ev = new MouseEvent('click', {
@@ -137,6 +143,62 @@ const onDataChannelHandler = (myIframe: HTMLIFrameElement, cursor: Element) => (
     };
 };
 
+//@ts-ignore
+const handleIceCandidate = (socket: Socket) => (event:any) => {
+    console.log('icecandidate event: ', event);
+    if (event.candidate) {
+        sendMessage(
+            socket,
+            //@ts-ignore
+            {
+            type: 'candidate',
+            label: event.candidate.sdpMLineIndex,
+            id: event.candidate.sdpMid,
+            candidate: event.candidate.candidate,
+        });
+    } else {
+        console.log('End of candidates.');
+    }
+};
+
+//@ts-ignore
+const handleRemoteStreamAdded = (remoteVideo: any) => (event: any) => {
+    console.log('Remote stream added.');
+    //@ts-ignore
+    remoteVideo.srcObject = event.stream;
+};
+
+//@ts-ignore
+const handleRemoteStreamRemoved = (event) => {
+    console.log('Remote stream removed. Event: ', event);
+};
+
+const createPeerConnection = (
+    socket: Socket,
+    myIframe: HTMLIFrameElement,
+    cursor: HTMLElement,
+    remoteVideo: HTMLElement,
+): RTCPeerConnection | undefined => {
+    try {
+        const pc = new RTCPeerConnection();
+        pc.onicecandidate = handleIceCandidate(socket);
+        //@ts-ignore
+        pc.onaddstream = handleRemoteStreamAdded(remoteVideo);
+        //@ts-ignore
+        pc.onremovestream = handleRemoteStreamRemoved;
+        pc.ondatachannel = onDataChannelHandler(myIframe, cursor);
+
+        console.log('Created RTCPeerConnnection');
+        createMouseDataChannel(pc);
+        createKeypressDataChannel(pc);
+        return pc;
+    } catch (e) {
+        console.log('Failed to create PeerConnection, exception: ' + e.message);
+        alert('Cannot create RTCPeerConnection object.');
+        return;
+    }
+};
+
 const initHost = (
     socket: any,
     Start: any,
@@ -192,7 +254,8 @@ const useWebRTCCanvasShare = (
     };
 
     useEffect(() => {
-        const cursor = document.querySelector('#' + remoteCursorId);
+        const cursor = document.querySelector('#' + remoteCursorId) as HTMLElement;
+        const remoteVideo = document.querySelector('#' + remoteVideoId) as HTMLElement;
 
         if (hasStart && !hasInit) {
             setHasInit(true);
@@ -200,17 +263,22 @@ const useWebRTCCanvasShare = (
             const myIframe = document.getElementById(iframeId) as HTMLIFrameElement;
 
             const onIframeLoaded = () => {
-                createPeerConnection();
+                //@ts-ignore
+                let socket = window.io.connect(socketUrl);
+
+                var pc: RTCPeerConnection | undefined;
+                pc = createPeerConnection(socket, myIframe, cursor, remoteVideo);
+
+                if(!pc) {
+                    console.error('could not create peer connection');
+                    return;
+                }
 
                 const canvass = myIframe?.contentWindow?.document.getElementById('myCanvas');
 
-                const remoteVideo = document.querySelector('#' + remoteVideoId);
-
                 let localStream: MediaStream;
-                let remoteStream;
 
                 const peerConnections: RTCPeerConnection[] = [];
-                var pc: RTCPeerConnection;
 
                 let isChannelReady = false;
                 let isInitiator = false;
@@ -218,8 +286,7 @@ const useWebRTCCanvasShare = (
 
                 //Begin socket.io --------------------------------------------
                 let room = roomid;
-                //@ts-ignore
-                let socket = window.io.connect(socketUrl);
+
 
                 if (!roomid) {
                     console.error('no roomid');
@@ -258,11 +325,6 @@ const useWebRTCCanvasShare = (
                     console.log(array);
                 });
 
-                function sendMessage(message: string) {
-                    console.log('Client sending message: ', message);
-                    socket.emit('message', message);
-                }
-
                 // This client receives a message
                 //@ts-ignore
                 socket.on('message', function (message) {
@@ -273,7 +335,7 @@ const useWebRTCCanvasShare = (
                             sdpMLineIndex: message.label,
                             candidate: message.candidate,
                         });
-                        pc.addIceCandidate(candidate);
+                        pc?.addIceCandidate(candidate);
                     } else if (message === 'bye' && isStarted) {
                         handleRemoteHangup();
                     }
@@ -292,44 +354,6 @@ const useWebRTCCanvasShare = (
                     doCall();
                 }
 
-                function createPeerConnection() {
-                    try {
-                        //@ts-ignore
-                        pc = new RTCPeerConnection(null);
-                        pc.onicecandidate = handleIceCandidate;
-                        //@ts-ignore
-                        pc.onaddstream = handleRemoteStreamAdded;
-                        //@ts-ignore
-                        pc.onremovestream = handleRemoteStreamRemoved;
-                        //@ts-ignore
-                        pc.ondatachannel = onDataChannelHandler(myIframe, cursor);
-
-                        console.log('Created RTCPeerConnnection');
-                        createMouseDataChannel(pc);
-                        createKeypressDataChannel(pc);
-                    } catch (e) {
-                        console.log('Failed to create PeerConnection, exception: ' + e.message);
-                        alert('Cannot create RTCPeerConnection object.');
-                        return;
-                    }
-                }
-
-                //@ts-ignore
-                function handleIceCandidate(event) {
-                    console.log('icecandidate event: ', event);
-                    if (event.candidate) {
-                        //@ts-ignore
-                        sendMessage({
-                            type: 'candidate',
-                            label: event.candidate.sdpMLineIndex,
-                            id: event.candidate.sdpMid,
-                            candidate: event.candidate.candidate,
-                        });
-                    } else {
-                        console.log('End of candidates.');
-                    }
-                }
-
                 //@ts-ignore
                 function handleCreateOfferError(event) {
                     console.log('createOffer() error: ', event);
@@ -343,12 +367,12 @@ const useWebRTCCanvasShare = (
 
                 function doAnswer() {
                     console.log('Sending answer to peer.');
-                    pc.createAnswer().then(setLocalAndSendMessage, onCreateSessionDescriptionError);
+                    pc?.createAnswer().then(setLocalAndSendMessage, onCreateSessionDescriptionError);
                 }
 
                 //@ts-ignore
                 function setLocalAndSendMessage(sessionDescription) {
-                    pc.setLocalDescription(sessionDescription);
+                    pc?.setLocalDescription(sessionDescription);
                     console.log('setLocalAndSendMessage sending message', sessionDescription);
                     socket.emit(sessionDescription.type, sessionDescription);
                 }
@@ -359,23 +383,10 @@ const useWebRTCCanvasShare = (
                     //trace('Failed to create session description: ' + error.toString());
                 }
 
-                //@ts-ignore
-                function handleRemoteStreamAdded(event) {
-                    console.log('Remote stream added.');
-                    remoteStream = event.stream;
-                    //@ts-ignore
-                    remoteVideo.srcObject = remoteStream;
-                }
-
-                //@ts-ignore
-                function handleRemoteStreamRemoved(event) {
-                    console.log('Remote stream removed. Event: ', event);
-                }
-
                 function hangup() {
                     console.log('Hanging up.');
                     stop();
-                    sendMessage('bye');
+                    sendMessage(socket, 'bye');
                 }
 
                 function handleRemoteHangup() {
@@ -386,17 +397,17 @@ const useWebRTCCanvasShare = (
 
                 function stop() {
                     isStarted = false;
-                    pc.close();
+                    pc?.close();
                     //@ts-ignore
                     pc = null;
                 }
 
                 window.onbeforeunload = function () {
-                    sendMessage('bye');
+                    sendMessage(socket, 'bye');
                 };
 
                 return () => {
-                    sendMessage('bye');
+                    sendMessage(socket, 'bye');
                 };
             };
             myIframe.addEventListener('load', onIframeLoaded);

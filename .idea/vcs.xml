@@ -2,6 +2,14 @@
 <project version="4">
   <component name="VcsDirectoryMappings">
     <mapping directory="$PROJECT_DIR$" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/build/Astray" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/build/BitBot" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/build/DrunkenViking" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/build/follow_me_javascript_simon_clone" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/build/hex-2048" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/build/hextris" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/build/infectors" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/build/orbium" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/public/Astray" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/public/BitBot" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/public/DrunkenViking" vcs="Git" />
