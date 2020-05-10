@@ -266,7 +266,7 @@ const initHost = (
     });
     socket.on('answer', function(message: any) {
         console.log('answer: ', message);
-        peerConnections[0]?.setRemoteDescription(new RTCSessionDescription(message));
+        peerConnections[peerConnections.length - 1]?.setRemoteDescription(new RTCSessionDescription(message));
     });
 };
 
@@ -412,18 +412,14 @@ const useWebRTCCanvasShare = (
 
                 function Start() {
                     addPeerConnection(peerConnections, socket, myIframe, cursor, remoteVideo);
-                    console.log('start: ', peerConnections[0]);
+                    console.log('start: ', peerConnections[peerConnections.length - 1]);
 
-                    if(!isStarted) {
-                        //@ts-ignore
-                        peerConnections[0].addStream(localStream);
-                        isStarted = true;
-                        console.log('isInitiator', isInitiator);
-                        doCall(peerConnections[0], socket);
-                    }
-                    if(isStarted) {
-                        console.log('second call');
-                    }
+                    //@ts-ignore
+                    peerConnections[peerConnections.length - 1].addStream(localStream);
+                    isStarted = true;
+                    console.log('isInitiator', isInitiator);
+                    doCall(peerConnections[peerConnections.length - 1], socket);
+
                 }
 
                 function doAnswer() {
