@@ -231,6 +231,16 @@ const setLocalAndSendMessage = (pc: PeerConnection, socket: Socket) => (sessionD
     );
 };
 
+const handleCreateOfferError = (event: any) => {
+    console.log('createOffer() error: ', event);
+}
+
+const doCall = (pc: PeerConnection, socket: Socket) => {
+    console.log('Sending offer to peer');
+    //@ts-ignore
+    pc.createOffer(setLocalAndSendMessage(pc, socket), handleCreateOfferError);
+};
+
 const initHost = (
     socket: any,
     Start: any,
@@ -389,22 +399,11 @@ const useWebRTCCanvasShare = (
                         peerConnections[0].addStream(localStream);
                         isStarted = true;
                         console.log('isInitiator', isInitiator);
-                        doCall();
+                        doCall(peerConnections[0], socket);
                     }
                     if(peerConnections.length < 1) {
                         console.log('second call');
                     }
-                }
-
-                //@ts-ignore
-                function handleCreateOfferError(event) {
-                    console.log('createOffer() error: ', event);
-                }
-
-                function doCall() {
-                    console.log('Sending offer to peer');
-                    //@ts-ignore
-                    peerConnections[0].createOffer(setLocalAndSendMessage(peerConnections[0], socket), handleCreateOfferError);
                 }
 
                 function doAnswer() {
