@@ -1,6 +1,6 @@
 import {useEffect, useState, useRef} from 'react';
 import {Socket} from "socket.io";
-import { v4 as uuidv4 } from 'uuid';
+import {v4 as uuidv4} from 'uuid';
 
 export function usePrevious<T>(value: T): T | undefined {
     const ref = useRef<T>();
@@ -16,7 +16,7 @@ const setPeerConnectionId = (pc: PeerConnection, connectionId: string) => {
 
 const deepClone = (objectToClone: any) => JSON.parse(JSON.stringify(objectToClone));
 
-function sendMessage(socket: Socket, message: string) {
+function sendMessage(socket: Socket, message: any) {
     console.log('Client sending message: ', message);
     socket.emit('message', message);
 }
@@ -91,81 +91,80 @@ const createKeypressDataChannel = (pc: RTCPeerConnection) => {
 };
 
 const getPeerConnection = (peerConnections: RTCPeerConnection[], peerConnection: RTCPeerConnection, message: any) => {
-    if(message.type === 'offer') {
+    if (message.type === 'offer') {
         return peerConnection;
     }
 };
 
 const onDataChannelHandler = (myIframe: HTMLIFrameElement, cursor: Element) =>
-    ({ channel }: { channel: any }) =>
-    {
-    channel.onmessage = (e: any) => {
-        console.log(e.data);
+    ({channel}: { channel: any }) => {
+        channel.onmessage = (e: any) => {
+            console.log(e.data);
 
-        if (channel.label === 'keyPress') {
-            console.log('keyPress: ', e.data);
-
-            //@ts-ignore
-            function simulateKey(keyCode, type, modifiers) {
-                var evtName = typeof type === 'string' ? 'key' + type : 'keydown';
-                //@ts-ignore
-                var modifier = typeof modifiers === 'object' ? modifier : {};
+            if (channel.label === 'keyPress') {
+                console.log('keyPress: ', e.data);
 
                 //@ts-ignore
-                var event = myIframe.contentWindow.document.createEvent('HTMLEvents');
-                event.initEvent(evtName, true, false);
-                //@ts-ignore
-                event.keyCode = keyCode;
-
-                for (var i in modifiers) {
+                function simulateKey(keyCode, type, modifiers) {
+                    var evtName = typeof type === 'string' ? 'key' + type : 'keydown';
                     //@ts-ignore
-                    event[i] = modifiers[i];
-                }
-                //@ts-ignore
-                myIframe.contentWindow.document.dispatchEvent(event);
-            }
+                    var modifier = typeof modifiers === 'object' ? modifier : {};
 
-            if (e.data === '119') {
-                //@ts-ignore
-                simulateKey(38);
+                    //@ts-ignore
+                    var event = myIframe.contentWindow.document.createEvent('HTMLEvents');
+                    event.initEvent(evtName, true, false);
+                    //@ts-ignore
+                    event.keyCode = keyCode;
+
+                    for (var i in modifiers) {
+                        //@ts-ignore
+                        event[i] = modifiers[i];
+                    }
+                    //@ts-ignore
+                    myIframe.contentWindow.document.dispatchEvent(event);
+                }
+
+                if (e.data === '119') {
+                    //@ts-ignore
+                    simulateKey(38);
+                }
+                if (e.data === '97') {
+                    //@ts-ignore
+                    simulateKey(37);
+                }
+                if (e.data === '115') {
+                    //@ts-ignore
+                    simulateKey(40);
+                }
+                if (e.data === '100') {
+                    //@ts-ignore
+                    simulateKey(39);
+                }
             }
-            if (e.data === '97') {
+            if (channel.label === 'mousePosition') {
+                const split = e.data && e.data.split(',');
                 //@ts-ignore
-                simulateKey(37);
-            }
-            if (e.data === '115') {
+                cursor.style.left = split[0] + 'px';
                 //@ts-ignore
-                simulateKey(40);
+                cursor.style.top = split[1] + 'px';
             }
-            if (e.data === '100') {
-                //@ts-ignore
-                simulateKey(39);
-            }
-        }
-        if (channel.label === 'mousePosition') {
-            const split = e.data && e.data.split(',');
-            //@ts-ignore
-            cursor.style.left = split[0] + 'px';
-            //@ts-ignore
-            cursor.style.top = split[1] + 'px';
-        }
+        };
     };
-};
 
 //@ts-ignore
-const handleIceCandidate = (socket: Socket, peerConnection: any) => (event:any) => {
+const handleIceCandidate = (socket: Socket, peerConnection: any) => (event: any) => {
     console.log('icecandidate event: ', event);
     if (event.candidate) {
         sendMessage(
             socket,
             //@ts-ignore
             {
-            type: 'candidate',
-            label: event.candidate.sdpMLineIndex,
-            id: event.candidate.sdpMid,
-            candidate: event.candidate.candidate,
-            connectionId: peerConnection.connectionId,
-        });
+                type: 'candidate',
+                label: event.candidate.sdpMLineIndex,
+                id: event.candidate.sdpMid,
+                candidate: event.candidate.candidate,
+                connectionId: peerConnection.connectionId,
+            });
     } else {
         console.log('End of candidates.');
     }
@@ -215,6 +214,10 @@ const getPeerConnectionById = (peerConnections: PeerConnection[], peerConnection
     return peerConnections.find(pc => pc.connectionId === peerConnectionId);
 };
 
+const removePeerConnectionById = (peerConnections: PeerConnection[], peerConnectionId: string) => {
+    peerConnections = peerConnections.filter(pc => pc.connectionId !== peerConnectionId);
+};
+
 const onCreateSessionDescriptionError = (error: any) => {
     console.log('Failed to create session description: ' + error.toString());
 };
@@ -261,10 +264,10 @@ const initHost = (
     Start: any,
     peerConnections: PeerConnection[],
 ) => {
-    socket.on('gotUserMedia', function() {
+    socket.on('gotUserMedia', function () {
         Start();
     });
-    socket.on('answer', function(message: any) {
+    socket.on('answer', function (message: any) {
         console.log('answer: ', message);
         peerConnections[peerConnections.length - 1]?.setRemoteDescription(new RTCSessionDescription(message));
     });
@@ -283,7 +286,7 @@ const initGuest = (
     let hasInit = false;
     addPeerConnection(peerConnections, socket, myIframe, cursor, remoteVideo);
 
-    socket.on('offer', function(message: any) {
+    socket.on('offer', function (message: any) {
         if (!hasInit) {
             console.log('offer message: ', message);
             setPeerConnectionId(peerConnections[peerConnections.length - 1], message.connectionId);
@@ -298,6 +301,7 @@ interface Return {
     isGuest: boolean;
     start: () => void;
 }
+
 const useWebRTCCanvasShare = (
     iframeId: string,
     remoteCursorId: string,
@@ -404,8 +408,8 @@ const useWebRTCCanvasShare = (
                         //debugger;
                         console.log('test', test);
                         getPeerConnectionById(peerConnections, message.connectionId)?.addIceCandidate(candidate);
-                    } else if (message === 'bye' && isStarted) {
-                        handleRemoteHangup();
+                    } else if (message.type === 'bye' && isStarted) {
+                        handleRemoteHangup(message.connectionId);
                     }
                 });
                 //End socket.io -----------------------------------------------------------
@@ -434,29 +438,37 @@ const useWebRTCCanvasShare = (
 
                 function hangup() {
                     console.log('Hanging up.');
-                    stop();
-                    sendMessage(socket, 'bye');
+                    //stop();
+                    //sendMessage(socket, 'bye');
                 }
 
-                function handleRemoteHangup() {
+                function handleRemoteHangup(connectionId: string) {
                     console.log('Session terminated.');
-                    stop();
+                    stop(connectionId);
                     isInitiator = false;
                 }
 
-                function stop() {
+                function stop(connectionId: string) {
                     isStarted = false;
-                    peerConnections[peerConnections.length - 1]?.close();
+                    getPeerConnectionById(peerConnections, connectionId)?.close();
+                    removePeerConnectionById(peerConnections, connectionId);
+                    //peerConnections[peerConnections.length - 1]?.close();
                     //@ts-ignore
-                    peerConnections[peerConnections.length - 1] = null;
+                    //peerConnections[peerConnections.length - 1] = null;
                 }
 
                 window.onbeforeunload = function () {
-                    sendMessage(socket, 'bye');
+                    sendMessage(
+                        socket,
+                        {type: 'bye', connectionId: peerConnections[0].connectionId},
+                    );
                 };
 
                 return () => {
-                    sendMessage(socket, 'bye');
+                    sendMessage(
+                        socket,
+                        {type: 'bye', connectionId: peerConnections[0].connectionId},
+                    );
                 };
             };
             myIframe.addEventListener('load', onIframeLoaded);
