@@ -233,12 +233,27 @@ const setLocalAndSendMessage = (pc: PeerConnection, socket: Socket) => (sessionD
 
 const handleCreateOfferError = (event: any) => {
     console.log('createOffer() error: ', event);
-}
+};
 
 const doCall = (pc: PeerConnection, socket: Socket) => {
     console.log('Sending offer to peer');
     //@ts-ignore
     pc.createOffer(setLocalAndSendMessage(pc, socket), handleCreateOfferError);
+};
+
+const addPeerConnection = (
+    peerConnections: PeerConnection[],
+    socket: Socket,
+    myIframe: HTMLIFrameElement,
+    cursor: HTMLElement,
+    remoteVideo: HTMLElement,
+) => {
+    const newPeerConnection = createPeerConnection(socket, myIframe, cursor, remoteVideo);
+    if (newPeerConnection) {
+        peerConnections.push(newPeerConnection);
+    } else {
+        console.error('unable to create new peer connection');
+    }
 };
 
 const initHost = (
@@ -312,12 +327,7 @@ const useWebRTCCanvasShare = (
 
                 const peerConnections: PeerConnection[] = [];
 
-                const newPeerConnection = createPeerConnection(socket, myIframe, cursor, remoteVideo);
-                if (newPeerConnection) {
-                    peerConnections.push(newPeerConnection);
-                } else {
-                    console.error('unable to create new peer connection');
-                }
+                addPeerConnection(peerConnections, socket, myIframe, cursor, remoteVideo);
 
                 const canvass = myIframe?.contentWindow?.document.getElementById('myCanvas');
 
