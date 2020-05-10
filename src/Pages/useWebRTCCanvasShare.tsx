@@ -10,6 +10,10 @@ export function usePrevious<T>(value: T): T | undefined {
     return ref.current;
 }
 
+const setPeerConnectionId = (pc: PeerConnection, connectionId: string) => {
+    pc.connectionId = connectionId;
+};
+
 const deepClone = (objectToClone: any) => JSON.parse(JSON.stringify(objectToClone));
 
 function sendMessage(socket: Socket, message: string) {
@@ -211,6 +215,10 @@ const getPeerConnectionById = (peerConnections: PeerConnection[], peerConnection
     return peerConnections.find(pc => pc.connectionId === peerConnectionId);
 };
 
+const onCreateSessionDescriptionError = (error: any) => {
+    console.log('Failed to create session description: ' + error.toString());
+};
+
 const initHost = (
     socket: any,
     Start: any,
@@ -227,10 +235,6 @@ const initHost = (
         console.log('answer: ', message);
         pc.setRemoteDescription(new RTCSessionDescription(message));
     });
-};
-
-const setPeerConnectionId = (pc: PeerConnection, connectionId: string) => {
-  pc.connectionId = connectionId;
 };
 
 const initGuest = (
@@ -406,12 +410,6 @@ const useWebRTCCanvasShare = (
                         sessionDescription.type,
                         sessionDescriptionClone,
                     );
-                }
-
-                //@ts-ignore
-                function onCreateSessionDescriptionError(error) {
-                    debugger;
-                    //trace('Failed to create session description: ' + error.toString());
                 }
 
                 function hangup() {
