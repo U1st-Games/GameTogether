@@ -219,6 +219,18 @@ const onCreateSessionDescriptionError = (error: any) => {
     console.log('Failed to create session description: ' + error.toString());
 };
 
+//@ts-ignore
+const setLocalAndSendMessage = (pc: PeerConnection, socket: Socket) => (sessionDescription) => {
+    pc?.setLocalDescription(sessionDescription);
+    console.log('setLocalAndSendMessage sending message', sessionDescription);
+    let sessionDescriptionClone = deepClone(sessionDescription);
+    sessionDescriptionClone.connectionId = pc?.connectionId;
+    socket.emit(
+        sessionDescription.type,
+        sessionDescriptionClone,
+    );
+};
+
 const initHost = (
     socket: any,
     Start: any,
@@ -392,24 +404,13 @@ const useWebRTCCanvasShare = (
                 function doCall() {
                     console.log('Sending offer to peer');
                     //@ts-ignore
-                    peerConnections[0].createOffer(setLocalAndSendMessage, handleCreateOfferError);
+                    peerConnections[0].createOffer(setLocalAndSendMessage(peerConnections[0], socket), handleCreateOfferError);
                 }
 
                 function doAnswer() {
                     console.log('Sending answer to peer.');
-                    peerConnections[0]?.createAnswer().then(setLocalAndSendMessage, onCreateSessionDescriptionError);
-                }
-
-                //@ts-ignore
-                function setLocalAndSendMessage(sessionDescription) {
-                    peerConnections[0]?.setLocalDescription(sessionDescription);
-                    console.log('setLocalAndSendMessage sending message', sessionDescription);
-                    let sessionDescriptionClone = deepClone(sessionDescription);
-                    sessionDescriptionClone.connectionId = peerConnections[0]?.connectionId;
-                    socket.emit(
-                        sessionDescription.type,
-                        sessionDescriptionClone,
-                    );
+                    peerConnections[0]?.createAnswer()
+                        .then(setLocalAndSendMessage(peerConnections[0], socket), onCreateSessionDescriptionError);
                 }
 
                 function hangup() {
