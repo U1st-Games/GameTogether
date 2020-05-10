@@ -201,8 +201,8 @@ const createPeerConnection = (
         pc.ondatachannel = onDataChannelHandler(myIframe, cursor);
 
         console.log('Created RTCPeerConnnection');
-        createMouseDataChannel(pc);
-        createKeypressDataChannel(pc);
+        //createMouseDataChannel(pc);
+        //createKeypressDataChannel(pc);
         return pc as PeerConnection;
     } catch (e) {
         console.log('Failed to create PeerConnection, exception: ' + e.message);
@@ -259,18 +259,14 @@ const addPeerConnection = (
 const initHost = (
     socket: any,
     Start: any,
-    pc:any,
-    localStream: any,
-    isStarted: any,
-    isInitiator: any,
-    doCall: any
+    peerConnections: PeerConnection[],
 ) => {
     socket.on('gotUserMedia', function() {
         Start();
     });
     socket.on('answer', function(message: any) {
         console.log('answer: ', message);
-        pc.setRemoteDescription(new RTCSessionDescription(message));
+        peerConnections[0]?.setRemoteDescription(new RTCSessionDescription(message));
     });
 };
 
@@ -279,8 +275,13 @@ const initGuest = (
     peerConnections: any,
     pc: any,
     isStarted: any,
-    doAnswer: any
+    doAnswer: any,
+    myIframe: any,
+    cursor: any,
+    remoteVideo: any,
 ) => {
+    addPeerConnection(peerConnections, socket, myIframe, cursor, remoteVideo);
+
     socket.on('offer', function(message: any) {
         console.log('offer message: ', message);
         setPeerConnectionId(peerConnections[0], message.connectionId);
@@ -315,6 +316,7 @@ const useWebRTCCanvasShare = (
     useEffect(() => {
         const cursor = document.querySelector('#' + remoteCursorId) as HTMLElement;
         const remoteVideo = document.querySelector('#' + remoteVideoId) as HTMLElement;
+        const peerConnections: PeerConnection[] = [];
 
         if (hasStart && !hasInit) {
             setHasInit(true);
@@ -325,9 +327,6 @@ const useWebRTCCanvasShare = (
                 //@ts-ignore
                 let socket = window.io.connect(socketUrl);
 
-                const peerConnections: PeerConnection[] = [];
-
-                addPeerConnection(peerConnections, socket, myIframe, cursor, remoteVideo);
 
                 const canvass = myIframe?.contentWindow?.document.getElementById('myCanvas');
 
@@ -352,7 +351,7 @@ const useWebRTCCanvasShare = (
 
                 socket.on('created', function (room: string) {
                     console.log('Created room ' + room);
-                    initHost(socket, Start, peerConnections[0], localStream, isStarted, isInitiator, doCall);
+                    initHost(socket, Start, peerConnections);
                     isInitiator = true;
                 });
 
@@ -368,7 +367,16 @@ const useWebRTCCanvasShare = (
 
                 socket.on('joined', function (room: string) {
                     console.log('joined: ' + room);
-                    initGuest(socket, peerConnections, peerConnections[0], isStarted, doAnswer);
+                    initGuest(
+                        socket,
+                        peerConnections,
+                        peerConnections[0],
+                        isStarted,
+                        doAnswer,
+                        myIframe,
+                        cursor,
+                        remoteVideo,
+                    );
                     isChannelReady = true;
                     setIsGuest(true);
                     socket.emit('gotUserMedia');
@@ -403,15 +411,17 @@ const useWebRTCCanvasShare = (
                 console.log('Got stream from canvas');
 
                 function Start() {
-                    console.log('start');
-                    if(peerConnections.length === 1) {
+                    addPeerConnection(peerConnections, socket, myIframe, cursor, remoteVideo);
+                    console.log('start: ', peerConnections[0]);
+
+                    if(!isStarted) {
                         //@ts-ignore
                         peerConnections[0].addStream(localStream);
                         isStarted = true;
                         console.log('isInitiator', isInitiator);
                         doCall(peerConnections[0], socket);
                     }
-                    if(peerConnections.length < 1) {
+                    if(isStarted) {
                         console.log('second call');
                     }
                 }
