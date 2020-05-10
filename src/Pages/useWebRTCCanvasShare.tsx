@@ -1,5 +1,6 @@
 import {useEffect, useState, useRef} from 'react';
 import {Socket} from "socket.io";
+import { v4 as uuidv4 } from 'uuid';
 
 export function usePrevious<T>(value: T): T | undefined {
     const ref = useRef<T>();
@@ -8,6 +9,8 @@ export function usePrevious<T>(value: T): T | undefined {
     });
     return ref.current;
 }
+
+const deepClone = (objectToClone: any) => JSON.parse(JSON.stringify(objectToClone));
 
 function sendMessage(socket: Socket, message: string) {
     console.log('Client sending message: ', message);
@@ -89,7 +92,9 @@ const getPeerConnection = (peerConnections: RTCPeerConnection[], peerConnection:
     }
 };
 
-const onDataChannelHandler = (myIframe: HTMLIFrameElement, cursor: Element) => ({ channel }: { channel: any }) => {
+const onDataChannelHandler = (myIframe: HTMLIFrameElement, cursor: Element) =>
+    ({ channel }: { channel: any }) =>
+    {
     channel.onmessage = (e: any) => {
         console.log(e.data);
 
@@ -144,7 +149,7 @@ const onDataChannelHandler = (myIframe: HTMLIFrameElement, cursor: Element) => (
 };
 
 //@ts-ignore
-const handleIceCandidate = (socket: Socket) => (event:any) => {
+const handleIceCandidate = (socket: Socket, peerConnection: any) => (event:any) => {
     console.log('icecandidate event: ', event);
     if (event.candidate) {
         sendMessage(
@@ -155,6 +160,7 @@ const handleIceCandidate = (socket: Socket) => (event:any) => {
             label: event.candidate.sdpMLineIndex,
             id: event.candidate.sdpMid,
             candidate: event.candidate.candidate,
+            connectionId: peerConnection.connectionId,
         });
     } else {
         console.log('End of candidates.');
@@ -178,10 +184,12 @@ const createPeerConnection = (
     myIframe: HTMLIFrameElement,
     cursor: HTMLElement,
     remoteVideo: HTMLElement,
-): RTCPeerConnection | undefined => {
+): PeerConnection | undefined => {
     try {
         const pc = new RTCPeerConnection();
-        pc.onicecandidate = handleIceCandidate(socket);
+        //@ts-ignore
+        pc.connectionId = uuidv4();
+        pc.onicecandidate = handleIceCandidate(socket, pc);
         //@ts-ignore
         pc.onaddstream = handleRemoteStreamAdded(remoteVideo);
         //@ts-ignore
@@ -191,12 +199,16 @@ const createPeerConnection = (
         console.log('Created RTCPeerConnnection');
         createMouseDataChannel(pc);
         createKeypressDataChannel(pc);
-        return pc;
+        return pc as PeerConnection;
     } catch (e) {
         console.log('Failed to create PeerConnection, exception: ' + e.message);
         alert('Cannot create RTCPeerConnection object.');
         return;
     }
+};
+
+const getPeerConnectionById = (peerConnections: PeerConnection[], peerConnectionId: string) => {
+    return peerConnections.find(pc => pc.connectionId === peerConnectionId);
 };
 
 const initHost = (
@@ -212,9 +224,13 @@ const initHost = (
         Start();
     });
     socket.on('answer', function(message: any) {
-        console.log('answer');
+        console.log('answer: ', message);
         pc.setRemoteDescription(new RTCSessionDescription(message));
     });
+};
+
+const setPeerConnectionId = (pc: PeerConnection, connectionId: string) => {
+  pc.connectionId = connectionId;
 };
 
 const initGuest = (
@@ -226,7 +242,8 @@ const initGuest = (
 ) => {
     socket.on('offer', function(message: any) {
         console.log('offer message: ', message);
-        getPeerConnection(peerConnections, pc, message)?.setRemoteDescription(new RTCSessionDescription(message));
+        setPeerConnectionId(peerConnections[0], message.connectionId);
+        peerConnections[0]?.setRemoteDescription(new RTCSessionDescription(message));
         doAnswer();
     });
 };
@@ -247,6 +264,7 @@ const useWebRTCCanvasShare = (
     const [isGuest, setIsGuest] = useState(false);
     const [hasStart, setHasStart] = useState(startOnLoad);
 
+    //This is so consumer can control when the hook starts
     const start = () => {
         if (!hasStart) {
             setHasStart(true);
@@ -266,7 +284,7 @@ const useWebRTCCanvasShare = (
                 //@ts-ignore
                 let socket = window.io.connect(socketUrl);
 
-                const peerConnections: RTCPeerConnection[] = [];
+                const peerConnections: PeerConnection[] = [];
 
                 const newPeerConnection = createPeerConnection(socket, myIframe, cursor, remoteVideo);
                 if (newPeerConnection) {
@@ -334,7 +352,10 @@ const useWebRTCCanvasShare = (
                             sdpMLineIndex: message.label,
                             candidate: message.candidate,
                         });
-                        peerConnections[0]?.addIceCandidate(candidate);
+                        const test = getPeerConnectionById(peerConnections, message.connectionId);
+                        //debugger;
+                        console.log('test', test);
+                        getPeerConnectionById(peerConnections, message.connectionId)?.addIceCandidate(candidate);
                     } else if (message === 'bye' && isStarted) {
                         handleRemoteHangup();
                     }
@@ -346,11 +367,17 @@ const useWebRTCCanvasShare = (
                 console.log('Got stream from canvas');
 
                 function Start() {
-                    //@ts-ignore
-                    peerConnections[0].addStream(localStream);
-                    isStarted = true;
-                    console.log('isInitiator', isInitiator);
-                    doCall();
+                    console.log('start');
+                    if(peerConnections.length === 1) {
+                        //@ts-ignore
+                        peerConnections[0].addStream(localStream);
+                        isStarted = true;
+                        console.log('isInitiator', isInitiator);
+                        doCall();
+                    }
+                    if(peerConnections.length < 1) {
+                        console.log('second call');
+                    }
                 }
 
                 //@ts-ignore
@@ -373,7 +400,12 @@ const useWebRTCCanvasShare = (
                 function setLocalAndSendMessage(sessionDescription) {
                     peerConnections[0]?.setLocalDescription(sessionDescription);
                     console.log('setLocalAndSendMessage sending message', sessionDescription);
-                    socket.emit(sessionDescription.type, sessionDescription);
+                    let sessionDescriptionClone = deepClone(sessionDescription);
+                    sessionDescriptionClone.connectionId = peerConnections[0]?.connectionId;
+                    socket.emit(
+                        sessionDescription.type,
+                        sessionDescriptionClone,
+                    );
                 }
 
                 //@ts-ignore
