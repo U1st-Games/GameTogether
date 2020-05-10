@@ -201,7 +201,7 @@ const createPeerConnection = (
 
         console.log('Created RTCPeerConnnection');
         //createMouseDataChannel(pc);
-        //createKeypressDataChannel(pc);
+        createKeypressDataChannel(pc);
         return pc as PeerConnection;
     } catch (e) {
         console.log('Failed to create PeerConnection, exception: ' + e.message);
