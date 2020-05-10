@@ -280,13 +280,17 @@ const initGuest = (
     cursor: any,
     remoteVideo: any,
 ) => {
+    let hasInit = false;
     addPeerConnection(peerConnections, socket, myIframe, cursor, remoteVideo);
 
     socket.on('offer', function(message: any) {
-        console.log('offer message: ', message);
-        setPeerConnectionId(peerConnections[0], message.connectionId);
-        peerConnections[0]?.setRemoteDescription(new RTCSessionDescription(message));
-        doAnswer();
+        if (!hasInit) {
+            console.log('offer message: ', message);
+            setPeerConnectionId(peerConnections[peerConnections.length - 1], message.connectionId);
+            peerConnections[peerConnections.length - 1]?.setRemoteDescription(new RTCSessionDescription(message));
+            doAnswer();
+            hasInit = true;
+        }
     });
 };
 
@@ -370,7 +374,7 @@ const useWebRTCCanvasShare = (
                     initGuest(
                         socket,
                         peerConnections,
-                        peerConnections[0],
+                        peerConnections[peerConnections.length - 1],
                         isStarted,
                         doAnswer,
                         myIframe,
@@ -424,8 +428,8 @@ const useWebRTCCanvasShare = (
 
                 function doAnswer() {
                     console.log('Sending answer to peer.');
-                    peerConnections[0]?.createAnswer()
-                        .then(setLocalAndSendMessage(peerConnections[0], socket), onCreateSessionDescriptionError);
+                    peerConnections[peerConnections.length - 1]?.createAnswer()
+                        .then(setLocalAndSendMessage(peerConnections[peerConnections.length - 1], socket), onCreateSessionDescriptionError);
                 }
 
                 function hangup() {
@@ -442,9 +446,9 @@ const useWebRTCCanvasShare = (
 
                 function stop() {
                     isStarted = false;
-                    peerConnections[0]?.close();
+                    peerConnections[peerConnections.length - 1]?.close();
                     //@ts-ignore
-                    peerConnections[0] = null;
+                    peerConnections[peerConnections.length - 1] = null;
                 }
 
                 window.onbeforeunload = function () {
