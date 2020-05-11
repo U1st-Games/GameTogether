@@ -16,9 +16,9 @@ const setPeerConnectionId = (pc: PeerConnection, connectionId: string) => {
 
 const deepClone = (objectToClone: any) => JSON.parse(JSON.stringify(objectToClone));
 
-function sendMessage(socket: Socket, message: any) {
+function sendMessage(socket: Socket, message: any, roomid: string) {
     console.log('Client sending message: ', message);
-    socket.emit('message', message);
+    socket.emit('message', message, roomid);
 }
 
 function click(x: number, y: number) {
@@ -152,7 +152,7 @@ const onDataChannelHandler = (myIframe: HTMLIFrameElement, cursor: Element) =>
     };
 
 //@ts-ignore
-const handleIceCandidate = (socket: Socket, peerConnection: any) => (event: any) => {
+const handleIceCandidate = (socket: Socket, peerConnection: any, roomid: string) => (event: any) => {
     console.log('icecandidate event: ', event);
     if (event.candidate) {
         sendMessage(
@@ -164,7 +164,9 @@ const handleIceCandidate = (socket: Socket, peerConnection: any) => (event: any)
                 id: event.candidate.sdpMid,
                 candidate: event.candidate.candidate,
                 connectionId: peerConnection.connectionId,
-            });
+            },
+            roomid,
+            );
     } else {
         console.log('End of candidates.');
     }
@@ -187,12 +189,13 @@ const createPeerConnection = (
     myIframe: HTMLIFrameElement,
     cursor: HTMLElement,
     remoteVideo: HTMLElement,
+    roomid: string,
 ): PeerConnection | undefined => {
     try {
         const pc = new RTCPeerConnection();
         //@ts-ignore
         pc.connectionId = uuidv4();
-        pc.onicecandidate = handleIceCandidate(socket, pc);
+        pc.onicecandidate = handleIceCandidate(socket, pc, roomid);
         //@ts-ignore
         pc.onaddstream = handleRemoteStreamAdded(remoteVideo);
         //@ts-ignore
@@ -251,8 +254,9 @@ const addPeerConnection = (
     myIframe: HTMLIFrameElement,
     cursor: HTMLElement,
     remoteVideo: HTMLElement,
+    roomid: string,
 ) => {
-    const newPeerConnection = createPeerConnection(socket, myIframe, cursor, remoteVideo);
+    const newPeerConnection = createPeerConnection(socket, myIframe, cursor, remoteVideo, roomid);
     if (newPeerConnection) {
         peerConnections.push(newPeerConnection);
     } else {
@@ -283,9 +287,10 @@ const initGuest = (
     myIframe: any,
     cursor: any,
     remoteVideo: any,
+    roomid: string,
 ) => {
     let hasInit = false;
-    addPeerConnection(peerConnections, socket, myIframe, cursor, remoteVideo);
+    addPeerConnection(peerConnections, socket, myIframe, cursor, remoteVideo, roomid);
 
     socket.on('offer', function (message: any) {
         if (!hasInit) {
@@ -384,6 +389,7 @@ const useWebRTCCanvasShare = (
                         myIframe,
                         cursor,
                         remoteVideo,
+                        roomid,
                     );
                     isChannelReady = true;
                     setIsGuest(true);
@@ -419,7 +425,7 @@ const useWebRTCCanvasShare = (
                 console.log('Got stream from canvas');
 
                 function Start() {
-                    addPeerConnection(peerConnections, socket, myIframe, cursor, remoteVideo);
+                    addPeerConnection(peerConnections, socket, myIframe, cursor, remoteVideo, roomid);
                     console.log('start: ', peerConnections[peerConnections.length - 1]);
 
                     //@ts-ignore
@@ -461,6 +467,7 @@ const useWebRTCCanvasShare = (
                     sendMessage(
                         socket,
                         {type: 'bye', connectionId: peerConnections[0].connectionId},
+                        roomid,
                     );
                 };
 
@@ -468,6 +475,7 @@ const useWebRTCCanvasShare = (
                     sendMessage(
                         socket,
                         {type: 'bye', connectionId: peerConnections[0].connectionId},
+                        roomid,
                     );
                 };
             };
