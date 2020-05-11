@@ -2,6 +2,10 @@ import {useEffect, useState, useRef} from 'react';
 import {Socket} from "socket.io";
 import {v4 as uuidv4} from 'uuid';
 
+interface PeerConnection extends RTCPeerConnection {
+    connectionId: string;
+}
+
 export function usePrevious<T>(value: T): T | undefined {
     const ref = useRef<T>();
     useEffect(() => {
