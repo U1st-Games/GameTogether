@@ -223,7 +223,7 @@ const onCreateSessionDescriptionError = (error: any) => {
 };
 
 //@ts-ignore
-const setLocalAndSendMessage = (pc: PeerConnection, socket: Socket) => (sessionDescription) => {
+const setLocalAndSendMessage = (pc: PeerConnection, socket: Socket, roomid: string) => (sessionDescription) => {
     pc?.setLocalDescription(sessionDescription);
     console.log('setLocalAndSendMessage sending message', sessionDescription);
     let sessionDescriptionClone = deepClone(sessionDescription);
@@ -231,6 +231,7 @@ const setLocalAndSendMessage = (pc: PeerConnection, socket: Socket) => (sessionD
     socket.emit(
         sessionDescription.type,
         sessionDescriptionClone,
+        roomid,
     );
 };
 
@@ -238,10 +239,10 @@ const handleCreateOfferError = (event: any) => {
     console.log('createOffer() error: ', event);
 };
 
-const doCall = (pc: PeerConnection, socket: Socket) => {
+const doCall = (pc: PeerConnection, socket: Socket, roomid: string) => {
     console.log('Sending offer to peer');
     //@ts-ignore
-    pc.createOffer(setLocalAndSendMessage(pc, socket), handleCreateOfferError);
+    pc.createOffer(setLocalAndSendMessage(pc, socket, roomid), handleCreateOfferError);
 };
 
 const addPeerConnection = (
@@ -347,7 +348,6 @@ const useWebRTCCanvasShare = (
                 //Begin socket.io --------------------------------------------
                 let room = roomid;
 
-
                 if (!roomid) {
                     console.error('no roomid');
                     return;
@@ -426,14 +426,14 @@ const useWebRTCCanvasShare = (
                     peerConnections[peerConnections.length - 1].addStream(localStream);
                     isStarted = true;
                     console.log('isInitiator', isInitiator);
-                    doCall(peerConnections[peerConnections.length - 1], socket);
+                    doCall(peerConnections[peerConnections.length - 1], socket, roomid);
 
                 }
 
                 function doAnswer() {
                     console.log('Sending answer to peer.');
                     peerConnections[peerConnections.length - 1]?.createAnswer()
-                        .then(setLocalAndSendMessage(peerConnections[peerConnections.length - 1], socket), onCreateSessionDescriptionError);
+                        .then(setLocalAndSendMessage(peerConnections[peerConnections.length - 1], socket, roomid), onCreateSessionDescriptionError);
                 }
 
                 function hangup() {
