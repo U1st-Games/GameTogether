@@ -387,7 +387,7 @@ const useWebRTCCanvasShare = (
                     );
                     isChannelReady = true;
                     setIsGuest(true);
-                    socket.emit('gotUserMedia');
+                    socket.emit('gotUserMedia', room);
                 });
 
                 socket.on('log', function (array: any) {
