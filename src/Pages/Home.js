@@ -28,7 +28,7 @@ const useStyles = makeStyles({
     },
 });
 
-const GameCard = ({ name, thumbnail, description, link }) => {
+const GameCard = ({ name, thumbnail, description, link, roomid }) => {
     const classes = useStyles();
     const history = useHistory();
     return (
@@ -56,8 +56,7 @@ const GameCard = ({ name, thumbnail, description, link }) => {
                     color="primary"
                     variant={"contained"}
                     onClick={() => {
-                        const roomid = uuidv4();
-                        history.push(`/gameroom/${roomid}/${link}`)
+                        history.push(`/gameroom/${roomid || uuidv4()}/${link}`)
                     }}
                     style={{ margin: '0 auto', backgroundColor: 'black' }}
                 >
@@ -68,10 +67,13 @@ const GameCard = ({ name, thumbnail, description, link }) => {
     );
 };
 
-const Home = () => {
+const Home = ({ roomid }) => {
+    console.log('home rendeerd');
     return (
         <HomeContainer>
-            {GameInfo.map(GameCard)}
+            {GameInfo.map((gameinfo) => {
+                return <GameCard { ...{ ...gameinfo, roomid } } />
+            })}
         </HomeContainer>
     );
 };

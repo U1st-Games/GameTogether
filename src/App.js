@@ -79,7 +79,7 @@ function App() {
                   <Route exact path="/">
                       <Home />
                   </Route>
-                  <Route exact path="/gameroom/:roomid/:gamename">
+                  <Route path="/gameroom/:roomid">
                       <GameRoom />
                   </Route>
               </Switch>

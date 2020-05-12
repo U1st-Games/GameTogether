@@ -1,11 +1,14 @@
-import React, {useEffect, useState} from 'react';
+import React from 'react';
 import styled from 'styled-components';
 import {
+    Route,
+    Switch,
     useParams,
 } from "react-router-dom";
 import { OTSession, OTPublisher, OTStreams, OTSubscriber } from 'opentok-react';
 
-import useWebRTCCanvasShare from './useWebRTCCanvasShare';
+import Home from './Home';
+import GameView from './GameView';
 
 var apiKey = "46617242";
 var sessionId = "1_MX40NjYxNzI0Mn5-MTU4NTI3ODQ1MTU3NH43Rm84SWRBbkN2QWh5dkUyUGJMZWlPTE1-fg";
@@ -35,26 +38,19 @@ const Mouse = styled.img`
 `;
 
 const GameRoom = () => {
-    const { gamename, roomid } = useParams();
-
-    const { isGuest } = useWebRTCCanvasShare(
-        'gameIframe',
-        'remoteCursor',
-        'remoteVideo',
-        'https://rust-sandpaper.glitch.me',
-        roomid,
-    );
+    const { roomid } = useParams();
 
     return (
         <Container>
             <MainArea>
-                <iframe
-                    id={'gameIframe'}
-                    src={`/${gamename}/index.html`} width={"100%"} height={"100%"}
-                    style={{ display: isGuest ? 'none' : 'initial', border: 'none' }}
-                />
-                {/*<video id={"localVideo"} autoPlay muted playsInline/>*/}
-                <video id={"remoteVideo"} autoPlay muted playsInline/>
+                <Switch>
+                    <Route exact path="/gameroom/:roomid">
+                        <Home roomid={roomid} />
+                    </Route>
+                    <Route exact path="/gameroom/:roomid/:gamename/">
+                        <GameView />
+                    </Route>
+                </Switch>
             </MainArea>
             <SideBar>
                 <OTSession apiKey={apiKey} sessionId={sessionId} token={token}>
