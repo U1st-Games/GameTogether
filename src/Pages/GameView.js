@@ -1,10 +1,10 @@
 import React from 'react';
 import useWebRTCCanvasShare from "./useWebRTCCanvasShare";
-import {Route, useParams} from "react-router-dom";
+import {useParams} from "react-router-dom";
 
 const GameView = () => {
     const { gamename, roomid } = useParams();
-    console.log('GameView: ', roomid, gamename);
+
     const {isGuest} = useWebRTCCanvasShare(
         'gameIframe',
         'remoteCursor',
