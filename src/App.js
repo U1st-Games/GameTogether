@@ -68,7 +68,7 @@ function App() {
                       Game Together
                   </Typography>
                     <Switch>
-                        <Route exact path="/gameroom/:gamename/:roomid">
+                        <Route exact path="/gameroom/:roomid/:gamename/">
                             {`Invite others with this link: ${window.location}`}
                         </Route>
                     </Switch>
@@ -79,7 +79,7 @@ function App() {
                   <Route exact path="/">
                       <Home />
                   </Route>
-                  <Route exact path="/gameroom/:gamename/:roomid">
+                  <Route exact path="/gameroom/:roomid/:gamename">
                       <GameRoom />
                   </Route>
               </Switch>

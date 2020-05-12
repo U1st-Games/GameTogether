@@ -1,6 +1,6 @@
-import {useEffect, useState, useRef} from 'react';
-import {Socket} from "socket.io";
-import {v4 as uuidv4} from 'uuid';
+import { useEffect, useState, useRef } from 'react';
+import { Socket } from 'socket.io';
+import { v4 as uuidv4 } from 'uuid';
 
 interface PeerConnection extends RTCPeerConnection {
     connectionId: string;
@@ -83,7 +83,7 @@ const createKeypressDataChannel = (pc: RTCPeerConnection) => {
     clickDc.onclose = () => {
         console.log('Click The Data Channel is Closed');
     };
-    document.onkeypress = function (e) {
+    document.onkeypress = function(e) {
         //@ts-ignore
         e = e || window.event;
         // use e.keyCode
@@ -100,60 +100,59 @@ const getPeerConnection = (peerConnections: RTCPeerConnection[], peerConnection:
     }
 };
 
-const onDataChannelHandler = (myIframe: HTMLIFrameElement, cursor: Element) =>
-    ({channel}: { channel: any }) => {
-        channel.onmessage = (e: any) => {
-            console.log(e.data);
+const onDataChannelHandler = (myIframe: HTMLIFrameElement, cursor: Element) => ({ channel }: { channel: any }) => {
+    channel.onmessage = (e: any) => {
+        console.log(e.data);
 
-            if (channel.label === 'keyPress') {
-                console.log('keyPress: ', e.data);
+        if (channel.label === 'keyPress') {
+            console.log('keyPress: ', e.data);
+
+            //@ts-ignore
+            function simulateKey(keyCode, type, modifiers) {
+                var evtName = typeof type === 'string' ? 'key' + type : 'keydown';
+                //@ts-ignore
+                var modifier = typeof modifiers === 'object' ? modifier : {};
 
                 //@ts-ignore
-                function simulateKey(keyCode, type, modifiers) {
-                    var evtName = typeof type === 'string' ? 'key' + type : 'keydown';
-                    //@ts-ignore
-                    var modifier = typeof modifiers === 'object' ? modifier : {};
+                var event = myIframe.contentWindow.document.createEvent('HTMLEvents');
+                event.initEvent(evtName, true, false);
+                //@ts-ignore
+                event.keyCode = keyCode;
 
+                for (var i in modifiers) {
                     //@ts-ignore
-                    var event = myIframe.contentWindow.document.createEvent('HTMLEvents');
-                    event.initEvent(evtName, true, false);
-                    //@ts-ignore
-                    event.keyCode = keyCode;
-
-                    for (var i in modifiers) {
-                        //@ts-ignore
-                        event[i] = modifiers[i];
-                    }
-                    //@ts-ignore
-                    myIframe.contentWindow.document.dispatchEvent(event);
+                    event[i] = modifiers[i];
                 }
-
-                if (e.data === '119') {
-                    //@ts-ignore
-                    simulateKey(38);
-                }
-                if (e.data === '97') {
-                    //@ts-ignore
-                    simulateKey(37);
-                }
-                if (e.data === '115') {
-                    //@ts-ignore
-                    simulateKey(40);
-                }
-                if (e.data === '100') {
-                    //@ts-ignore
-                    simulateKey(39);
-                }
+                //@ts-ignore
+                myIframe.contentWindow.document.dispatchEvent(event);
             }
-            if (channel.label === 'mousePosition') {
-                const split = e.data && e.data.split(',');
+
+            if (e.data === '119') {
                 //@ts-ignore
-                cursor.style.left = split[0] + 'px';
-                //@ts-ignore
-                cursor.style.top = split[1] + 'px';
+                simulateKey(38);
             }
-        };
+            if (e.data === '97') {
+                //@ts-ignore
+                simulateKey(37);
+            }
+            if (e.data === '115') {
+                //@ts-ignore
+                simulateKey(40);
+            }
+            if (e.data === '100') {
+                //@ts-ignore
+                simulateKey(39);
+            }
+        }
+        if (channel.label === 'mousePosition') {
+            const split = e.data && e.data.split(',');
+            //@ts-ignore
+            cursor.style.left = split[0] + 'px';
+            //@ts-ignore
+            cursor.style.top = split[1] + 'px';
+        }
     };
+};
 
 //@ts-ignore
 const handleIceCandidate = (socket: Socket, peerConnection: any, roomid: string) => (event: any) => {
@@ -169,8 +168,8 @@ const handleIceCandidate = (socket: Socket, peerConnection: any, roomid: string)
                 candidate: event.candidate.candidate,
                 connectionId: peerConnection.connectionId,
             },
-            roomid,
-            );
+            roomid
+        );
     } else {
         console.log('End of candidates.');
     }
@@ -184,7 +183,7 @@ const handleRemoteStreamAdded = (remoteVideo: any) => (event: any) => {
 };
 
 //@ts-ignore
-const handleRemoteStreamRemoved = (event) => {
+const handleRemoteStreamRemoved = event => {
     console.log('Remote stream removed. Event: ', event);
 };
 
@@ -193,7 +192,7 @@ const createPeerConnection = (
     myIframe: HTMLIFrameElement,
     cursor: HTMLElement,
     remoteVideo: HTMLElement,
-    roomid: string,
+    roomid: string
 ): PeerConnection | undefined => {
     try {
         const pc = new RTCPeerConnection();
@@ -230,16 +229,12 @@ const onCreateSessionDescriptionError = (error: any) => {
 };
 
 //@ts-ignore
-const setLocalAndSendMessage = (pc: PeerConnection, socket: Socket, roomid: string) => (sessionDescription) => {
+const setLocalAndSendMessage = (pc: PeerConnection, socket: Socket, roomid: string) => sessionDescription => {
     pc?.setLocalDescription(sessionDescription);
     console.log('setLocalAndSendMessage sending message', sessionDescription);
     let sessionDescriptionClone = deepClone(sessionDescription);
     sessionDescriptionClone.connectionId = pc?.connectionId;
-    socket.emit(
-        sessionDescription.type,
-        sessionDescriptionClone,
-        roomid,
-    );
+    socket.emit(sessionDescription.type, sessionDescriptionClone, roomid);
 };
 
 const handleCreateOfferError = (event: any) => {
@@ -258,7 +253,7 @@ const addPeerConnection = (
     myIframe: HTMLIFrameElement,
     cursor: HTMLElement,
     remoteVideo: HTMLElement,
-    roomid: string,
+    roomid: string
 ) => {
     const newPeerConnection = createPeerConnection(socket, myIframe, cursor, remoteVideo, roomid);
     if (newPeerConnection) {
@@ -268,15 +263,11 @@ const addPeerConnection = (
     }
 };
 
-const initHost = (
-    socket: any,
-    Start: any,
-    peerConnections: PeerConnection[],
-) => {
-    socket.on('gotUserMedia', function () {
+const initHost = (socket: any, Start: any, peerConnections: PeerConnection[]) => {
+    socket.on('gotUserMedia', function() {
         Start();
     });
-    socket.on('answer', function (message: any) {
+    socket.on('answer', function(message: any) {
         console.log('answer: ', message);
         peerConnections[peerConnections.length - 1]?.setRemoteDescription(new RTCSessionDescription(message));
     });
@@ -291,12 +282,12 @@ const initGuest = (
     myIframe: any,
     cursor: any,
     remoteVideo: any,
-    roomid: string,
+    roomid: string
 ) => {
     let hasInit = false;
     addPeerConnection(peerConnections, socket, myIframe, cursor, remoteVideo, roomid);
 
-    socket.on('offer', function (message: any) {
+    socket.on('offer', function(message: any) {
         if (!hasInit) {
             console.log('offer message: ', message);
             setPeerConnectionId(peerConnections[peerConnections.length - 1], message.connectionId);
@@ -318,7 +309,7 @@ const useWebRTCCanvasShare = (
     remoteVideoId: string,
     socketUrl: string,
     roomid: string,
-    startOnLoad: boolean = true,
+    startOnLoad: boolean = true
 ): Return => {
     const [hasInit, setHasInit] = useState(false);
     const [isGuest, setIsGuest] = useState(false);
@@ -345,7 +336,6 @@ const useWebRTCCanvasShare = (
                 //@ts-ignore
                 let socket = window.io.connect(socketUrl);
 
-
                 const canvass = myIframe?.contentWindow?.document.getElementById('myCanvas');
 
                 let localStream: MediaStream;
@@ -366,23 +356,23 @@ const useWebRTCCanvasShare = (
                 //@ts-ignore
                 console.log('Attempted to create or  join room', room);
 
-                socket.on('created', function (room: string) {
+                socket.on('created', function(room: string) {
                     console.log('Created room ' + room);
                     initHost(socket, Start, peerConnections);
                     isInitiator = true;
                 });
 
-                socket.on('full', function (room: string) {
+                socket.on('full', function(room: string) {
                     console.log('Room ' + room + ' is full');
                 });
 
-                socket.on('join', function (room: string) {
+                socket.on('join', function(room: string) {
                     console.log('Another peer made a request to join room ' + room);
                     console.log('This peer is the initiator of room ' + room + '!');
                     isChannelReady = true;
                 });
 
-                socket.on('joined', function (room: string) {
+                socket.on('joined', function(room: string) {
                     console.log('joined: ' + room);
                     initGuest(
                         socket,
@@ -393,20 +383,20 @@ const useWebRTCCanvasShare = (
                         myIframe,
                         cursor,
                         remoteVideo,
-                        roomid,
+                        roomid
                     );
                     isChannelReady = true;
                     setIsGuest(true);
                     socket.emit('gotUserMedia', room);
                 });
 
-                socket.on('log', function (array: any) {
+                socket.on('log', function(array: any) {
                     console.log(array);
                 });
 
                 // This client receives a message
                 //@ts-ignore
-                socket.on('message', function (message) {
+                socket.on('message', function(message) {
                     //@ts-ignore
                     console.log('Client received message:', message);
                     if (message.type === 'candidate' && isStarted) {
@@ -429,6 +419,7 @@ const useWebRTCCanvasShare = (
                 console.log('Got stream from canvas');
 
                 function Start() {
+                    //@ts-ignore
                     addPeerConnection(peerConnections, socket, myIframe, cursor, remoteVideo, roomid);
                     console.log('start: ', peerConnections[peerConnections.length - 1]);
 
@@ -436,14 +427,17 @@ const useWebRTCCanvasShare = (
                     peerConnections[peerConnections.length - 1].addStream(localStream);
                     isStarted = true;
                     console.log('isInitiator', isInitiator);
+                    //@ts-ignore
                     doCall(peerConnections[peerConnections.length - 1], socket, roomid);
-
                 }
 
                 function doAnswer() {
                     console.log('Sending answer to peer.');
-                    peerConnections[peerConnections.length - 1]?.createAnswer()
-                        .then(setLocalAndSendMessage(peerConnections[peerConnections.length - 1], socket, roomid), onCreateSessionDescriptionError);
+                    peerConnections[peerConnections.length - 1]?.createAnswer().then(
+                        //@ts-ignore
+                        setLocalAndSendMessage(peerConnections[peerConnections.length - 1], socket, roomid),
+                        onCreateSessionDescriptionError
+                    );
                 }
 
                 function hangup() {
@@ -467,26 +461,28 @@ const useWebRTCCanvasShare = (
                     //peerConnections[peerConnections.length - 1] = null;
                 }
 
-                window.onbeforeunload = function () {
+                window.onbeforeunload = function() {
                     sendMessage(
+                        //@ts-ignore
                         socket,
-                        {type: 'bye', connectionId: peerConnections[0].connectionId},
-                        roomid,
+                        { type: 'bye', connectionId: peerConnections[0].connectionId },
+                        roomid
                     );
                 };
 
                 return () => {
                     sendMessage(
+                        //@ts-ignore
                         socket,
-                        {type: 'bye', connectionId: peerConnections[0].connectionId},
-                        roomid,
+                        { type: 'bye', connectionId: peerConnections[0].connectionId },
+                        roomid
                     );
                 };
             };
             myIframe.addEventListener('load', onIframeLoaded);
         }
     }, [hasStart, hasInit]);
-    return {isGuest, start};
+    return { isGuest, start };
 };
 
 export default useWebRTCCanvasShare;
