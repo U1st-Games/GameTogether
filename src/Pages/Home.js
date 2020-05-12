@@ -56,7 +56,7 @@ const GameCard = ({ name, thumbnail, description, link, roomid }) => {
                     color="primary"
                     variant={"contained"}
                     onClick={() => {
-                        history.push(`/gameroom/${roomid || uuidv4()}/${link}`)
+                        history.push(`/${roomid || uuidv4()}/${link}`)
                     }}
                     style={{ margin: '0 auto', backgroundColor: 'black' }}
                 >

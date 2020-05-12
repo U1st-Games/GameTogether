@@ -44,10 +44,10 @@ const GameRoom = () => {
         <Container>
             <MainArea>
                 <Switch>
-                    <Route exact path="/gameroom/:roomid">
+                    <Route exact path="/:roomid">
                         <Home roomid={roomid} />
                     </Route>
-                    <Route exact path="/gameroom/:roomid/:gamename/">
+                    <Route exact path="/:roomid/:gamename/">
                         <GameView />
                     </Route>
                 </Switch>
