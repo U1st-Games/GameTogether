@@ -1,3 +1,8 @@
+/*
+GameTogether © Copyright, Nang Development Limited 2020. All Rights Reserved.
+The authors, being Leon Talbert have asserted their moral rights.
+ */
+
 import React from 'react';
 import styled from 'styled-components';
 import {

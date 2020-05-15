@@ -1,3 +1,6 @@
+GameTogether © Copyright, Nang Development Limited 2020. All Rights Reserved.
+The authors, being Leon Talbert have asserted their moral rights.
+
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
 
 ## Available Scripts
@@ -66,3 +69,4 @@ This section has moved here: https://facebook.github.io/create-react-app/docs/de
 ### `yarn build` fails to minify
 
 This section has moved here: https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify
+

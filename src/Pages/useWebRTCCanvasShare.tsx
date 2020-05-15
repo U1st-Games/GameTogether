@@ -1,3 +1,8 @@
+/*
+GameTogether © Copyright, Nang Development Limited 2020. All Rights Reserved.
+The authors, being Leon Talbert have asserted their moral rights.
+ */
+
 import { useEffect, useState, useRef } from 'react';
 import { Socket } from 'socket.io';
 import { v4 as uuidv4 } from 'uuid';

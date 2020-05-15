@@ -1,3 +1,8 @@
+/*
+GameTogether © Copyright, Nang Development Limited 2020. All Rights Reserved.
+The authors, being Leon Talbert have asserted their moral rights.
+ */
+
 import React, { useState, useEffect } from 'react';
 import {
   BrowserRouter as Router,
