@@ -1,13 +1,63 @@
 GameTogether © Copyright, Nang Development Limited 2020. All Rights Reserved.
 The authors, being Leon Talbert have asserted their moral rights.
 
+#Game Together
+
+GameTogether's mission is to bring people closer together with computer games. It 
+allows people to play web based computer games together in group video calls.
+
+[Click here](https://devpost.com/software/gametogether) for a short video introduction.
+
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+
+## Getting started
+
+`npm i` `npm start`, then navigate to [http://localhost:3000](http://localhost:3000).
+
+I am not sure how much documentation people need or want, so please don't hesitate to
+ask me (leeondamiky on slack) any questions or request additions or clarificaiton to 
+the documentation. I'm happy to help :). 
+
+## Technical overview
+
+The React applicaiton starts in `src/index.js`. From here `App.js` is loaded.
+You can follow the routing from here. Components are in `src/Pages`.
+
+All of the logic for sharing the canvas stream and sharing mouse clicks and 
+key presses is handled in `useWebRTCCanvas`.
+
+If you would like to get involved with the webRTC code, I strongly recommend
+having a good read through [this](https://www.html5rocks.com/en/tutorials/webrtc/basics/).
+It covers the history of webRTC, has some nice diagrams and code samples, and is an all
+round great in depth introduction.
+
+In GameTogether webRTC is only used for sharing the game's screen and the mouse click
+and key presses. Everything related to the video call, that is the camera feed, the audio
+feed and screen sharing, is handled by the [Vonage video API](https://tokbox.com/developer/);
+
+We interact with this API mainly through [react-use-opentok](https://github.com/pjchender/react-use-opentok).
+You can probably get by with just reading the `react-use-opentok` README.
+
+If the source code is not already heavily commented, then it is in progress and will be shortly.
+
+The basic flow for the game sharing is as follows:
+
+- When 'create game room' is clicked, a uid is generated and added to the url. This
+uniquely identifies this room. The name of the game is also added to the url, so
+that `GameView` knows which game to load
+- The `userWebRTCCanvasShare` hook will then call out to the signaling server 
+over websockets. This will create a room with the same id on the `socket.io` server,
+which prevents clashes with signalling from other rooms.
+- If the user is the first one into the room, they will become the host, and their 
+canvas will be streamed to everyone else who joins later. If the user is not the fisrt,
+they will become a guest. They will receive the canvas stream and send back their
+mouse positions and key presses, which the host will then apply to the game.
 
 ## Available Scripts
 
 In the project directory, you can run:
 
-### `yarn start`
+### `npm start`
 
 Runs the app in the development mode.<br />
 Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
@@ -15,12 +65,12 @@ Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
 The page will reload if you make edits.<br />
 You will also see any lint errors in the console.
 
-### `yarn test`
+### `npm test`
 
 Launches the test runner in the interactive watch mode.<br />
 See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
 
-### `yarn build`
+### `npm build`
 
 Builds the app for production to the `build` folder.<br />
 It correctly bundles React in production mode and optimizes the build for the best performance.
@@ -30,7 +80,7 @@ Your app is ready to be deployed!
 
 See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
 
-### `yarn eject`
+### `npm eject`
 
 **Note: this is a one-way operation. Once you `eject`, you can’t go back!**
 
@@ -66,7 +116,7 @@ This section has moved here: https://facebook.github.io/create-react-app/docs/ad
 
 This section has moved here: https://facebook.github.io/create-react-app/docs/deployment
 
-### `yarn build` fails to minify
+### `npm build` fails to minify
 
 This section has moved here: https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify
 
