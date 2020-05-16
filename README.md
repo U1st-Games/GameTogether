@@ -1,7 +1,7 @@
 GameTogether © Copyright, Nang Development Limited 2020. All Rights Reserved.
 The authors, being Leon Talbert have asserted their moral rights.
 
-#Game Together
+# Game Together
 
 GameTogether's mission is to bring people closer together with computer games. It 
 allows people to play web based computer games together in group video calls.
