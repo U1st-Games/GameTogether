@@ -18,6 +18,12 @@ I am not sure how much documentation people need or want, so please don't hesita
 ask me (leeondamiky on slack) any questions or request additions or clarificaiton to 
 the documentation. I'm happy to help :). 
 
+## Development process
+
+- Create a new branch named based on the feature you are working on e.g. `video-chat`.
+- Once you've made your changes, submit a PR from your branch to master
+- After making any requested changes, your PR will be approved and merged!
+
 ## Technical overview
 
 The React applicaiton starts in `src/index.js`. From here `App.js` is loaded.
@@ -52,6 +58,7 @@ which prevents clashes with signalling from other rooms.
 canvas will be streamed to everyone else who joins later. If the user is not the fisrt,
 they will become a guest. They will receive the canvas stream and send back their
 mouse positions and key presses, which the host will then apply to the game.
+
 
 ## Available Scripts
 
