@@ -1,5 +1,5 @@
 {
-  "name": "corona-mental-health",
+  "name": "game_together",
   "version": "0.1.0",
   "private": true,
   "dependencies": {
@@ -14,6 +14,7 @@
     "@types/react-dom": "16.9.7",
     "@types/socket.io": "2.1.4",
     "@types/uuid": "7.0.3",
+    "express": "^4.17.1",
     "opentok-react": "0.10.0",
     "react": "^16.13.1",
     "react-dom": "^16.13.1",
@@ -47,5 +48,17 @@
   },
   "devDependencies": {
     "babel-plugin-styled-components": "1.10.7"
-  }
+  },
+  "description": "GameTogether © Copyright, Nang Development Limited 2020. All Rights Reserved.\r The authors, being Leon Talbert have asserted their moral rights.",
+  "main": "app.js",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/LeonmanRolls/GameTogether.git"
+  },
+  "author": "Anagha Patil",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/LeonmanRolls/GameTogether/issues"
+  },
+  "homepage": "https://github.com/LeonmanRolls/GameTogether#readme"
 }
