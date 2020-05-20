@@ -9,6 +9,10 @@ This project was bootstrapped with [Create React App](https://github.com/faceboo
 
 ## Getting started
 
+[Join our trello board](https://trello.com/b/8J31ar6K/mvp).
+
+[Join our Discord server](https://discord.gg/76dHMpH).
+
 `npm i` `npm start`, then navigate to [http://localhost:3000](http://localhost:3000).
 
 I am not sure how much documentation people need or want, so please don't hesitate to
