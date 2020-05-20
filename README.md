@@ -1,6 +1,3 @@
-GameTogether © Copyright, Nang Development Limited 2020. All Rights Reserved.
-The authors, being Leon Talbert have asserted their moral rights.
-
 # Game Together
 
 GameTogether's mission is to bring people closer together with computer games. It 
@@ -127,3 +124,19 @@ This section has moved here: https://facebook.github.io/create-react-app/docs/de
 
 This section has moved here: https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify
 
+### Boring Stuff
+
+GameTogether © Copyright, Nang Development Limited 2020. All Rights Reserved.
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <https://www.gnu.org/licenses/>.
