@@ -19,8 +19,12 @@ import { useEffect, useState, useRef } from 'react';
 import { Socket } from 'socket.io';
 import { v4 as uuidv4 } from 'uuid';
 
+let socket: SocketIOClient.Socket;
+
 interface PeerConnection extends RTCPeerConnection {
     connectionId: string;
+    dataChannel: RTCDataChannel;
+    addStream: any;
 }
 
 export function usePrevious<T>(value: T): T | undefined {
@@ -30,6 +34,45 @@ export function usePrevious<T>(value: T): T | undefined {
     });
     return ref.current;
 }
+
+type sendKeypressFn = (name: string, keyCode: number, dataChannel: RTCDataChannel) => void;
+const sendKeypress: sendKeypressFn = (name, keyCode, dataChannel) => {
+    try {
+        dataChannel.send(
+            JSON.stringify({
+                name,
+                keyCode,
+            })
+        );
+    } catch (e) {
+        console.error('Failed to send keypress: ', e);
+    }
+};
+
+const sendKeypressToAllGuests = (peerConnections: PeerConnection[], name: string, keyCode: number) => {
+    peerConnections.map(pc => {
+        sendKeypress(name, keyCode, pc.dataChannel);
+    });
+};
+
+const normalizeMousePosition = (displayElement: HTMLCanvasElement | HTMLVideoElement, mouseEvent: MouseEvent) => {
+    const displayElementWidth = displayElement.offsetWidth;
+    const displayElementHeight = displayElement.offsetHeight;
+
+    const normalizedWidth = mouseEvent.clientX / displayElementWidth;
+    const normalizedHeight = mouseEvent.clientY / displayElementHeight;
+
+    console.log('mouseEvent: ', mouseEvent);
+    console.log('mouseEventX: ', mouseEvent.clientX);
+    console.log('mouseEventY: ', mouseEvent.clientY);
+
+    // console.log('one: ', displayElementWidth);
+    // console.log('two: ', displayElementHeight);
+    // console.log('three: ', normalizedWidth);
+    // console.log('four: ', normalizedHeight);
+    // console.log('five: ', displayElement);
+    return { normalizedWidth, normalizedHeight };
+};
 
 const setPeerConnectionId = (pc: PeerConnection, connectionId: string) => {
     pc.connectionId = connectionId;
@@ -55,77 +98,92 @@ function click(x: number, y: number) {
     el?.dispatchEvent(ev);
 }
 
-const createMouseDataChannel = (pc: RTCPeerConnection) => {
-    const mouseDc = pc.createDataChannel('mousePosition', {
-        ordered: false,
-        maxRetransmits: 0,
-    });
-    mouseDc.onerror = error => {
-        console.log('Data Channel Error:', error);
-    };
-    mouseDc.onmessage = event => {
-        console.log('Got Data Channel Message:', event.data);
-        const split = event.data && event.data.split(',');
-        //@ts-ignore
-        cursor.style.left = split[0];
-        //@ts-ignore
-        cursor.style.top = split[1];
-    };
-    mouseDc.onopen = () => {
-        mouseDc.send('Hello World!');
-        document.onmousemove = e => mouseDc.send(e.x + ',' + e.y);
-    };
-    mouseDc.onclose = () => {
-        console.log('The Data Channel is Closed');
-    };
-};
-
-const createKeypressDataChannel = (pc: RTCPeerConnection) => {
+const createDataChannel = (
+    pc: RTCPeerConnection,
+    canvas: HTMLCanvasElement,
+    videoElement: HTMLVideoElement,
+    isHost: boolean,
+    updateGameLog: updateGameLogFn
+) => {
     //setup click data channel
-    const clickDc = pc.createDataChannel('keyPress', {
+    const keyDataChannel = pc.createDataChannel('keyPress', {
         ordered: false,
         maxRetransmits: 0,
     });
-    clickDc.onerror = error => {
-        console.log('Click Data Channel Error:', error);
+    keyDataChannel.onerror = error => {
+        console.log('Key Data Channel Error:', error);
     };
-    clickDc.onmessage = event => {
-        console.log('Click Got Data Channel Message:', event.data);
-        const split = event.data && event.data.split(',');
-        click(split[0], split[1]);
+    keyDataChannel.onopen = () => {
+        keyDataChannel.send('Key Hello World!');
     };
-    clickDc.onopen = () => {
-        clickDc.send('Click Hello World!');
-    };
-    clickDc.onclose = () => {
-        console.log('Click The Data Channel is Closed');
-    };
-    document.onkeypress = function(e) {
-        //@ts-ignore
-        e = e || window.event;
-        // use e.keyCode
-        //@ts-ignore
-        clickDc.send(e.keyCode);
+    keyDataChannel.onclose = () => {
+        console.log('Key The Data Channel is Closed');
     };
     //@ts-ignore
-    document.onClick = e => clickDc.send(e.clientX + ',' + e.clientY);
-};
+    // document.onclick = e => {
+    //   console.log('onClick');
+    //   try {
+    //     keyDataChannel.send(e.clientX + ',' + e.clientY);
+    //   } catch (e) {
+    //     console.error('failed to send click');
+    //   }
+    // };
 
-const getPeerConnection = (peerConnections: RTCPeerConnection[], peerConnection: RTCPeerConnection, message: any) => {
-    if (message.type === 'offer') {
-        return peerConnection;
+    const mousePositionDataChannel = pc.createDataChannel('mousePosition', {
+        ordered: false,
+        maxRetransmits: 0,
+    });
+    mousePositionDataChannel.onerror = error => {
+        console.log('Mouse position Data Channel Error:', error);
+    };
+    mousePositionDataChannel.onopen = () => {
+        mousePositionDataChannel.send('Mouse position Hello World!');
+    };
+    mousePositionDataChannel.onclose = () => {
+        console.log('Mouse position The Data Channel is Closed');
+    };
+    if (isHost) {
+        canvas.addEventListener('mousemove', (e: MouseEvent) => {
+            try {
+                mousePositionDataChannel.send(JSON.stringify(normalizeMousePosition(canvas, e)));
+            } catch (e) {
+                console.error('failed to send mouse position');
+            }
+        });
+    } else {
+        videoElement.addEventListener('mousemove', e => {
+            try {
+                mousePositionDataChannel.send(JSON.stringify(normalizeMousePosition(videoElement, e)));
+            } catch (e) {
+                console.error('failed to send mouse position');
+            }
+        });
     }
+
+    return keyDataChannel;
 };
 
-const onDataChannelHandler = (myIframe: HTMLIFrameElement, cursor: Element) => ({ channel }: { channel: any }) => {
+const hostDataChannelHandler = (
+    myIframe: HTMLIFrameElement,
+    cursor: Element,
+    updateGameLog: updateGameLogFn,
+    peerConnections: PeerConnection[]
+) => ({ channel }: { channel: any }) => {
     channel.onmessage = (e: any) => {
-        console.log(e.data);
+        console.log('onDataChannelHandler: ', e.data);
 
         if (channel.label === 'keyPress') {
             console.log('keyPress: ', e.data);
 
+            const keypressData = JSON.parse(e.data);
+            const recievedKeycode = keypressData.keyCode;
+
+            updateGameLog(keypressData.name + ' pressed: ' + recievedKeycode);
+            sendKeypressToAllGuests(peerConnections, keypressData.name, recievedKeycode);
+
             //@ts-ignore
             function simulateKey(keyCode, type, modifiers) {
+                console.log('simulate key');
                 var evtName = typeof type === 'string' ? 'key' + type : 'keydown';
                 //@ts-ignore
                 var modifier = typeof modifiers === 'object' ? modifier : {};
@@ -144,29 +202,52 @@ const onDataChannelHandler = (myIframe: HTMLIFrameElement, cursor: Element) => (
                 myIframe.contentWindow.document.dispatchEvent(event);
             }
 
-            if (e.data === '119') {
+            if (recievedKeycode === 87) {
                 //@ts-ignore
                 simulateKey(38);
             }
-            if (e.data === '97') {
+            if (recievedKeycode === 65) {
                 //@ts-ignore
                 simulateKey(37);
             }
-            if (e.data === '115') {
+            if (recievedKeycode === 83) {
                 //@ts-ignore
                 simulateKey(40);
             }
-            if (e.data === '100') {
+            if (recievedKeycode === 68) {
                 //@ts-ignore
                 simulateKey(39);
             }
         }
         if (channel.label === 'mousePosition') {
-            const split = e.data && e.data.split(',');
-            //@ts-ignore
-            cursor.style.left = split[0] + 'px';
-            //@ts-ignore
-            cursor.style.top = split[1] + 'px';
+            // const split = e.data && e.data.split(',');
+            // //@ts-ignore
+            // cursor.style.left = split[0] + 'px';
+            // //@ts-ignore
+            // cursor.style.top = split[1] + 'px';
+        }
+    };
+};
+
+const onDataChannelHandler = (myIframe: HTMLIFrameElement, cursor: Element, updateGameLog: updateGameLogFn) => ({
+                                                                                                                    channel,
+                                                                                                                }: {
+    channel: any;
+}) => {
+    channel.onmessage = (e: any) => {
+        console.log('onDataChannelHandler: ', e.data);
+
+        if (channel.label === 'keyPress') {
+            console.log('keyPress: ', e.data);
+            const keypressData = JSON.parse(e.data);
+            updateGameLog(keypressData.name + ' pressed ' + keypressData.keyCode);
+        }
+        if (channel.label === 'mousePosition') {
+            // const split = e.data && e.data.split(',');
+            // //@ts-ignore
+            // cursor.style.left = split[0] + 'px';
+            // //@ts-ignore
+            // cursor.style.top = split[1] + 'px';
         }
     };
 };
@@ -208,11 +289,16 @@ const createPeerConnection = (
     socket: Socket,
     myIframe: HTMLIFrameElement,
     cursor: HTMLElement,
-    remoteVideo: HTMLElement,
-    roomid: string
+    remoteVideo: HTMLVideoElement,
+    roomid: string,
+    canvas: HTMLCanvasElement,
+    isHost: boolean,
+    updateGameLog: updateGameLogFn,
+    peerConnections: PeerConnection[]
 ): PeerConnection | undefined => {
     try {
-        const pc = new RTCPeerConnection();
+        console.log('createPeerConnection');
+        const pc = new RTCPeerConnection() as PeerConnection;
         //@ts-ignore
         pc.connectionId = uuidv4();
         pc.onicecandidate = handleIceCandidate(socket, pc, roomid);
@@ -220,11 +306,16 @@ const createPeerConnection = (
         pc.onaddstream = handleRemoteStreamAdded(remoteVideo);
         //@ts-ignore
         pc.onremovestream = handleRemoteStreamRemoved;
-        pc.ondatachannel = onDataChannelHandler(myIframe, cursor);
+
+        if (isHost) {
+            pc.ondatachannel = hostDataChannelHandler(myIframe, cursor, updateGameLog, peerConnections);
+        } else {
+            pc.ondatachannel = onDataChannelHandler(myIframe, cursor, updateGameLog);
+        }
 
         console.log('Created RTCPeerConnnection');
         //createMouseDataChannel(pc);
-        createKeypressDataChannel(pc);
+        pc.dataChannel = createDataChannel(pc, canvas, remoteVideo, isHost, updateGameLog);
         return pc as PeerConnection;
     } catch (e) {
         console.log('Failed to create PeerConnection, exception: ' + e.message);
@@ -269,10 +360,23 @@ const addPeerConnection = (
     socket: Socket,
     myIframe: HTMLIFrameElement,
     cursor: HTMLElement,
-    remoteVideo: HTMLElement,
-    roomid: string
+    remoteVideo: HTMLVideoElement,
+    roomid: string,
+    canvas: HTMLCanvasElement,
+    isHost: boolean,
+    updateGameLog: updateGameLogFn
 ) => {
-    const newPeerConnection = createPeerConnection(socket, myIframe, cursor, remoteVideo, roomid);
+    const newPeerConnection = createPeerConnection(
+        socket,
+        myIframe,
+        cursor,
+        remoteVideo,
+        roomid,
+        canvas,
+        isHost,
+        updateGameLog,
+        peerConnections
+    );
     if (newPeerConnection) {
         peerConnections.push(newPeerConnection);
     } else {
@@ -280,29 +384,132 @@ const addPeerConnection = (
     }
 };
 
-const initHost = (socket: any, Start: any, peerConnections: PeerConnection[]) => {
+const stop = (connectionId: string, peerConnections: PeerConnection[]) => {
+    //isStarted = false;
+    //console.log('isStarted: ', isStarted);
+    const peerConnection = getPeerConnectionById(peerConnections, connectionId);
+    if (!peerConnection) {
+        console.error('no peer connection');
+        return;
+    }
+    peerConnection.dataChannel.close();
+    peerConnection.close();
+    removePeerConnectionById(peerConnections, connectionId);
+};
+
+type StartFn = (
+    setIsStarted: (arg0: boolean) => void,
+    peerConnections: PeerConnection[],
+    socket: any,
+    myIframe: HTMLIFrameElement,
+    cursor: HTMLElement,
+    remoteVideo: HTMLVideoElement,
+    roomid: string,
+    canvas: HTMLCanvasElement,
+    localStream: MediaStream,
+    updateGameLog: updateGameLogFn
+) => void;
+
+const Start: StartFn = (
+    setIsStarted,
+    peerConnections,
+    socket,
+    myIframe,
+    cursor,
+    remoteVideo,
+    roomid,
+    canvas,
+    localStream,
+    updateGameLog
+) => {
+    addPeerConnection(peerConnections, socket, myIframe, cursor, remoteVideo, roomid, canvas, true, updateGameLog);
+    peerConnections[peerConnections.length - 1]?.addStream(localStream);
+    setIsStarted(true);
+    doCall(peerConnections[peerConnections.length - 1], socket, roomid);
+};
+
+type InitHostFn = (
+    setIsStarted: (arg0: boolean) => void,
+    peerConnections: PeerConnection[],
+    socket: any,
+    myIframe: HTMLIFrameElement,
+    cursor: HTMLElement,
+    remoteVideo: HTMLVideoElement,
+    roomid: string,
+    canvas: HTMLCanvasElement,
+    localStream: MediaStream,
+    updateGameLog: updateGameLogFn,
+    userName: string
+) => void;
+
+const initHost: InitHostFn = (
+    setIsStarted,
+    peerConnections,
+    socket,
+    myIframe,
+    cursor,
+    remoteVideo,
+    roomid,
+    canvas,
+    localStream,
+    updateGameLog,
+    userName
+) => {
     socket.on('gotUserMedia', function() {
-        Start();
+        Start(
+            setIsStarted,
+            peerConnections,
+            socket,
+            myIframe,
+            cursor,
+            remoteVideo,
+            roomid,
+            canvas,
+            localStream,
+            updateGameLog
+        );
     });
     socket.on('answer', function(message: any) {
         console.log('answer: ', message);
         peerConnections[peerConnections.length - 1]?.setRemoteDescription(new RTCSessionDescription(message));
+    });
+
+    myIframe?.contentWindow?.addEventListener('keydown', (e: any) => {
+        console.log('host keydown: ', e);
+        if (e.isTrusted) {
+            updateGameLog(userName + ' pressed: ' + e.keyCode);
+        }
+        //@ts-ignore
+        e = e || window.event;
+        // use e.keyCode
+        try {
+            //@ts-ignore
+            if (e.isTrusted) {
+                peerConnections.map(pc => {
+                    sendKeypress(userName, e.keyCode, pc.dataChannel);
+                });
+            }
+            //@ts-ignore
+        } catch (e) {
+            console.error('failed to send keypress');
+        }
     });
 };
 
 const initGuest = (
     socket: any,
     peerConnections: any,
-    pc: any,
-    isStarted: any,
     doAnswer: any,
     myIframe: any,
     cursor: any,
     remoteVideo: any,
-    roomid: string
+    roomid: string,
+    canvas: HTMLCanvasElement,
+    updateGameLog: updateGameLogFn,
+    userName: string
 ) => {
     let hasInit = false;
-    addPeerConnection(peerConnections, socket, myIframe, cursor, remoteVideo, roomid);
+    addPeerConnection(peerConnections, socket, myIframe, cursor, remoteVideo, roomid, canvas, false, updateGameLog);
 
     socket.on('offer', function(message: any) {
         if (!hasInit) {
@@ -313,11 +520,30 @@ const initGuest = (
             hasInit = true;
         }
     });
+
+    window.document.addEventListener('keydown', (e: any) => {
+        //console.log('keypress: ', peerConnections[0]);
+        //@ts-ignore
+        e = e || window.event;
+        // use e.keyCode
+        try {
+            //@ts-ignore
+            sendKeypress(userName, e.keyCode, peerConnections[0].dataChannel);
+            //peerConnections[0].dataChannel.send(e.keyCode);
+            //@ts-ignore
+        } catch (e) {
+            console.error('failed to send keypress: ', e);
+        }
+    });
 };
+
+type updateGameLogFn = (nexMessage: string) => void;
 
 interface Return {
     isGuest: boolean;
     start: () => void;
+    stop: () => void;
+    gameLog: string[];
 }
 
 const useWebRTCCanvasShare = (
@@ -326,11 +552,23 @@ const useWebRTCCanvasShare = (
     remoteVideoId: string,
     socketUrl: string,
     roomid: string,
-    startOnLoad: boolean = true
+    startOnLoad: boolean = true,
+    userName: string = 'someone'
 ): Return => {
     const [hasInit, setHasInit] = useState(false);
     const [isGuest, setIsGuest] = useState(false);
     const [hasStart, setHasStart] = useState(startOnLoad);
+    const [gameLog, setGameLog] = useState<string[]>(['one', 'two', 'three']);
+    const updateGameLog: updateGameLogFn = (nextMessage: string) => {
+        setGameLog(gameLog => {
+            if (gameLog.length < 10) {
+                return [...gameLog, nextMessage];
+            }
+            return [...gameLog.slice(1, gameLog.length), nextMessage];
+        });
+    };
+
+    const peerConnections: PeerConnection[] = [];
 
     //This is so consumer can control when the hook starts
     const start = () => {
@@ -339,10 +577,21 @@ const useWebRTCCanvasShare = (
         }
     };
 
+    const stopOutside = () => {
+        if (peerConnections[0]) {
+            stop(peerConnections[0].connectionId, peerConnections);
+            sendMessage(
+                //@ts-ignore
+                socket,
+                { type: 'bye', connectionId: peerConnections[0].connectionId },
+                roomid
+            );
+        }
+    };
+
     useEffect(() => {
         const cursor = document.querySelector('#' + remoteCursorId) as HTMLElement;
-        const remoteVideo = document.querySelector('#' + remoteVideoId) as HTMLElement;
-        const peerConnections: PeerConnection[] = [];
+        const remoteVideo = document.querySelector('#' + remoteVideoId) as HTMLVideoElement;
 
         if (hasStart && !hasInit) {
             setHasInit(true);
@@ -350,16 +599,22 @@ const useWebRTCCanvasShare = (
             const myIframe = document.getElementById(iframeId) as HTMLIFrameElement;
 
             const onIframeLoaded = () => {
-                //@ts-ignore
-                let socket = window.io.connect(socketUrl);
+                if (socket) {
+                    socket.disconnect();
+                }
+                socket = window.io.connect(socketUrl);
 
-                const canvass = myIframe?.contentWindow?.document.getElementById('myCanvas');
+                const canvass = myIframe?.contentWindow?.document.getElementById('myCanvas') as HTMLCanvasElement;
 
                 let localStream: MediaStream;
 
                 let isChannelReady = false;
                 let isInitiator = false;
                 let isStarted = false;
+
+                const setIsStarted = (nextIsStarted: boolean) => {
+                    isStarted = nextIsStarted;
+                };
 
                 //Begin socket.io --------------------------------------------
                 let room = roomid;
@@ -375,7 +630,19 @@ const useWebRTCCanvasShare = (
 
                 socket.on('created', function(room: string) {
                     console.log('Created room ' + room);
-                    initHost(socket, Start, peerConnections);
+                    initHost(
+                        setIsStarted,
+                        peerConnections,
+                        socket,
+                        myIframe,
+                        cursor,
+                        remoteVideo,
+                        roomid,
+                        canvass,
+                        localStream,
+                        updateGameLog,
+                        userName
+                    );
                     isInitiator = true;
                 });
 
@@ -391,16 +658,18 @@ const useWebRTCCanvasShare = (
 
                 socket.on('joined', function(room: string) {
                     console.log('joined: ' + room);
+
                     initGuest(
                         socket,
                         peerConnections,
-                        peerConnections[peerConnections.length - 1],
-                        isStarted,
                         doAnswer,
                         myIframe,
                         cursor,
                         remoteVideo,
-                        roomid
+                        roomid,
+                        canvass,
+                        updateGameLog,
+                        userName
                     );
                     isChannelReady = true;
                     setIsGuest(true);
@@ -421,11 +690,8 @@ const useWebRTCCanvasShare = (
                             sdpMLineIndex: message.label,
                             candidate: message.candidate,
                         });
-                        const test = getPeerConnectionById(peerConnections, message.connectionId);
-                        //debugger;
-                        console.log('test', test);
                         getPeerConnectionById(peerConnections, message.connectionId)?.addIceCandidate(candidate);
-                    } else if (message.type === 'bye' && isStarted) {
+                    } else if (message.type === 'bye') {
                         handleRemoteHangup(message.connectionId);
                     }
                 });
@@ -434,19 +700,6 @@ const useWebRTCCanvasShare = (
                 //@ts-ignore
                 localStream = canvass.captureStream();
                 console.log('Got stream from canvas');
-
-                function Start() {
-                    //@ts-ignore
-                    addPeerConnection(peerConnections, socket, myIframe, cursor, remoteVideo, roomid);
-                    console.log('start: ', peerConnections[peerConnections.length - 1]);
-
-                    //@ts-ignore
-                    peerConnections[peerConnections.length - 1].addStream(localStream);
-                    isStarted = true;
-                    console.log('isInitiator', isInitiator);
-                    //@ts-ignore
-                    doCall(peerConnections[peerConnections.length - 1], socket, roomid);
-                }
 
                 function doAnswer() {
                     console.log('Sending answer to peer.');
@@ -465,17 +718,8 @@ const useWebRTCCanvasShare = (
 
                 function handleRemoteHangup(connectionId: string) {
                     console.log('Session terminated.');
-                    stop(connectionId);
+                    stop(connectionId, peerConnections);
                     isInitiator = false;
-                }
-
-                function stop(connectionId: string) {
-                    isStarted = false;
-                    getPeerConnectionById(peerConnections, connectionId)?.close();
-                    removePeerConnectionById(peerConnections, connectionId);
-                    //peerConnections[peerConnections.length - 1]?.close();
-                    //@ts-ignore
-                    //peerConnections[peerConnections.length - 1] = null;
                 }
 
                 window.onbeforeunload = function() {
@@ -486,20 +730,18 @@ const useWebRTCCanvasShare = (
                         roomid
                     );
                 };
-
-                return () => {
-                    sendMessage(
-                        //@ts-ignore
-                        socket,
-                        { type: 'bye', connectionId: peerConnections[0].connectionId },
-                        roomid
-                    );
-                };
             };
             myIframe.addEventListener('load', onIframeLoaded);
-        }
+        } //hasStart if statement
     }, [hasStart, hasInit]);
-    return { isGuest, start };
+
+    useEffect(() => {
+        return () => {
+            stopOutside();
+        };
+    }, []);
+
+    return { isGuest, start, stop: stopOutside, gameLog };
 };
 
 export default useWebRTCCanvasShare;
