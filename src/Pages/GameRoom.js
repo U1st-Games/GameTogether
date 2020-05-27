@@ -15,8 +15,8 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-
-import React from 'react';
+import React, { useEffect } from 'react';
+import useOpenTok from 'react-use-opentok';
 import styled from 'styled-components';
 import {
     Route,
@@ -27,10 +27,11 @@ import { OTSession, OTPublisher, OTStreams, OTSubscriber } from 'opentok-react';
 
 import Home from './Home';
 import GameView from './GameView';
+import Controls from '../Components/Controls/Controls';
 
 var apiKey = "46617242";
 var sessionId = "1_MX40NjYxNzI0Mn5-MTU4NTI3ODQ1MTU3NH43Rm84SWRBbkN2QWh5dkUyUGJMZWlPTE1-fg";
-var token = "T1==cGFydG5lcl9pZD00NjYxNzI0MiZzaWc9ZGE0MGJmOThiMmM1MTQyMzFmOTUzZmY3Y2I3MmNlZjI0ZTQzYmYxMDpzZXNzaW9uX2lkPTFfTVg0ME5qWXhOekkwTW41LU1UVTROVEkzT0RRMU1UVTNOSDQzUm04NFNXUkJia04yUVdoNWRrVXlVR0pNWldsUFRFMS1mZyZjcmVhdGVfdGltZT0xNTg1Mjc4NDgwJm5vbmNlPTAuODQxMTM0Mzg4ODA3MTk4MyZyb2xlPXB1Ymxpc2hlciZleHBpcmVfdGltZT0xNTg3ODcwNDc5JmluaXRpYWxfbGF5b3V0X2NsYXNzX2xpc3Q9";
+var token = "T1==cGFydG5lcl9pZD00NjYxNzI0MiZzaWc9NGFmMGJlNWJhYWExYjMxNDZhZWQwNDFlZGE4YjFiYjQ1ZjA0ZDIxODpzZXNzaW9uX2lkPTFfTVg0ME5qWXhOekkwTW41LU1UVTROVEkzT0RRMU1UVTNOSDQzUm04NFNXUkJia04yUVdoNWRrVXlVR0pNWldsUFRFMS1mZyZjcmVhdGVfdGltZT0xNTkwNTQ0OTI4Jm5vbmNlPTAuMDI4NzU2MTc1MjU4MTc2NDImcm9sZT1wdWJsaXNoZXImZXhwaXJlX3RpbWU9MTU5MzEzNjkyNyZpbml0aWFsX2xheW91dF9jbGFzc19saXN0PQ==";
 
 const Container = styled.div`
     width: 100vw;
@@ -58,6 +59,40 @@ const Mouse = styled.img`
 const GameRoom = () => {
     const { roomid } = useParams();
 
+    const [opentokProps, opentokMethods] = useOpenTok();
+
+    const {
+        // connection info
+        isSessionInitialized,
+        connectionId,
+        isSessionConnected,
+
+        // connected data
+        session,
+        connections,
+        streams,
+        subscribers,
+        publisher,
+    } = opentokProps;
+
+    const {
+        initSessionAndConnect,
+        disconnectSession,
+        publish,
+        unpublish,
+        subscribe,
+        unsubscribe,
+        sendSignal,
+    } = opentokMethods;
+
+    useEffect(() => {
+        initSessionAndConnect({
+            apiKey,
+            sessionId,
+            token,
+        });
+    }, [initSessionAndConnect]);
+
     return (
         <Container>
             <MainArea>
@@ -69,14 +104,46 @@ const GameRoom = () => {
                         <GameView />
                     </Route>
                 </Switch>
+                <Controls />
+                <button onClick={() => {
+                    publish({
+                        name: 'screen',
+                        element: 'me',
+                        options: {
+                            insertMode: 'replace',
+                            width: '300px',
+                            height: '300px',
+                            videoSource: 'screen',
+                        },
+                    });
+                }}>
+                    Publish Screen
+                </button>
             </MainArea>
             <SideBar>
-                <OTSession apiKey={apiKey} sessionId={sessionId} token={token}>
-                    <OTPublisher />
-                    <OTStreams>
-                        <OTSubscriber />
-                    </OTStreams>
-                </OTSession>
+                <div id={"me"} >
+                    <button
+                        onClick={() => {
+                            publish({
+                                name: 'camera',
+                                element: 'me',
+                                options: {
+                                    insertMode: 'replace',
+                                    width: '180px',
+                                    height: '120px',
+                                }
+                            });
+                        }}
+                    >
+                        Turn on camera
+                    </button>
+                </div>
+                {/*<OTSession apiKey={apiKey} sessionId={sessionId} token={token}>*/}
+                {/*    <OTPublisher />*/}
+                {/*    <OTStreams>*/}
+                {/*        <OTSubscriber />*/}
+                {/*    </OTStreams>*/}
+                {/*</OTSession>*/}
             </SideBar>
             <Mouse src="/mouse.png" id="remoteCursor" />
         </Container>
