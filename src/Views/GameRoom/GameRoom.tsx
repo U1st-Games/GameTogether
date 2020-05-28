@@ -28,10 +28,12 @@ import Home from '../Home';
 import GameView from './GameView';
 import Controls from '../../Components/Controls/Controls';
 import Me from './Me';
+import OtherParticipants from "./OtherParticipants";
 
 var apiKey = "46617242";
 var sessionId = "1_MX40NjYxNzI0Mn5-MTU4NTI3ODQ1MTU3NH43Rm84SWRBbkN2QWh5dkUyUGJMZWlPTE1-fg";
 var token = "T1==cGFydG5lcl9pZD00NjYxNzI0MiZzaWc9NGFmMGJlNWJhYWExYjMxNDZhZWQwNDFlZGE4YjFiYjQ1ZjA0ZDIxODpzZXNzaW9uX2lkPTFfTVg0ME5qWXhOekkwTW41LU1UVTROVEkzT0RRMU1UVTNOSDQzUm04NFNXUkJia04yUVdoNWRrVXlVR0pNWldsUFRFMS1mZyZjcmVhdGVfdGltZT0xNTkwNTQ0OTI4Jm5vbmNlPTAuMDI4NzU2MTc1MjU4MTc2NDImcm9sZT1wdWJsaXNoZXImZXhwaXJlX3RpbWU9MTU5MzEzNjkyNyZpbml0aWFsX2xheW91dF9jbGFzc19saXN0PQ==";
+
 
 const Container = styled.div`
     width: 100vw;
@@ -109,21 +111,7 @@ const GameRoom = () => {
             </MainArea>
             <SideBar>
                 <Me {...{publish}} />
-                <div>
-                    <div id="subscriber" style={{ width: '100%', height: '100%' }}></div>
-                    <ul>
-                        {streams.map((stream) => (
-                            <li key={stream.streamId} onClick={() => {
-                                subscribe({
-                                    stream,
-                                    element: 'subscriber'
-                                })
-                            }}>
-                                {stream.streamId}
-                            </li>
-                        ))}
-                    </ul>
-                </div>
+                <OtherParticipants {...{ streams, publisher, subscribe}} />
             </SideBar>
             <Mouse src="/mouse.png" id="remoteCursor" />
         </Container>
