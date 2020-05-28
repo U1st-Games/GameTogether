@@ -109,6 +109,21 @@ const GameRoom = () => {
             </MainArea>
             <SideBar>
                 <Me {...{publish}} />
+                <div>
+                    <div id="subscriber" style={{ width: '100%', height: '100%' }}></div>
+                    <ul>
+                        {streams.map((stream) => (
+                            <li key={stream.streamId} onClick={() => {
+                                subscribe({
+                                    stream,
+                                    element: 'subscriber'
+                                })
+                            }}>
+                                {stream.streamId}
+                            </li>
+                        ))}
+                    </ul>
+                </div>
             </SideBar>
             <Mouse src="/mouse.png" id="remoteCursor" />
         </Container>

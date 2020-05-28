@@ -26,7 +26,7 @@ const GameView = () => {
         'gameIframe',
         'remoteCursor',
         'remoteVideo',
-        'https://rust-sandpaper.glitch.me',
+        'http://localhost:8080',
         roomid,
     );
 
