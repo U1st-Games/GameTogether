@@ -32,11 +32,11 @@
     "uuid": "8.0.0"
   },
   "scripts": {
-    "start": "concurrently \"ts-node src/server.ts\" \"react-scripts start\"",
+    "start": "concurrently \"ts-node server/server.ts\" \"react-scripts start\"",
     "build": "react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject",
-    "start:server": "ts-node src/server.ts"
+    "start:server": "ts-node server/server.ts"
   },
   "eslintConfig": {
     "extends": "react-app"
