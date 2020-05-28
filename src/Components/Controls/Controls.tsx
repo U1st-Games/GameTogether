@@ -7,7 +7,10 @@ import ToggleVideoButton from './ToggleVideoButton';
 import ToggleScreenShareButton from './ToggleScreenShareButton';
 
 const Container = styled.div`
-    position: fixed;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: absolute;
     bottom: 0;
     left: 0;
     right: 0;

@@ -28,8 +28,8 @@ import {makeStyles} from '@material-ui/core/styles';
 import AppBar from '@material-ui/core/AppBar';
 import Toolbar from '@material-ui/core/Toolbar';
 
-import Home from './Pages/Home';
-import GameRoom from './Pages/GameRoom';
+import Home from './Views/Home';
+import GameRoom from './Views/GameRoom/GameRoom';
 
 import './App.css';
 

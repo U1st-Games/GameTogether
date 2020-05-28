@@ -23,11 +23,11 @@ import {
     Switch,
     useParams,
 } from "react-router-dom";
-import { OTSession, OTPublisher, OTStreams, OTSubscriber } from 'opentok-react';
 
-import Home from './Home';
+import Home from '../Home';
 import GameView from './GameView';
-import Controls from '../Components/Controls/Controls';
+import Controls from '../../Components/Controls/Controls';
+import Me from './Me';
 
 var apiKey = "46617242";
 var sessionId = "1_MX40NjYxNzI0Mn5-MTU4NTI3ODQ1MTU3NH43Rm84SWRBbkN2QWh5dkUyUGJMZWlPTE1-fg";
@@ -42,6 +42,7 @@ const Container = styled.div`
 
 const MainArea = styled.div`
     flex: 1;
+    position: relative;
 `;
 
 const SideBar = styled.div`
@@ -105,45 +106,9 @@ const GameRoom = () => {
                     </Route>
                 </Switch>
                 <Controls />
-                <button onClick={() => {
-                    publish({
-                        name: 'screen',
-                        element: 'me',
-                        options: {
-                            insertMode: 'replace',
-                            width: '300px',
-                            height: '300px',
-                            videoSource: 'screen',
-                        },
-                    });
-                }}>
-                    Publish Screen
-                </button>
             </MainArea>
             <SideBar>
-                <div id={"me"} >
-                    <button
-                        onClick={() => {
-                            publish({
-                                name: 'camera',
-                                element: 'me',
-                                options: {
-                                    insertMode: 'replace',
-                                    width: '180px',
-                                    height: '120px',
-                                }
-                            });
-                        }}
-                    >
-                        Turn on camera
-                    </button>
-                </div>
-                {/*<OTSession apiKey={apiKey} sessionId={sessionId} token={token}>*/}
-                {/*    <OTPublisher />*/}
-                {/*    <OTStreams>*/}
-                {/*        <OTSubscriber />*/}
-                {/*    </OTStreams>*/}
-                {/*</OTSession>*/}
+                <Me {...{publish}} />
             </SideBar>
             <Mouse src="/mouse.png" id="remoteCursor" />
         </Container>
