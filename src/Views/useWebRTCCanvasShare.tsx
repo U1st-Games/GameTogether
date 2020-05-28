@@ -19,7 +19,7 @@ import { useEffect, useState, useRef } from 'react';
 import { Socket } from 'socket.io';
 import { v4 as uuidv4 } from 'uuid';
 
-let socket: SocketIOClient.Socket;
+let socket: any;
 
 interface PeerConnection extends RTCPeerConnection {
     connectionId: string;

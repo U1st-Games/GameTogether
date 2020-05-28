@@ -9,7 +9,7 @@ This project was bootstrapped with [Create React App](https://github.com/faceboo
 
 ## Getting started
 
-[Join our trello board](https://trello.com/b/8J31ar6K/mvp).
+[Join our trello board](https://trello.com/invite/b/8J31ar6K/de148fc0be6e7bd76c704c623b7c7ad6/mvp).
 
 [Join our Discord server](https://discord.gg/76dHMpH).
 
