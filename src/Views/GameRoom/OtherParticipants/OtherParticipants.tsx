@@ -1,6 +1,6 @@
-import React, {ReactComponentElement, useEffect} from 'react';
+import React, {useEffect} from 'react';
 import styled from 'styled-components';
-import Button from '@material-ui/core/Button';
+import FullScreenButton from "./FullScreenButton";
 
 const getPublisherId = (publisher: any): string => {
     const thingBeingPublished = publisher.camera || publisher.screen;
@@ -8,7 +8,7 @@ const getPublisherId = (publisher: any): string => {
     return thingBeingPublished.stream.id;
 };
 
-const Container = styled.div`
+const Stream = styled.div`
     width: 300px;
     height: 169px;
     display: flex;
@@ -24,9 +24,22 @@ const Container = styled.div`
     box-sizing: border-box;
 `;
 
-interface OtherParticipantProps {
-    id: string;
-}
+const Container = styled.div`
+    width: 300px;
+    height: 169px;
+    position: relative;
+`;
+
+const TopButtonsContainer = styled.div`
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 50px;
+    text-align: right;
+    z-index: 1;
+`;
+
 const OtherParticipant = (props: any) => {
     const {stream, subscribe} = props;
 
@@ -38,7 +51,12 @@ const OtherParticipant = (props: any) => {
     }, []);
 
     return (
-        <Container id={stream.id} key={stream.id}>
+        <Container>
+            <TopButtonsContainer>
+                <FullScreenButton />
+            </TopButtonsContainer>
+            <Stream id={stream.id} key={stream.id}>
+            </Stream>
         </Container>
     );
 };
@@ -50,7 +68,6 @@ interface OtherParticipantsProps {
 }
 const OtherParticipants = (props: OtherParticipantsProps) => {
     const { streams, publisher, subscribe } = props;
-    console.log('props: ', props);
     return (
         <div>
             {streams

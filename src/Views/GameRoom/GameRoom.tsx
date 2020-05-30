@@ -27,7 +27,7 @@ import Home from '../Home';
 import GameView from './GameView';
 import Controls from '../../Components/Controls/Controls';
 import Me from './Me';
-import OtherParticipants from "./OtherParticipants";
+import OtherParticipants from "./OtherParticipants/OtherParticipants";
 import FullScreenView from "./FullScreenView";
 
 var apiKey = "46617242";
