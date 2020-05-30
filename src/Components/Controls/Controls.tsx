@@ -18,11 +18,18 @@ const Container = styled.div`
     background: rgba(0, 0, 0, 0.5);
 `;
 
-export default function Controls() {
+interface ControlsProps {
+    unpublish: (streamName: string) => void;
+    publisher: any;
+    publish: any;
+}
+
+export default function Controls(props: ControlsProps) {
+    const { unpublish, publisher, publish } = props;
     return (
         <Container>
             <ToggleAudioButton />
-            <ToggleVideoButton />
+            <ToggleVideoButton {...{ unpublish, publisher, publish }} />
             <ToggleScreenShareButton />
             <EndCallButton />
         </Container>

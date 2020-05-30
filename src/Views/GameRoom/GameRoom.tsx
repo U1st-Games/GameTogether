@@ -114,7 +114,7 @@ const GameRoom = () => {
                     setFullScreenStreamId={setFullScreenStreamId}
                 />
                 }
-                <Controls/>
+                <Controls {...{ unpublish, publisher, publish }} />
             </MainArea>
             <SideBar>
                 <Me {...{publish}} />

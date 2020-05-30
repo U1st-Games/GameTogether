@@ -5,6 +5,7 @@ import Fab from '@material-ui/core/Fab';
 import Tooltip from '@material-ui/core/Tooltip';
 import Videocam from '@material-ui/icons/Videocam';
 import VideocamOff from '@material-ui/icons/VideocamOff';
+import {handleTurnOnCamera} from "../../Views/GameRoom/utils";
 
 const useStyles = makeStyles((theme: Theme) =>
     createStyles({
@@ -14,18 +15,36 @@ const useStyles = makeStyles((theme: Theme) =>
     })
 );
 
-export default function ToggleVideoButton(props: { disabled?: boolean }) {
+const isVideoEnabled = (publisher: any): boolean => !!publisher.camera;
+
+const TurnOffCamera = (unpublish: any) => {
+    unpublish({ name: 'camera' });
+};
+
+const handleVideoClicked = (publisher: any, unpublish: any, publish: any) => () => {
+    isVideoEnabled(publisher)
+        ? TurnOffCamera(unpublish)
+        : handleTurnOnCamera(publish)()
+};
+
+export default function ToggleVideoButton(
+    props: { publisher: any, unpublish: any, publish: any }
+    ) {
+    const { publisher, unpublish, publish } = props;
+
     const classes = useStyles();
-    const isVideoEnabled = false;
+
+    console.log('publisher: ', !!publisher.camera);
 
     return (
         <Tooltip
             title={isVideoEnabled ? 'Mute Video' : 'Unmute Video'}
             placement="top"
             PopperProps={{ disablePortal: true }}
+            onClick={handleVideoClicked(publisher, unpublish, publish)}
         >
-            <Fab className={classes.fab} disabled={props.disabled}>
-                {isVideoEnabled ? <Videocam /> : <VideocamOff />}
+            <Fab className={classes.fab}>
+                {isVideoEnabled(publisher) ? <Videocam /> : <VideocamOff />}
             </Fab>
         </Tooltip>
     );

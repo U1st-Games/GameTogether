@@ -1,38 +1,9 @@
 import React from 'react';
 import styled from 'styled-components';
 import Button from '@material-ui/core/Button';
+import {handleTurnOnCamera, handleTurnOnScreenSharing} from "./utils";
 
 type publishFn = (arg0: any) => void;
-
-interface MeProps {
-    publish: publishFn;
-}
-
-const handleTurnOnScreenSharing = (publish: publishFn) => () => {
-    publish({
-        name: 'screen',
-        element: 'me',
-        options: {
-            insertMode: 'replace',
-            width: '300px',
-            height: '169px',
-            videoSource: 'screen',
-        },
-    });
-};
-
-const handleTurnOnCamera = (publish: publishFn) => () => {
-    publish({
-        name: 'camera',
-        element: 'me',
-        options: {
-            insertMode: 'replace',
-            width: '300px',
-            height: '169px',
-        }
-    });
-};
-
 
 const Container = styled.div`
     width: 300px;
@@ -49,6 +20,10 @@ const Container = styled.div`
     border: 1px solid white;
     box-sizing: border-box;
 `;
+
+interface MeProps {
+    publish: publishFn;
+}
 
 const Me = (props: MeProps) => {
     const { publish } = props;
