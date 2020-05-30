@@ -28,7 +28,7 @@ import GameView from './GameView';
 import Controls from '../../Components/Controls/Controls';
 import Me from './Me';
 import OtherParticipants from "./OtherParticipants/OtherParticipants";
-import FullScreenView from "./FullScreenView";
+import FullScreenView from "./FullScreenView/FullScreenView";
 
 var apiKey = "46617242";
 var sessionId = "1_MX40NjYxNzI0Mn5-MTU4NTI3ODQ1MTU3NH43Rm84SWRBbkN2QWh5dkUyUGJMZWlPTE1-fg";
@@ -110,7 +110,9 @@ const GameRoom = () => {
                 && <FullScreenView
                     streamId={fullScreenStreamId}
                     subscribe={subscribe}
-                    streams={streams}/>
+                    streams={streams}
+                    setFullScreenStreamId={setFullScreenStreamId}
+                />
                 }
                 <Controls/>
             </MainArea>

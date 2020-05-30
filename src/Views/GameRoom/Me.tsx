@@ -54,7 +54,6 @@ const Me = (props: MeProps) => {
     const { publish } = props;
     return (
         <Container id="me" >
-            <button>expand</button>
             <Button
                 variant="contained" color="primary"
                 onClick={handleTurnOnCamera(publish)}
