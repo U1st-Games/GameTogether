@@ -34,8 +34,6 @@ export default function ToggleVideoButton(
 
     const classes = useStyles();
 
-    console.log('publisher: ', !!publisher.camera);
-
     return (
         <Tooltip
             title={isVideoEnabled ? 'Mute Video' : 'Unmute Video'}

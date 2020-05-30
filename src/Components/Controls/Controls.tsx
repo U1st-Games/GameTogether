@@ -30,7 +30,7 @@ export default function Controls(props: ControlsProps) {
         <Container>
             <ToggleAudioButton />
             <ToggleVideoButton {...{ unpublish, publisher, publish }} />
-            <ToggleScreenShareButton />
+            <ToggleScreenShareButton {...{ unpublish, publisher, publish }} />
             <EndCallButton />
         </Container>
     );
