@@ -14,7 +14,7 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
-import React, { useEffect } from 'react';
+import React, {useEffect, useState} from 'react';
 import useOpenTok from 'react-use-opentok';
 import styled from 'styled-components';
 import {
@@ -60,10 +60,10 @@ const Mouse = styled.img`
 `;
 
 const GameRoom = () => {
-    const { roomid } = useParams();
+    const {roomid} = useParams();
+    const [fullScreenStreamId, setFullScreenStreamId] = useState('');
 
     const [opentokProps, opentokMethods] = useOpenTok();
-
     const {
         // connection info
         isSessionInitialized,
@@ -77,7 +77,6 @@ const GameRoom = () => {
         subscribers,
         publisher,
     } = opentokProps;
-
     const {
         initSessionAndConnect,
         disconnectSession,
@@ -101,20 +100,25 @@ const GameRoom = () => {
             <MainArea>
                 <Switch>
                     <Route exact path="/:roomid">
-                        <Home roomid={roomid} />
+                        <Home roomid={roomid}/>
                     </Route>
                     <Route exact path="/:roomid/:gamename/">
-                        <GameView />
+                        <GameView/>
                     </Route>
                 </Switch>
-                { streams[0] && <FullScreenView stream={streams[0]} subscribe={subscribe} /> }
-                <Controls />
+                {fullScreenStreamId
+                && <FullScreenView
+                    streamId={fullScreenStreamId}
+                    subscribe={subscribe}
+                    streams={streams}/>
+                }
+                <Controls/>
             </MainArea>
             <SideBar>
                 <Me {...{publish}} />
-                <OtherParticipants {...{ streams, publisher, subscribe}} />
+                <OtherParticipants {...{streams, publisher, subscribe, setFullScreenStreamId}} />
             </SideBar>
-            <Mouse src="/mouse.png" id="remoteCursor" />
+            <Mouse src="/mouse.png" id="remoteCursor"/>
         </Container>
     );
 };

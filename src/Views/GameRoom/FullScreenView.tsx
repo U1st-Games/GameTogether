@@ -2,6 +2,9 @@ import React, {useEffect} from 'react';
 import styled from 'styled-components';
 import AspectRatio from "./AspectRatio";
 
+const getStreamById = (streams: any, streamId: string) =>
+    streams.filter((stream: any) => stream.id === streamId)[0];
+
 const Container = styled.div`
     background: red;
     position: absolute;
@@ -19,15 +22,16 @@ const FullScreenElement = styled.div`
 `;
 
 interface FullScreenViewProps {
-    stream: any;
+    streamId: any;
+    streams: any;
     subscribe: any;
 }
 const FullScreenView = (props: FullScreenViewProps) => {
-    const { subscribe, stream } = props;
+    const { subscribe, streamId, streams } = props;
 
     useEffect(() => {
         subscribe({
-            stream,
+            stream: getStreamById(streams, streamId),
             element: 'fullscreen'
         })
     }, []);

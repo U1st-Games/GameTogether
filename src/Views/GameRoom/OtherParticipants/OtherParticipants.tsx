@@ -40,8 +40,12 @@ const TopButtonsContainer = styled.div`
     z-index: 1;
 `;
 
+const fullScreenClickHandler = (setFullScreenStreamId: (streamId: string) => void, streamId: string) => () => {
+    setFullScreenStreamId(streamId);
+};
+
 const OtherParticipant = (props: any) => {
-    const {stream, subscribe} = props;
+    const {stream, subscribe, setFullScreenStreamId} = props;
 
     useEffect(() => {
         subscribe({
@@ -53,7 +57,7 @@ const OtherParticipant = (props: any) => {
     return (
         <Container>
             <TopButtonsContainer>
-                <FullScreenButton />
+                <FullScreenButton onClick={fullScreenClickHandler(setFullScreenStreamId, stream.id)} />
             </TopButtonsContainer>
             <Stream id={stream.id} key={stream.id}>
             </Stream>
@@ -65,14 +69,15 @@ interface OtherParticipantsProps {
     streams: any;
     publisher: any;
     subscribe: any;
+    setFullScreenStreamId: (streamId: string) => void;
 }
 const OtherParticipants = (props: OtherParticipantsProps) => {
-    const { streams, publisher, subscribe } = props;
+    const { streams, publisher, subscribe, setFullScreenStreamId } = props;
     return (
         <div>
             {streams
                 .filter((stream: any) => stream.id !== getPublisherId(publisher))
-                .map((stream: any) => <OtherParticipant {...{stream, subscribe}} />)}
+                .map((stream: any) => <OtherParticipant {...{stream, subscribe, setFullScreenStreamId}} />)}
         </div>
     );
 };

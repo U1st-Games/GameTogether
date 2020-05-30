@@ -13,7 +13,8 @@ const useStyles = makeStyles((theme: Theme) =>
     })
 );
 
-export default function FullScreenButton(props: { disabled?: boolean }) {
+export default function FullScreenButton(props: { disabled?: boolean, onClick: () => void }) {
+    const { onClick } = props;
     const classes = useStyles();
 
     return (
@@ -21,6 +22,7 @@ export default function FullScreenButton(props: { disabled?: boolean }) {
             title="Expand"
             placement="top"
             PopperProps={{ disablePortal: true }}
+            onClick={onClick}
         >
             <Fab
                 className={classes.fab}
