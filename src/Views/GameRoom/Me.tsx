@@ -33,6 +33,7 @@ const handleTurnOnCamera = (publish: publishFn) => () => {
     });
 };
 
+
 const Container = styled.div`
     width: 300px;
     height: 169px;
@@ -53,6 +54,7 @@ const Me = (props: MeProps) => {
     const { publish } = props;
     return (
         <Container id="me" >
+            <button>expand</button>
             <Button
                 variant="contained" color="primary"
                 onClick={handleTurnOnCamera(publish)}

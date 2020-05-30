@@ -14,7 +14,6 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
-
 import React, { useEffect } from 'react';
 import useOpenTok from 'react-use-opentok';
 import styled from 'styled-components';
@@ -29,6 +28,7 @@ import GameView from './GameView';
 import Controls from '../../Components/Controls/Controls';
 import Me from './Me';
 import OtherParticipants from "./OtherParticipants";
+import FullScreenView from "./FullScreenView";
 
 var apiKey = "46617242";
 var sessionId = "1_MX40NjYxNzI0Mn5-MTU4NTI3ODQ1MTU3NH43Rm84SWRBbkN2QWh5dkUyUGJMZWlPTE1-fg";
@@ -107,6 +107,7 @@ const GameRoom = () => {
                         <GameView />
                     </Route>
                 </Switch>
+                { streams[0] && <FullScreenView stream={streams[0]} subscribe={subscribe} /> }
                 <Controls />
             </MainArea>
             <SideBar>

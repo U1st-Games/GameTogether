@@ -14,7 +14,7 @@ const Container = styled.div`
     bottom: 0;
     left: 0;
     right: 0;
-    height:  300px;
+    height:  150px;
     background: rgba(0, 0, 0, 0.5);
 `;
 
