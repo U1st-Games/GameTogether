@@ -5,7 +5,7 @@ import Fab from '@material-ui/core/Fab';
 import Tooltip from '@material-ui/core/Tooltip';
 import Videocam from '@material-ui/icons/Videocam';
 import VideocamOff from '@material-ui/icons/VideocamOff';
-import {handleTurnOnCamera} from "../../Views/GameRoom/utils";
+import {handleTurnOnCamera, isVideoEnabled} from "../../Views/GameRoom/utils";
 
 const useStyles = makeStyles((theme: Theme) =>
     createStyles({
@@ -14,8 +14,6 @@ const useStyles = makeStyles((theme: Theme) =>
         },
     })
 );
-
-const isVideoEnabled = (publisher: any): boolean => !!publisher.camera;
 
 const TurnOffCamera = (unpublish: any) => {
     unpublish({ name: 'camera' });
@@ -42,7 +40,7 @@ export default function ToggleVideoButton(
             onClick={handleVideoClicked(publisher, unpublish, publish)}
         >
             <Fab className={classes.fab}>
-                {isVideoEnabled(publisher) ? <Videocam /> : <VideocamOff />}
+                {isVideoEnabled(publisher) ? <VideocamOff />: <Videocam /> }
             </Fab>
         </Tooltip>
     );

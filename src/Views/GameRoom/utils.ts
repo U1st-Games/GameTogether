@@ -5,7 +5,6 @@ export const handleTurnOnScreenSharing = (publish: publishFn) => () => {
         name: 'screen',
         element: 'me',
         options: {
-            insertMode: 'replace',
             width: '300px',
             height: '169px',
             videoSource: 'screen',
@@ -18,9 +17,14 @@ export const handleTurnOnCamera = (publish: publishFn) => () => {
         name: 'camera',
         element: 'me',
         options: {
-            insertMode: 'replace',
             width: '300px',
             height: '169px',
         }
     });
 };
+
+export const isVideoEnabled = (publisher: any): boolean => !!publisher.camera;
+
+export const isScreenSharingEnabled = (publisher: any): boolean => !!publisher.screen;
+
+export const isVideoOrScreenEnabled = (publisher: any) => isScreenSharingEnabled(publisher) || isVideoEnabled(publisher);

@@ -5,7 +5,7 @@ import Fab from '@material-ui/core/Fab';
 import ScreenShare from '@material-ui/icons/ScreenShare';
 import StopScreenShare from '@material-ui/icons/StopScreenShare';
 import Tooltip from '@material-ui/core/Tooltip';
-import {handleTurnOnScreenSharing} from "../../Views/GameRoom/utils";
+import {handleTurnOnScreenSharing, isScreenSharingEnabled} from "../../Views/GameRoom/utils";
 
 export const SCREEN_SHARE_TEXT = 'Share Screen';
 export const STOP_SCREEN_SHARE_TEXT = 'Stop Sharing Screen';
@@ -22,7 +22,6 @@ const useStyles = makeStyles((theme: Theme) =>
     })
 );
 
-const isScreenSharingEnabled = (publisher: any): boolean => !!publisher.screen;
 
 const TurnOffScreenSharing = (unpublish: any) => {
     unpublish({ name: 'screen' });
@@ -47,8 +46,6 @@ export default function ToggleScreenShareButton(
     if (isScreenShared) {
         tooltipMessage = STOP_SCREEN_SHARE_TEXT;
     }
-
-    console.log('publisher: ', !!publisher.screen);
 
     return (
         <Tooltip
