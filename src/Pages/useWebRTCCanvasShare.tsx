@@ -19,7 +19,8 @@ import { useEffect, useState, useRef } from 'react';
 import { Socket } from 'socket.io';
 import { v4 as uuidv4 } from 'uuid';
 
-let socket: any;
+// @ts-ignore
+let socket: SocketIOClient.Socket;
 
 interface PeerConnection extends RTCPeerConnection {
     connectionId: string;
@@ -602,6 +603,8 @@ const useWebRTCCanvasShare = (
                 if (socket) {
                     socket.disconnect();
                 }
+
+                //@ts-ignore
                 socket = window.io.connect(socketUrl);
 
                 const canvass = myIframe?.contentWindow?.document.getElementById('myCanvas') as HTMLCanvasElement;

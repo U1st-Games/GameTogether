@@ -16,7 +16,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
 import React from 'react';
-import useWebRTCCanvasShare from "../useWebRTCCanvasShare";
+import useWebRTCCanvasShare from "./useWebRTCCanvasShare";
 import {useParams} from "react-router-dom";
 
 const GameView = () => {
@@ -26,7 +26,7 @@ const GameView = () => {
         'gameIframe',
         'remoteCursor',
         'remoteVideo',
-        'http://localhost:8080',
+        'https://rust-sandpaper.glitch.me',
         roomid,
     );
 
