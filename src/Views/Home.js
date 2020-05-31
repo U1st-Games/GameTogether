@@ -14,8 +14,9 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
-import ReactGA from 'react-ga';
+
 import React from 'react';
+import ReactGA from 'react-ga';
 import styled from 'styled-components';
 import {
     useHistory,
@@ -85,7 +86,6 @@ const GameCard = ({ name, thumbnail, description, link, roomid }) => {
                     onClick={() => {
                         fireEvent("User created new game")
                         history.push(`/${roomid || uuidv4()}/${link}`)
-
                     }}
                     style={{ margin: '0 auto', backgroundColor: 'black' }}
                 >
@@ -101,7 +101,7 @@ const Home = ({ roomid }) => {
     return (
         <HomeContainer>
             {GameInfo.map((gameinfo) => {
-                return <GameCard {...{ ...gameinfo, roomid }} />
+                return <GameCard { ...{ ...gameinfo, roomid } } />
             })}
         </HomeContainer>
     );

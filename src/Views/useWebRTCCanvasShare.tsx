@@ -19,8 +19,7 @@ import { useEffect, useState, useRef } from 'react';
 import { Socket } from 'socket.io';
 import { v4 as uuidv4 } from 'uuid';
 
-// @ts-ignore
-let socket: SocketIOClient.Socket;
+let socket: any;
 
 interface PeerConnection extends RTCPeerConnection {
     connectionId: string;
@@ -603,7 +602,6 @@ const useWebRTCCanvasShare = (
                 if (socket) {
                     socket.disconnect();
                 }
-
                 //@ts-ignore
                 socket = window.io.connect(socketUrl);
 

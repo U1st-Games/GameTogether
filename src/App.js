@@ -28,11 +28,10 @@ import {makeStyles} from '@material-ui/core/styles';
 import AppBar from '@material-ui/core/AppBar';
 import Toolbar from '@material-ui/core/Toolbar';
 
-import Home from './Pages/Home';
-import GameRoom from './Pages/GameRoom';
+import Home from './Views/Home';
+import GameRoom from './Views/GameRoom/GameRoom';
 
 import './App.css';
-import { fireEvent } from '@testing-library/react';
 
 const MainContainer = styled.div`
       background: url(https://wallpaperaccess.com/full/242332.jpg) no-repeat center center fixed; 
@@ -68,7 +67,6 @@ const useStylesCard = makeStyles({
 });
 
 function App() {
-  // fireEvent("page loaded")
   //react-mui
   const classes = useStyles();
   const classesCard = useStylesCard();
