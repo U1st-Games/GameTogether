@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useState} from 'react';
 import styled from 'styled-components';
 
 import EndCallButton from './EndCallButton';
@@ -26,11 +26,12 @@ interface ControlsProps {
 
 export default function Controls(props: ControlsProps) {
     const { unpublish, publisher, publish } = props;
+    const [hasAudio, setHasAudio] = useState(true);
     return (
         <Container>
-            <ToggleAudioButton />
-            <ToggleVideoButton {...{ unpublish, publisher, publish }} />
-            <ToggleScreenShareButton {...{ unpublish, publisher, publish }} />
+            <ToggleAudioButton {...{publisher, hasAudio, setHasAudio}} />
+            <ToggleVideoButton {...{unpublish, publisher, publish}} />
+            <ToggleScreenShareButton {...{unpublish, publisher, publish}} />
             <EndCallButton />
         </Container>
     );

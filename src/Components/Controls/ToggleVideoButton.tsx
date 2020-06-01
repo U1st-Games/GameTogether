@@ -40,7 +40,7 @@ export default function ToggleVideoButton(
             onClick={handleVideoClicked(publisher, unpublish, publish)}
         >
             <Fab className={classes.fab}>
-                {isVideoEnabled(publisher) ? <VideocamOff />: <Videocam /> }
+                {isVideoEnabled(publisher) ? <Videocam /> : <VideocamOff />}
             </Fab>
         </Tooltip>
     );

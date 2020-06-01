@@ -58,7 +58,7 @@ export default function ToggleScreenShareButton(
                 {/* The div element is needed because a disabled button will not emit hover events and we want to display
           a tooltip when screen sharing is disabled */}
                 <Fab className={classes.fab}  disabled={false}>
-                    {isScreenShared ? <StopScreenShare /> : <ScreenShare />}
+                    {isScreenShared ? <ScreenShare /> : <StopScreenShare />}
                 </Fab>
             </div>
         </Tooltip>

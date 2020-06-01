@@ -5,6 +5,7 @@ import Fab from '@material-ui/core/Fab';
 import Mic from '@material-ui/icons/Mic';
 import MicOff from '@material-ui/icons/MicOff';
 import Tooltip from '@material-ui/core/Tooltip';
+import {handleTurnOnCamera, isVideoEnabled} from "../../Views/GameRoom/utils";
 
 const useStyles = makeStyles((theme: Theme) =>
     createStyles({
@@ -14,19 +15,55 @@ const useStyles = makeStyles((theme: Theme) =>
     })
 );
 
-export default function ToggleAudioButton(props: { disabled?: boolean }) {
+const isAudioEnabled = (publisher: any): boolean => {
+    console.log('publisher: ', publisher);
+    return true;
+}
+
+const TurnOffAudio = (publisher: any) => {
+    publisher.publishAudio(false);
+};
+
+const handleAudioClicked = (
+    publisher: any,
+    hasAudio: boolean,
+    setHasAudio: (arg0: any) => void,
+    ) => () => {
+    console.log('publisher: ', publisher);
+    const actualPublisher = publisher.camera || publisher.screen;
+    actualPublisher.publishAudio(!hasAudio);
+    setHasAudio((prev: any) => !prev);
+};
+
+export default function ToggleAudioButton(
+    props: { publisher: any, hasAudio: boolean, setHasAudio: (arg0: boolean) => void }
+    ) {
+    const { publisher, hasAudio, setHasAudio } = props;
     const classes = useStyles();
-    const isAudioEnabled = false;
 
     return (
         <Tooltip
-            title={isAudioEnabled ? 'Mute Audio' : 'Unmute Audio'}
+            title={hasAudio ? 'Mute Audio' : 'Unmute Audio'}
             placement="top"
             PopperProps={{ disablePortal: true }}
+            onClick={handleAudioClicked(publisher, hasAudio, setHasAudio)}
         >
-            <Fab className={classes.fab} disabled={props.disabled} data-cy-audio-toggle>
-                {isAudioEnabled ? <Mic /> : <MicOff />}
+            <Fab className={classes.fab} disabled={!publisher}>
+                {hasAudio ? <Mic />: <MicOff />}
             </Fab>
         </Tooltip>
     );
 }
+
+/*
+<Tooltip
+            title={hasAudio ? 'Mute Audio' : 'Unmute Audio'}
+            placement="top"
+            PopperProps={{ disablePortal: true }}
+            onClick={handleAudioClicked(publisher, hasAudio, setHasAudio)}
+        >
+            <Fab className={classes.fab}>
+                {hasAudio ? <MicOff />: <Mic />}
+            </Fab>
+        </Tooltip>
+ */
