@@ -54,16 +54,3 @@ export default function ToggleAudioButton(
         </Tooltip>
     );
 }
-
-/*
-<Tooltip
-            title={hasAudio ? 'Mute Audio' : 'Unmute Audio'}
-            placement="top"
-            PopperProps={{ disablePortal: true }}
-            onClick={handleAudioClicked(publisher, hasAudio, setHasAudio)}
-        >
-            <Fab className={classes.fab}>
-                {hasAudio ? <MicOff />: <Mic />}
-            </Fab>
-        </Tooltip>
- */
