@@ -16,6 +16,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
 import React from 'react';
+import ReactGA from 'react-ga';
 import styled from 'styled-components';
 import {
     useHistory,
@@ -45,6 +46,16 @@ const useStyles = makeStyles({
     },
 });
 
+function fireEvent(eventName) { //Fires an event to google analytics
+    console.log("EVENT: "+eventName);
+    const trackingID = "INSERT_TRACKING_NUMBER"; //Tracking ID needs to be added here
+    ReactGA.initialize(trackingID);
+    ReactGA.event({
+        category: eventName,
+        action: "User did something",
+    })
+}
+
 const GameCard = ({ name, thumbnail, description, link, roomid }) => {
     const classes = useStyles();
     const history = useHistory();
@@ -73,6 +84,7 @@ const GameCard = ({ name, thumbnail, description, link, roomid }) => {
                     color="primary"
                     variant={"contained"}
                     onClick={() => {
+                        fireEvent("User created new game")
                         history.push(`/${roomid || uuidv4()}/${link}`)
                     }}
                     style={{ margin: '0 auto', backgroundColor: 'black' }}
