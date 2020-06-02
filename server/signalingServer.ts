@@ -52,7 +52,6 @@ const signalingServer = (io: SocketIO.Server) => {
 
         socket.on("create or join", function(roomId) {
             console.log("Received request to create or join room " + roomId);
-
             const numClients = clientsInRoomCount(io, roomId);
             console.log("Room " + roomId + " now has " + numClients + " client(s)");
 
@@ -60,19 +59,6 @@ const signalingServer = (io: SocketIO.Server) => {
                 createRoom(socket, roomId);
             } else {
                 joinRoom(io, socket, roomId);
-            }
-        });
-
-        socket.on("ipaddr", function() {
-            //@ts-ignore
-            var ifaces = os.networkInterfaces();
-            for (var dev in ifaces) {
-                //@ts-ignore
-                ifaces[dev].forEach(function(details) {
-                    if (details.family === "IPv4" && details.address !== "127.0.0.1") {
-                        socket.emit("ipaddr", details.address);
-                    }
-                });
             }
         });
 
