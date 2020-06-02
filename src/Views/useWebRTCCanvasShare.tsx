@@ -91,7 +91,7 @@ const deepClone = (objectToClone: any) => JSON.parse(JSON.stringify(objectToClon
 
 function sendMessage(socket: Socket, message: any, roomid: string) {
     console.log('Client sending message: ', message);
-    socket.emit('message', message, roomid);
+    socket.emit('message', roomid, message);
 }
 
 function click(x: number, y: number) {
@@ -339,7 +339,7 @@ const setLocalAndSendMessage = (pc: PeerConnection, socket: Socket, roomid: stri
     console.log('setLocalAndSendMessage sending message', sessionDescription);
     let sessionDescriptionClone = deepClone(sessionDescription);
     sessionDescriptionClone.connectionId = pc?.connectionId;
-    socket.emit(sessionDescription.type, sessionDescriptionClone, roomid);
+    socket.emit(sessionDescription.type, roomid, sessionDescriptionClone);
 };
 
 const handleCreateOfferError = (event: any) => {
