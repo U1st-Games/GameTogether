@@ -1,43 +1,34 @@
 import {Socket} from "socket.io";
 import {store} from "./State/state";
 import {addRoomAction} from "./State/actions";
+import * as SocketIO from "socket.io";
 const os = require("os");
 
-const sendToRoomSansSender = (io: any, roomId: string) => {
-    console.log("gotUsermedia");
-    io.to(roomId).emit('gotUserMedia', roomId);
+const sendToRoomSansSender = (io: any, event: string, roomId: string, data?: any) => {
+    console.log(event);
+    io.to(roomId).emit(event, data);
 }
 
-const signalingServer = (io: Socket) => {
-    //@ts-ignore
+const signalingServer = (io: SocketIO.Server) => {
     io.sockets.on("connection", function(socket) {
         console.log("connection");
 
-        //@ts-ignore
-        socket.on("gotUserMedia", function(roomid) {
-            console.log("gotUsermedia");
-            io.to(roomid).emit('gotUserMedia', roomid);
+        socket.on("gotUserMedia", function(roomId) {
+            sendToRoomSansSender(io, 'gotUserMedia', roomId, roomId);
         });
 
-        //@ts-ignore
-        socket.on("offer", function(roomid, message) {
-            console.log("offer: ", message);
-            io.to(roomid).emit('offer', message);
+        socket.on("offer", function(roomId, message) {
+            sendToRoomSansSender(io, 'offer', roomId, message);
         });
 
-        //@ts-ignore
-        socket.on("answer", function(roomid, message) {
-            console.log("answer");
-            io.to(roomid).emit('answer', message);
+        socket.on("answer", function(roomId, message) {
+            sendToRoomSansSender(io, 'answer', roomId, message);
         });
 
-        //@ts-ignore
-        socket.on("message", function(roomid, message) {
-            console.log("Client said: ", message);
-            io.to(roomid).emit('message', message);
+        socket.on("message", function(roomId, message) {
+            sendToRoomSansSender(io, 'message', roomId, message);
         });
 
-        //@ts-ignore
         socket.on("create or join", function(room) {
             console.log("Received request to create or join room " + room);
 
