@@ -21,6 +21,15 @@ import { v4 as uuidv4 } from 'uuid';
 
 let socket: any;
 
+// WASD = 87, 65, 83, 68
+// arrow keys = 37, 38, 39, 40
+const clientKeyMap = {
+    87: 38,
+    65: 37,
+    83: 40,
+    68: 39
+}
+
 interface PeerConnection extends RTCPeerConnection {
     connectionId: string;
     dataChannel: RTCDataChannel;
@@ -202,21 +211,9 @@ const hostDataChannelHandler = (
                 myIframe.contentWindow.document.dispatchEvent(event);
             }
 
-            if (recievedKeycode === 87) {
+            if (recievedKeycode in clientKeyMap) {
                 //@ts-ignore
-                simulateKey(38);
-            }
-            if (recievedKeycode === 65) {
-                //@ts-ignore
-                simulateKey(37);
-            }
-            if (recievedKeycode === 83) {
-                //@ts-ignore
-                simulateKey(40);
-            }
-            if (recievedKeycode === 68) {
-                //@ts-ignore
-                simulateKey(39);
+                simulateKey(clientKeyMap[recievedKeycode])
             }
         }
         if (channel.label === 'mousePosition') {
