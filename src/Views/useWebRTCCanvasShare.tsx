@@ -603,8 +603,7 @@ const useWebRTCCanvasShare = (
                     socket.disconnect();
                 }
                 //@ts-ignore
-                //socket = window.io.connect(socketUrl);
-                socket = window.io.connect();
+                socket = window.io.connect(socketUrl);
 
                 const canvass = myIframe?.contentWindow?.document.getElementById('myCanvas') as HTMLCanvasElement;
 

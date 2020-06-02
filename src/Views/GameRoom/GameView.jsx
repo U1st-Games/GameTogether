@@ -26,7 +26,7 @@ const GameView = () => {
         'gameIframe',
         'remoteCursor',
         'remoteVideo',
-        'http://localhost:8080',
+        undefined,
         roomid,
     );
 
