@@ -1,5 +1,12 @@
 import {Socket} from "socket.io";
+import {store} from "./State/state";
+import {addRoomAction} from "./State/actions";
 const os = require("os");
+
+const sendToRoomSansSender = (io: any, roomId: string) => {
+    console.log("gotUsermedia");
+    io.to(roomId).emit('gotUserMedia', roomId);
+}
 
 const signalingServer = (io: Socket) => {
     //@ts-ignore
@@ -7,25 +14,25 @@ const signalingServer = (io: Socket) => {
         console.log("connection");
 
         //@ts-ignore
-        socket.on("gotUserMedia", function(room) {
+        socket.on("gotUserMedia", function(roomid) {
             console.log("gotUsermedia");
-            io.to(room).emit('gotUserMedia', room);
+            io.to(roomid).emit('gotUserMedia', roomid);
         });
 
         //@ts-ignore
-        socket.on("offer", function(message, roomid) {
+        socket.on("offer", function(roomid, message) {
             console.log("offer: ", message);
             io.to(roomid).emit('offer', message);
         });
 
         //@ts-ignore
-        socket.on("answer", function(message, roomid) {
+        socket.on("answer", function(roomid, message) {
             console.log("answer");
             io.to(roomid).emit('answer', message);
         });
 
         //@ts-ignore
-        socket.on("message", function(message, roomid) {
+        socket.on("message", function(roomid, message) {
             console.log("Client said: ", message);
             io.to(roomid).emit('message', message);
         });
@@ -46,6 +53,8 @@ const signalingServer = (io: Socket) => {
                 socket.join(room);
                 console.log("Client ID " + socket.id + " created room " + room);
                 socket.emit("created", room, socket.id);
+
+                //store.dispatch(addRoomAction(room, ___));
             } else {
                 console.log("Client ID " + socket.id + " joined room " + room);
                 io.to(room).emit('join', room);
