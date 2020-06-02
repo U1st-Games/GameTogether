@@ -62,6 +62,10 @@ const signalingServer = (io: SocketIO.Server) => {
             }
         });
 
+        socket.on("ipaddr", function() {
+            console.log('ipaddr called');
+        });
+
         socket.on("bye", function() {
             console.log("received bye");
         });

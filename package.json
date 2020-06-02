@@ -37,11 +37,12 @@
     "uuid": "8.0.0"
   },
   "scripts": {
-    "start": "concurrently \"ts-node server/server.ts\" \"react-scripts start\"",
+    "start": "ts-node server/server.ts",
+    "start:dev": "concurrently \"ts-node server/server.ts\" \"react-scripts start\"",
+    "start:server": "ts-node server/server.ts",
     "build": "react-scripts build",
     "test": "react-scripts test",
-    "eject": "react-scripts eject",
-    "start:server": "ts-node server/server.ts"
+    "eject": "react-scripts eject"
   },
   "eslintConfig": {
     "extends": "react-app"
@@ -61,5 +62,8 @@
   "devDependencies": {
     "babel-plugin-styled-components": "1.10.7"
   },
-  "proxy": "http://localhost:8080"
+  "proxy": "http://localhost:8080",
+  "engines": {
+    "node": "10.16.2"
+  }
 }
