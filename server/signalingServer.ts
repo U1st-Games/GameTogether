@@ -4,10 +4,31 @@ import {addRoomAction} from "./State/actions";
 import * as SocketIO from "socket.io";
 const os = require("os");
 
-const sendToRoomSansSender = (io: any, event: string, roomId: string, data?: any) => {
+const sendToRoomSansSender = (io: SocketIO.Server, event: string, roomId: string, data?: any) => {
     console.log(event);
     io.to(roomId).emit(event, data);
-}
+};
+
+const clientsInRoomCount = (io: SocketIO.Server, roomId: string): number => {
+    var clientsInRoom = io.sockets.adapter.rooms[roomId];
+    return clientsInRoom
+        ? Object.keys(clientsInRoom.sockets).length
+        : 0;
+};
+
+const createRoom = (socket: Socket, roomId: string) => {
+    socket.join(roomId);
+    console.log("Client ID " + socket.id + " created roomId " + roomId);
+    socket.emit("created", roomId, socket.id);
+    //store.dispatch(addRoomAction(roomId, ___));
+};
+
+const joinRoom = (io: SocketIO.Server, socket: Socket, roomId: string) => {
+    console.log("Client ID " + socket.id + " joined roomId " + roomId);
+    sendToRoomSansSender(io,'join', roomId, roomId);
+    socket.join(roomId);
+    socket.emit("joined", roomId, socket.id);
+};
 
 const signalingServer = (io: SocketIO.Server) => {
     io.sockets.on("connection", function(socket) {
@@ -29,28 +50,16 @@ const signalingServer = (io: SocketIO.Server) => {
             sendToRoomSansSender(io, 'message', roomId, message);
         });
 
-        socket.on("create or join", function(room) {
-            console.log("Received request to create or join room " + room);
+        socket.on("create or join", function(roomId) {
+            console.log("Received request to create or join room " + roomId);
 
-            //@ts-ignore
-            var clientsInRoom = io.sockets.adapter.rooms[room];
-            var numClients = clientsInRoom
-                ? Object.keys(clientsInRoom.sockets).length
-                : 0;
-
-            console.log("Room " + room + " now has " + numClients + " client(s)");
+            const numClients = clientsInRoomCount(io, roomId);
+            console.log("Room " + roomId + " now has " + numClients + " client(s)");
 
             if (numClients === 0) {
-                socket.join(room);
-                console.log("Client ID " + socket.id + " created room " + room);
-                socket.emit("created", room, socket.id);
-
-                //store.dispatch(addRoomAction(room, ___));
+                createRoom(socket, roomId);
             } else {
-                console.log("Client ID " + socket.id + " joined room " + room);
-                io.to(room).emit('join', room);
-                socket.join(room);
-                socket.emit("joined", room, socket.id);
+                joinRoom(io, socket, roomId);
             }
         });
 
