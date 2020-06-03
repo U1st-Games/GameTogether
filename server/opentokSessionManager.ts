@@ -28,14 +28,17 @@ interface RoomCallData {
     token: string;
 }
 
-const apiKey = process.env.OPENTOK_API_KEY || '';
-const apiSecret = process.env.OPENTOK_API_SECRET || '';
+const apiKey = process.env.apiKey || '';
+const apiSecret = process.env.apiSecret || '';
 
 if (!apiKey || !apiSecret) {
     console.error('No opentok apiKey or apiSecret');
 }
 
 const opentok = new OpenTok(apiKey, apiSecret);
+
+console.log('apiKey: ', apiKey)
+console.log('apiSecret: ', apiSecret)
 
 
 const generateToken = (sessionId: string) => opentok.generateToken(
@@ -48,7 +51,11 @@ const generateToken = (sessionId: string) => opentok.generateToken(
 
 const createSession = (): Promise<string> => {
     return new Promise<string>((resolve, reject) => {
-        opentok.createSession({}, function(err, session) {
+        opentok.createSession(
+            {
+                mediaMode: "relayed",
+            },
+            function(err, session) {
             if (err) reject(err);
             if (!session) {
                 reject('Unable to create session');
