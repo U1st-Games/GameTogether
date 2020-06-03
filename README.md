@@ -9,14 +9,27 @@ This project was bootstrapped with [Create React App](https://github.com/faceboo
 
 ## Getting started
 
+[Try the development build](https://sheltered-coast-08667.herokuapp.com/).
+
 [Join our trello board](https://trello.com/invite/b/8J31ar6K/de148fc0be6e7bd76c704c623b7c7ad6/mvp).
 
 [Join our Discord server](https://discord.gg/76dHMpH).
 
-`npm i` `npm start`, then navigate to [http://localhost:3000](http://localhost:3000).
+Clone the project: `git clone https://github.com/LeonmanRolls/GameTogether.git`.
+
+In order for video calling to work, you will need to create an account with tokbox [here](https://tokbox.com/account/user/signup).
+You'll get a free trial which should last for at least a few months of active development, and 
+much longer if you're only doing the occasional PR.
+
+After you create a project with opentok you should be able to get your `PROJECT API KEY` and `PROJECT SECRET`.
+
+Copy `.env.example` in the root of the project and rename it to `.env`. Paste in your values.
+
+In the project folder run `npm i` then `npm run start:dev`, then navigate to [http://localhost:3000](http://localhost:3000).
+Note you may end up on localhost:8080 but this will be serving the app currently in the `build` folder.
 
 I am not sure how much documentation people need or want, so please don't hesitate to
-ask me (leeondamiky on slack) any questions or request additions or clarificaiton to 
+ask me (@Noel on discord) any questions or request additions or clarification to 
 the documentation. I'm happy to help :). 
 
 ## Development process
@@ -28,10 +41,10 @@ the documentation. I'm happy to help :).
 ## Technical overview
 
 The React applicaiton starts in `src/index.js`. From here `App.js` is loaded.
-You can follow the routing from here. Components are in `src/Pages`.
+You can follow the routing from here.
 
 All of the logic for sharing the canvas stream and sharing mouse clicks and 
-key presses is handled in `useWebRTCCanvas`.
+key presses is handled in `useWebRTCCanvasShare`.
 
 If you would like to get involved with the webRTC code, I strongly recommend
 having a good read through [this](https://www.html5rocks.com/en/tutorials/webrtc/basics/).
@@ -45,8 +58,6 @@ feed and screen sharing, is handled by the [Vonage video API](https://tokbox.com
 We interact with this API mainly through [react-use-opentok](https://github.com/pjchender/react-use-opentok).
 You can probably get by with just reading the `react-use-opentok` README.
 
-If the source code is not already heavily commented, then it is in progress and will be shortly.
-
 The basic flow for the game sharing is as follows:
 
 - When 'create game room' is clicked, a uid is generated and added to the url. This
@@ -59,13 +70,14 @@ which prevents clashes with signalling from other rooms.
 canvas will be streamed to everyone else who joins later. If the user is not the fisrt,
 they will become a guest. They will receive the canvas stream and send back their
 mouse positions and key presses, which the host will then apply to the game.
+- The unique game room id will also be used to create an opentok session.
 
 
 ## Available Scripts
 
 In the project directory, you can run:
 
-### `npm start`
+### `npm run start:dev`
 
 Runs the app in the development mode.<br />
 Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
