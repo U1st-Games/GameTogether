@@ -30,9 +30,9 @@ import Me from './Me';
 import OtherParticipants from "./OtherParticipants/OtherParticipants";
 import FullScreenView from "./FullScreenView/FullScreenView";
 
-var apiKey = "46617242";
-var sessionId = "1_MX40NjYxNzI0Mn5-MTU4NTI3ODQ1MTU3NH43Rm84SWRBbkN2QWh5dkUyUGJMZWlPTE1-fg";
-var token = "T1==cGFydG5lcl9pZD00NjYxNzI0MiZzaWc9NGFmMGJlNWJhYWExYjMxNDZhZWQwNDFlZGE4YjFiYjQ1ZjA0ZDIxODpzZXNzaW9uX2lkPTFfTVg0ME5qWXhOekkwTW41LU1UVTROVEkzT0RRMU1UVTNOSDQzUm04NFNXUkJia04yUVdoNWRrVXlVR0pNWldsUFRFMS1mZyZjcmVhdGVfdGltZT0xNTkwNTQ0OTI4Jm5vbmNlPTAuMDI4NzU2MTc1MjU4MTc2NDImcm9sZT1wdWJsaXNoZXImZXhwaXJlX3RpbWU9MTU5MzEzNjkyNyZpbml0aWFsX2xheW91dF9jbGFzc19saXN0PQ==";
+var apiKey = "";
+var sessionId = "";
+var token = "";
 
 
 const Container = styled.div`

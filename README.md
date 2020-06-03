@@ -9,14 +9,25 @@ This project was bootstrapped with [Create React App](https://github.com/faceboo
 
 ## Getting started
 
+[Try the development build](https://sheltered-coast-08667.herokuapp.com/).
+
 [Join our trello board](https://trello.com/invite/b/8J31ar6K/de148fc0be6e7bd76c704c623b7c7ad6/mvp).
 
 [Join our Discord server](https://discord.gg/76dHMpH).
 
-`npm i` `npm start`, then navigate to [http://localhost:3000](http://localhost:3000).
+Clone the project: `git clone https://github.com/LeonmanRolls/GameTogether.git`.
+
+In order for video calling to work, you will need to create an account with tokbox [here](https://tokbox.com/account/user/signup).
+You'll get a free trial which should last for at least a few months of active development, and 
+much longer if you're only doing the occasional PR.
+
+Then you'll need to copy some details from your account into the `.env` file. 
+
+In the project folder run `npm i` then `npm run start:dev`, then navigate to [http://localhost:3000](http://localhost:3000).
+Note you may end up on localhost:8080 but this will be serving the app currently in the `build` folder.
 
 I am not sure how much documentation people need or want, so please don't hesitate to
-ask me (leeondamiky on slack) any questions or request additions or clarificaiton to 
+ask me (@Noel on discord) any questions or request additions or clarification to 
 the documentation. I'm happy to help :). 
 
 ## Development process
@@ -28,10 +39,10 @@ the documentation. I'm happy to help :).
 ## Technical overview
 
 The React applicaiton starts in `src/index.js`. From here `App.js` is loaded.
-You can follow the routing from here. Components are in `src/Pages`.
+You can follow the routing from here.
 
 All of the logic for sharing the canvas stream and sharing mouse clicks and 
-key presses is handled in `useWebRTCCanvas`.
+key presses is handled in `useWebRTCCanvasShare`.
 
 If you would like to get involved with the webRTC code, I strongly recommend
 having a good read through [this](https://www.html5rocks.com/en/tutorials/webrtc/basics/).

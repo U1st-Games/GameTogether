@@ -3,6 +3,9 @@ import path from "path";
 import {Express} from "express";
 
 const fileServer = (app: Express) => {
+    app.get('/test', function (req, res) {
+        console.log('query: ', req.query);
+    });
     app.use(express.static(path.join(__dirname, '../build')));
     app.get('*', function (req, res) {
         res.sendFile(path.join(__dirname, '../build', 'index.html'));
