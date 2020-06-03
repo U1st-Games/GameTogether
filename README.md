@@ -21,7 +21,9 @@ In order for video calling to work, you will need to create an account with tokb
 You'll get a free trial which should last for at least a few months of active development, and 
 much longer if you're only doing the occasional PR.
 
-Then you'll need to copy some details from your account into the `.env` file. 
+After you create a project with opentok you should be able to get your `PROJECT API KEY` and `PROJECT SECRET`.
+
+Copy `.env.example` in the root of the project and rename it to `.env`. Paste in your values.
 
 In the project folder run `npm i` then `npm run start:dev`, then navigate to [http://localhost:3000](http://localhost:3000).
 Note you may end up on localhost:8080 but this will be serving the app currently in the `build` folder.
@@ -56,8 +58,6 @@ feed and screen sharing, is handled by the [Vonage video API](https://tokbox.com
 We interact with this API mainly through [react-use-opentok](https://github.com/pjchender/react-use-opentok).
 You can probably get by with just reading the `react-use-opentok` README.
 
-If the source code is not already heavily commented, then it is in progress and will be shortly.
-
 The basic flow for the game sharing is as follows:
 
 - When 'create game room' is clicked, a uid is generated and added to the url. This
@@ -70,13 +70,14 @@ which prevents clashes with signalling from other rooms.
 canvas will be streamed to everyone else who joins later. If the user is not the fisrt,
 they will become a guest. They will receive the canvas stream and send back their
 mouse positions and key presses, which the host will then apply to the game.
+- The unique game room id will also be used to create an opentok session.
 
 
 ## Available Scripts
 
 In the project directory, you can run:
 
-### `npm start`
+### `npm run start:dev`
 
 Runs the app in the development mode.<br />
 Open [http://localhost:3000](http://localhost:3000) to view it in the browser.

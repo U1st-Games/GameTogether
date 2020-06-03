@@ -37,9 +37,6 @@ if (!apiKey || !apiSecret) {
 
 const opentok = new OpenTok(apiKey, apiSecret);
 
-console.log('apiKey: ', apiKey)
-console.log('apiSecret: ', apiSecret)
-
 
 const generateToken = (sessionId: string) => opentok.generateToken(
     sessionId,
@@ -102,7 +99,7 @@ const getRoomCallData = (roomId: string): Promise<RoomCallData> => {
 };
 
 const opentokSessionMananger = (app: Express) => {
-    app.get('/opentokroomcalldata', async function (req, res) {
+    app.get('/opentok/roomcalldata', async function (req, res) {
         console.log('query: ', req.query);
         const roomId = req.query.roomId as string;
         if(!roomId) {
@@ -112,7 +109,8 @@ const opentokSessionMananger = (app: Express) => {
             return;
         }
         const roomData = await getRoomCallData(roomId);
-        res.status(200).send(roomData);
+        const returnData = {...roomData, apiKey}
+        res.status(200).send(returnData);
     });
 };
 

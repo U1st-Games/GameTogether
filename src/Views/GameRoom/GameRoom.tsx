@@ -22,6 +22,7 @@ import {
     Switch,
     useParams,
 } from "react-router-dom";
+import axios from 'axios';
 
 import Home from '../Home';
 import GameView from './GameView';
@@ -59,6 +60,15 @@ const Mouse = styled.img`
     width: 20px;
 `;
 
+const joinOpentokSession = async (roomid: string, initSessionAndConnect: any) => {
+    try {
+        const response = await axios.get('/opentok/roomcalldata?roomId=' + roomid);
+        initSessionAndConnect(response.data);
+    } catch (error) {
+        console.error(error);
+    }
+};
+
 const GameRoom = () => {
     const {roomid} = useParams();
     const [fullScreenStreamId, setFullScreenStreamId] = useState('');
@@ -87,12 +97,8 @@ const GameRoom = () => {
         sendSignal,
     } = opentokMethods;
 
-    useEffect(() => {
-        initSessionAndConnect({
-            apiKey,
-            sessionId,
-            token,
-        });
+    useEffect( () => {
+        joinOpentokSession(roomid, initSessionAndConnect);
     }, [initSessionAndConnect]);
 
     return (
