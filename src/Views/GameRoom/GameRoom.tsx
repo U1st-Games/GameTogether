@@ -31,10 +31,6 @@ import Me from './Me';
 import OtherParticipants from "./OtherParticipants/OtherParticipants";
 import FullScreenView from "./FullScreenView/FullScreenView";
 
-var apiKey = "";
-var sessionId = "";
-var token = "";
-
 
 const Container = styled.div`
     width: 100vw;
