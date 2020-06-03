@@ -24,7 +24,13 @@ export const GameInfo = [
         thumbnail: 'https://i.pinimg.com/236x/ed/41/bf/ed41bfb164e636474b3ec9fd175a410f--perler-patterns-bead-patterns.jpg',
         description: '',
         link: 'pacman-canvas'
-    }
+    },
+	{
+		name: 'HexGL',
+		thumbnail: 'https://designbolts.com/wp-content/uploads/2017/10/Basket-Ball-Logo-Design-Ideas.jpg',
+		description: 'A browser based Racing Game',
+		link: 'HexGL'
+	}
 ];
 
 export const Container = styled.div`
