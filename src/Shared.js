@@ -27,7 +27,7 @@ export const GameInfo = [
     },
 	{
 		name: '3D-Hartwig-chess',
-		thumbnail: 'https://designbolts.com/wp-content/uploads/2017/10/Basket-Ball-Logo-Design-Ideas.jpg',
+		thumbnail: 'https://upload.wikimedia.org/wikipedia/commons/c/c3/Chess_board_opening_staunton.jpg',
 		description: '',
 		link: '3D-Hartwig-chess'
 	}
