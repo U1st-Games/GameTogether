@@ -26,11 +26,12 @@ export const GameInfo = [
         link: 'pacman-canvas'
     },
 	{
-		name: 'HexGL',
+		name: '3D-Hartwig-chess',
 		thumbnail: 'https://designbolts.com/wp-content/uploads/2017/10/Basket-Ball-Logo-Design-Ideas.jpg',
-		description: 'A browser based Racing Game',
-		link: 'HexGL'
+		description: '',
+		link: '3D-Hartwig-chess'
 	}
+
 ];
 
 export const Container = styled.div`
