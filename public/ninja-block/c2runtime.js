@@ -3208,7 +3208,7 @@ quat4.str=function(a){return"["+a[0]+", "+a[1]+", "+a[2]+", "+a[3]+"]"};
 		}
 		if (!isPOT && tiling)
 		{
-			var canvas = document.createElement("canvas");
+			var canvas = document.createElement("canvas").setAttribute("id", "myCanvas");
 			canvas.width = cr.nextHighestPowerOfTwo(img.width);
 			canvas.height = cr.nextHighestPowerOfTwo(img.height);
 			var ctx = canvas.getContext("2d");

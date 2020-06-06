@@ -22,13 +22,15 @@ import {useParams} from "react-router-dom";
 const GameView = () => {
     const { gamename, roomid } = useParams();
 
-    const {isGuest} = useWebRTCCanvasShare(
+   /* const {isGuest} = useWebRTCCanvasShare(
         'gameIframe',
         'remoteCursor',
         'remoteVideo',
         undefined,
         roomid,
-    );
+    ); */
+	
+	const isGuest = false;
 
     return (
         <>
