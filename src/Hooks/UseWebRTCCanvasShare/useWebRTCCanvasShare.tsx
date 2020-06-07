@@ -19,6 +19,11 @@ import { useEffect, useState, useRef } from 'react';
 import { Socket } from 'socket.io';
 import { v4 as uuidv4 } from 'uuid';
 
+type UpdateGameLog = (nexMessage: string) => void;
+type SetIsStarted = (nextIsStarted: boolean) => void;
+type SetIsInitiator = (nextIsInitiator: boolean) => void;
+type SetIsChannelReady = (nextIsChannelReady: boolean) => void;
+
 let socket: any;
 
 // WASD = 87, 65, 83, 68
@@ -112,7 +117,7 @@ const createDataChannel = (
     canvas: HTMLCanvasElement,
     videoElement: HTMLVideoElement,
     isHost: boolean,
-    updateGameLog: updateGameLogFn
+    updateGameLog: UpdateGameLog
 ) => {
     //setup click data channel
     const keyDataChannel = pc.createDataChannel('keyPress', {
@@ -175,7 +180,7 @@ const createDataChannel = (
 const hostDataChannelHandler = (
     myIframe: HTMLIFrameElement,
     cursor: Element,
-    updateGameLog: updateGameLogFn,
+    updateGameLog: UpdateGameLog,
     peerConnections: PeerConnection[]
 ) => ({ channel }: { channel: any }) => {
     channel.onmessage = (e: any) => {
@@ -226,7 +231,7 @@ const hostDataChannelHandler = (
     };
 };
 
-const onDataChannelHandler = (myIframe: HTMLIFrameElement, cursor: Element, updateGameLog: updateGameLogFn) => ({
+const onDataChannelHandler = (myIframe: HTMLIFrameElement, cursor: Element, updateGameLog: UpdateGameLog) => ({
                                                                                                                     channel,
                                                                                                                 }: {
     channel: any;
@@ -290,7 +295,7 @@ const createPeerConnection = (
     roomid: string,
     canvas: HTMLCanvasElement,
     isHost: boolean,
-    updateGameLog: updateGameLogFn,
+    updateGameLog: UpdateGameLog,
     peerConnections: PeerConnection[]
 ): PeerConnection | undefined => {
     try {
@@ -361,7 +366,7 @@ const addPeerConnection = (
     roomid: string,
     canvas: HTMLCanvasElement,
     isHost: boolean,
-    updateGameLog: updateGameLogFn
+    updateGameLog: UpdateGameLog
 ) => {
     const newPeerConnection = createPeerConnection(
         socket,
@@ -404,7 +409,7 @@ type StartFn = (
     roomid: string,
     canvas: HTMLCanvasElement,
     localStream: MediaStream,
-    updateGameLog: updateGameLogFn
+    updateGameLog: UpdateGameLog
 ) => void;
 
 const Start: StartFn = (
@@ -435,7 +440,7 @@ type InitHostFn = (
     roomid: string,
     canvas: HTMLCanvasElement,
     localStream: MediaStream,
-    updateGameLog: updateGameLogFn,
+    updateGameLog: UpdateGameLog,
     userName: string
 ) => void;
 
@@ -502,7 +507,7 @@ const initGuest = (
     remoteVideo: any,
     roomid: string,
     canvas: HTMLCanvasElement,
-    updateGameLog: updateGameLogFn,
+    updateGameLog: UpdateGameLog,
     userName: string
 ) => {
     let hasInit = false;
@@ -534,7 +539,102 @@ const initGuest = (
     });
 };
 
-type updateGameLogFn = (nexMessage: string) => void;
+
+const initSocketClient = (
+    roomId: string,
+    peerConnections: PeerConnection[],
+    myIframe: HTMLIFrameElement,
+    cursor: HTMLElement,
+    remoteVideo: HTMLVideoElement,
+    canvass: HTMLCanvasElement,
+    localStream: MediaStream,
+    updateGameLog: UpdateGameLog,
+    userName: string,
+    setIsInitiator: SetIsInitiator,
+    setIsChannelReady: SetIsChannelReady,
+    doAnswer: () => void,
+    setIsGuest: (isGuest: boolean) => void,
+    handleRemoteHangup: (connectionId: string) => void,
+) => {
+    let isStarted = false;
+    const setIsStarted: SetIsStarted = (nextIsStarted) => {
+        isStarted = nextIsStarted;
+    };
+
+    socket.emit('create or join', roomId);
+    console.log('Attempted to create or  join room', roomId);
+
+    socket.on('created', function(roomId: string) {
+        console.log('Created room ' + roomId);
+        initHost(
+            setIsStarted,
+            peerConnections,
+            socket,
+            myIframe,
+            cursor,
+            remoteVideo,
+            roomId,
+            canvass,
+            localStream,
+            updateGameLog,
+            userName
+        );
+        setIsInitiator(true);
+    });
+
+    socket.on('full', function(room: string) {
+        console.log('Room ' + room + ' is full');
+    });
+
+    socket.on('join', function(room: string) {
+        console.log('Another peer made a request to join room ' + room);
+        console.log('This peer is the initiator of room ' + room + '!');
+        setIsChannelReady(true);
+    });
+
+    socket.on('joined', function(room: string) {
+        console.log('joined: ' + room);
+
+        initGuest(
+            socket,
+            peerConnections,
+            doAnswer,
+            myIframe,
+            cursor,
+            remoteVideo,
+            roomId,
+            canvass,
+            updateGameLog,
+            userName
+        );
+        setIsChannelReady(true);
+        setIsGuest(true);
+        socket.emit('gotUserMedia', room);
+    });
+
+    socket.on('log', function(array: any) {
+        console.log(array);
+    });
+
+    // This client receives a message
+    //@ts-ignore
+    socket.on('message', function(message) {
+        //@ts-ignore
+        console.log('Client received message:', message);
+        if (message.type === 'candidate' && isStarted) {
+            var candidate = new RTCIceCandidate({
+                sdpMLineIndex: message.label,
+                candidate: message.candidate,
+            });
+            getPeerConnectionById(peerConnections, message.connectionId)?.addIceCandidate(candidate);
+        } else if (message.type === 'bye') {
+            handleRemoteHangup(message.connectionId);
+        }
+    });
+};
+
+
+
 
 interface Return {
     isGuest: boolean;
@@ -542,13 +642,12 @@ interface Return {
     stop: () => void;
     gameLog: string[];
 }
-
 const useWebRTCCanvasShare = (
     iframeId: string,
     remoteCursorId: string,
     remoteVideoId: string,
     socketUrl: string,
-    roomid: string,
+    roomId: string,
     startOnLoad: boolean = true,
     userName: string = 'someone'
 ): Return => {
@@ -556,7 +655,7 @@ const useWebRTCCanvasShare = (
     const [isGuest, setIsGuest] = useState(false);
     const [hasStart, setHasStart] = useState(startOnLoad);
     const [gameLog, setGameLog] = useState<string[]>(['one', 'two', 'three']);
-    const updateGameLog: updateGameLogFn = (nextMessage: string) => {
+    const updateGameLog: UpdateGameLog = (nextMessage: string) => {
         setGameLog(gameLog => {
             if (gameLog.length < 10) {
                 return [...gameLog, nextMessage];
@@ -581,7 +680,7 @@ const useWebRTCCanvasShare = (
                 //@ts-ignore
                 socket,
                 { type: 'bye', connectionId: peerConnections[0].connectionId },
-                roomid
+                roomId
             );
         }
     };
@@ -608,102 +707,45 @@ const useWebRTCCanvasShare = (
 
                 let isChannelReady = false;
                 let isInitiator = false;
-                let isStarted = false;
 
-                const setIsStarted = (nextIsStarted: boolean) => {
-                    isStarted = nextIsStarted;
+                const setIsInitiator: SetIsInitiator = (nextIsInitiator) => {
+                    isInitiator = nextIsInitiator;
+                };
+                const setIsChannelReady: SetIsChannelReady = (nextIsChannelReady) => {
+                    isChannelReady = nextIsChannelReady;
                 };
 
-                //Begin socket.io --------------------------------------------
-                let room = roomid;
-
-                if (!roomid) {
+                if (!roomId) {
                     console.error('no roomid');
                     return;
                 }
-
-                socket.emit('create or join', room);
-                //@ts-ignore
-                console.log('Attempted to create or  join room', room);
-
-                socket.on('created', function(room: string) {
-                    console.log('Created room ' + room);
-                    initHost(
-                        setIsStarted,
-                        peerConnections,
-                        socket,
-                        myIframe,
-                        cursor,
-                        remoteVideo,
-                        roomid,
-                        canvass,
-                        localStream,
-                        updateGameLog,
-                        userName
-                    );
-                    isInitiator = true;
-                });
-
-                socket.on('full', function(room: string) {
-                    console.log('Room ' + room + ' is full');
-                });
-
-                socket.on('join', function(room: string) {
-                    console.log('Another peer made a request to join room ' + room);
-                    console.log('This peer is the initiator of room ' + room + '!');
-                    isChannelReady = true;
-                });
-
-                socket.on('joined', function(room: string) {
-                    console.log('joined: ' + room);
-
-                    initGuest(
-                        socket,
-                        peerConnections,
-                        doAnswer,
-                        myIframe,
-                        cursor,
-                        remoteVideo,
-                        roomid,
-                        canvass,
-                        updateGameLog,
-                        userName
-                    );
-                    isChannelReady = true;
-                    setIsGuest(true);
-                    socket.emit('gotUserMedia', room);
-                });
-
-                socket.on('log', function(array: any) {
-                    console.log(array);
-                });
-
-                // This client receives a message
-                //@ts-ignore
-                socket.on('message', function(message) {
-                    //@ts-ignore
-                    console.log('Client received message:', message);
-                    if (message.type === 'candidate' && isStarted) {
-                        var candidate = new RTCIceCandidate({
-                            sdpMLineIndex: message.label,
-                            candidate: message.candidate,
-                        });
-                        getPeerConnectionById(peerConnections, message.connectionId)?.addIceCandidate(candidate);
-                    } else if (message.type === 'bye') {
-                        handleRemoteHangup(message.connectionId);
-                    }
-                });
-                //End socket.io -----------------------------------------------------------
 
                 //@ts-ignore
                 localStream = canvass.captureStream();
                 console.log('Got stream from canvas');
 
+                initSocketClient(
+                    roomId,
+                    peerConnections,
+                    myIframe,
+                    cursor,
+                    remoteVideo,
+                    canvass,
+                    localStream,
+                    updateGameLog,
+                    userName,
+                    setIsInitiator,
+                    setIsChannelReady,
+                    doAnswer,
+                    setIsGuest,
+                    handleRemoteHangup,
+                );
+
                 function doAnswer() {
                     console.log('Sending answer to peer.');
                     peerConnections[peerConnections.length - 1]?.createAnswer().then(
                         //@ts-ignore
-                        setLocalAndSendMessage(peerConnections[peerConnections.length - 1], socket, roomid),
+                        setLocalAndSendMessage(peerConnections[peerConnections.length - 1], socket, roomId),
                         onCreateSessionDescriptionError
                     );
                 }
@@ -725,7 +767,7 @@ const useWebRTCCanvasShare = (
                         //@ts-ignore
                         socket,
                         { type: 'bye', connectionId: peerConnections[0].connectionId },
-                        roomid
+                        roomId
                     );
                 };
             };
