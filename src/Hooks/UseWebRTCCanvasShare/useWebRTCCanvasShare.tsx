@@ -633,8 +633,14 @@ const initSocketClient = (
     });
 };
 
-
-
+const updateGameLogFactory = (setGameLog: any) => (nextMessage: string) => {
+    setGameLog((gameLog: string[]) => {
+        if (gameLog.length < 10) {
+            return [...gameLog, nextMessage];
+        }
+        return [...gameLog.slice(1, gameLog.length), nextMessage];
+    });
+};
 
 interface Return {
     isGuest: boolean;
@@ -655,14 +661,7 @@ const useWebRTCCanvasShare = (
     const [isGuest, setIsGuest] = useState(false);
     const [hasStart, setHasStart] = useState(startOnLoad);
     const [gameLog, setGameLog] = useState<string[]>(['one', 'two', 'three']);
-    const updateGameLog: UpdateGameLog = (nextMessage: string) => {
-        setGameLog(gameLog => {
-            if (gameLog.length < 10) {
-                return [...gameLog, nextMessage];
-            }
-            return [...gameLog.slice(1, gameLog.length), nextMessage];
-        });
-    };
+    const updateGameLog: UpdateGameLog = updateGameLogFactory(setGameLog);
 
     const peerConnections: PeerConnection[] = [];
 
@@ -686,13 +685,8 @@ const useWebRTCCanvasShare = (
     };
 
     useEffect(() => {
-        const cursor = document.querySelector('#' + remoteCursorId) as HTMLElement;
-        const remoteVideo = document.querySelector('#' + remoteVideoId) as HTMLVideoElement;
-
         if (hasStart && !hasInit) {
             setHasInit(true);
-
-            const myIframe = document.getElementById(iframeId) as HTMLIFrameElement;
 
             const onIframeLoaded = () => {
                 if (socket) {
@@ -702,6 +696,8 @@ const useWebRTCCanvasShare = (
                 socket = window.io.connect(socketUrl);
 
                 const canvass = myIframe?.contentWindow?.document.getElementById('myCanvas') as HTMLCanvasElement;
+                const cursor = document.querySelector('#' + remoteCursorId) as HTMLElement;
+                const remoteVideo = document.querySelector('#' + remoteVideoId) as HTMLVideoElement;
 
                 let localStream: MediaStream;
 
@@ -750,12 +746,6 @@ const useWebRTCCanvasShare = (
                     );
                 }
 
-                function hangup() {
-                    console.log('Hanging up.');
-                    //stop();
-                    //sendMessage(socket, 'bye');
-                }
-
                 function handleRemoteHangup(connectionId: string) {
                     console.log('Session terminated.');
                     stop(connectionId, peerConnections);
@@ -771,6 +761,7 @@ const useWebRTCCanvasShare = (
                     );
                 };
             };
+            const myIframe = document.getElementById(iframeId) as HTMLIFrameElement;
             myIframe.addEventListener('load', onIframeLoaded);
         } //hasStart if statement
     }, [hasStart, hasInit]);
