@@ -40,7 +40,7 @@ the documentation. I'm happy to help :).
 
 ## Technical overview
 
-The React applicaiton starts in `src/index.js`. From here `App.js` is loaded.
+The React applicaiton starts in `src/index.tsx`. From here `App.js` is loaded.
 You can follow the routing from here.
 
 All of the logic for sharing the canvas stream and sharing mouse clicks and 
