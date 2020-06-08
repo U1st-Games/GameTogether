@@ -676,6 +676,14 @@ const updateGameLogFactory = (setGameLog: any) => (nextMessage: string) => {
     });
 };
 
+const initElementReferences = (myIframe: HTMLIFrameElement, remoteCursorId: string, remoteVideoId: string) => {
+    const canvass = myIframe?.contentWindow?.document.getElementById('myCanvas') as HTMLCanvasElement;
+    const cursor = document.querySelector('#' + remoteCursorId) as HTMLElement;
+    const remoteVideo = document.querySelector('#' + remoteVideoId) as HTMLVideoElement;
+
+    return ({ canvass, cursor, remoteVideo });
+}
+
 interface Return {
     isGuest: boolean;
     start: () => void;
@@ -696,8 +704,9 @@ const useWebRTCCanvasShare = (
     const [hasStart, setHasStart] = useState(startOnLoad);
     const [gameLog, setGameLog] = useState<string[]>(['one', 'two', 'three']);
     const updateGameLog: UpdateGameLog = updateGameLogFactory(setGameLog);
-
     const peerConnections: PeerConnection[] = [];
+
+    const myIframe = document.getElementById(iframeId) as HTMLIFrameElement;
 
     //This is so consumer can control when the hook starts
     const start = () => {
@@ -706,7 +715,7 @@ const useWebRTCCanvasShare = (
         }
     };
 
-    const stopOutside = () => {
+    const externalStop = () => {
         if (peerConnections[0]) {
             stop(peerConnections[0].connectionId, peerConnections);
             sendMessage(
@@ -728,9 +737,11 @@ const useWebRTCCanvasShare = (
                     return;
                 }
 
-                const canvass = myIframe?.contentWindow?.document.getElementById('myCanvas') as HTMLCanvasElement;
-                const cursor = document.querySelector('#' + remoteCursorId) as HTMLElement;
-                const remoteVideo = document.querySelector('#' + remoteVideoId) as HTMLVideoElement;
+                const { canvass, cursor, remoteVideo } = initElementReferences(
+                    myIframe,
+                    remoteCursorId,
+                    remoteVideoId
+                );
 
                 initSocketClient(
                     roomId,
@@ -746,18 +757,17 @@ const useWebRTCCanvasShare = (
                 );
             };
 
-            const myIframe = document.getElementById(iframeId) as HTMLIFrameElement;
             myIframe.addEventListener('load', onIframeLoaded);
         }
     }, [hasStart, hasInit]);
 
     useEffect(() => {
         return () => {
-            stopOutside();
+            externalStop();
         };
     }, []);
 
-    return { isGuest, start, stop: stopOutside, gameLog };
+    return { isGuest, start, stop: externalStop, gameLog };
 };
 
 export default useWebRTCCanvasShare;
