@@ -18,7 +18,14 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 import React from 'react';
 import styled from 'styled-components';
 
-export const GameInfo = [
+interface IGameInfo {
+	name: string,
+	thumbnail: string,
+	description: string,
+	link: string
+}
+
+export const GameInfo: IGameInfo[] = [
     {
         name: 'Pacman',
         thumbnail: 'https://i.pinimg.com/236x/ed/41/bf/ed41bfb164e636474b3ec9fd175a410f--perler-patterns-bead-patterns.jpg',
