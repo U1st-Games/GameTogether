@@ -547,19 +547,29 @@ const initSocketClient = (
     cursor: HTMLElement,
     remoteVideo: HTMLVideoElement,
     canvass: HTMLCanvasElement,
-    localStream: MediaStream,
     updateGameLog: UpdateGameLog,
     userName: string,
-    setIsInitiator: SetIsInitiator,
-    setIsChannelReady: SetIsChannelReady,
-    doAnswer: () => void,
     setIsGuest: (isGuest: boolean) => void,
-    handleRemoteHangup: (connectionId: string) => void,
+    socketUrl: string
 ) => {
+    let localStream: MediaStream;
+    let isInitiator = false;
     let isStarted = false;
     const setIsStarted: SetIsStarted = (nextIsStarted) => {
         isStarted = nextIsStarted;
     };
+
+    let isChannelReady = false;
+    const setIsChannelReady: SetIsChannelReady = (nextIsChannelReady) => {
+        isChannelReady = nextIsChannelReady;
+    };
+
+    //@ts-ignore
+    socket = window.io.connect(socketUrl);
+
+    //@ts-ignore
+    localStream = canvass.captureStream();
+    console.log('Got stream from canvas');
 
     socket.emit('create or join', roomId);
     console.log('Attempted to create or  join room', roomId);
@@ -579,7 +589,7 @@ const initSocketClient = (
             updateGameLog,
             userName
         );
-        setIsInitiator(true);
+        isInitiator = true;
     });
 
     socket.on('full', function(room: string) {
@@ -631,6 +641,30 @@ const initSocketClient = (
             handleRemoteHangup(message.connectionId);
         }
     });
+
+    function doAnswer() {
+        console.log('Sending answer to peer.');
+        peerConnections[peerConnections.length - 1]?.createAnswer().then(
+            //@ts-ignore
+            setLocalAndSendMessage(peerConnections[peerConnections.length - 1], socket, roomId),
+            onCreateSessionDescriptionError
+        );
+    }
+
+    function handleRemoteHangup(connectionId: string) {
+        console.log('Session terminated.');
+        stop(connectionId, peerConnections);
+        isInitiator = false;
+    }
+
+    window.onbeforeunload = function() {
+        sendMessage(
+            //@ts-ignore
+            socket,
+            { type: 'bye', connectionId: peerConnections[0].connectionId },
+            roomId
+        );
+    };
 };
 
 const updateGameLogFactory = (setGameLog: any) => (nextMessage: string) => {
@@ -689,36 +723,14 @@ const useWebRTCCanvasShare = (
             setHasInit(true);
 
             const onIframeLoaded = () => {
-                if (socket) {
-                    socket.disconnect();
-                }
-                //@ts-ignore
-                socket = window.io.connect(socketUrl);
-
-                const canvass = myIframe?.contentWindow?.document.getElementById('myCanvas') as HTMLCanvasElement;
-                const cursor = document.querySelector('#' + remoteCursorId) as HTMLElement;
-                const remoteVideo = document.querySelector('#' + remoteVideoId) as HTMLVideoElement;
-
-                let localStream: MediaStream;
-
-                let isChannelReady = false;
-                let isInitiator = false;
-
-                const setIsInitiator: SetIsInitiator = (nextIsInitiator) => {
-                    isInitiator = nextIsInitiator;
-                };
-                const setIsChannelReady: SetIsChannelReady = (nextIsChannelReady) => {
-                    isChannelReady = nextIsChannelReady;
-                };
-
                 if (!roomId) {
                     console.error('no roomid');
                     return;
                 }
 
-                //@ts-ignore
-                localStream = canvass.captureStream();
-                console.log('Got stream from canvas');
+                const canvass = myIframe?.contentWindow?.document.getElementById('myCanvas') as HTMLCanvasElement;
+                const cursor = document.querySelector('#' + remoteCursorId) as HTMLElement;
+                const remoteVideo = document.querySelector('#' + remoteVideoId) as HTMLVideoElement;
 
                 initSocketClient(
                     roomId,
@@ -727,43 +739,16 @@ const useWebRTCCanvasShare = (
                     cursor,
                     remoteVideo,
                     canvass,
-                    localStream,
                     updateGameLog,
                     userName,
-                    setIsInitiator,
-                    setIsChannelReady,
-                    doAnswer,
                     setIsGuest,
-                    handleRemoteHangup,
+                    socketUrl,
                 );
-
-                function doAnswer() {
-                    console.log('Sending answer to peer.');
-                    peerConnections[peerConnections.length - 1]?.createAnswer().then(
-                        //@ts-ignore
-                        setLocalAndSendMessage(peerConnections[peerConnections.length - 1], socket, roomId),
-                        onCreateSessionDescriptionError
-                    );
-                }
-
-                function handleRemoteHangup(connectionId: string) {
-                    console.log('Session terminated.');
-                    stop(connectionId, peerConnections);
-                    isInitiator = false;
-                }
-
-                window.onbeforeunload = function() {
-                    sendMessage(
-                        //@ts-ignore
-                        socket,
-                        { type: 'bye', connectionId: peerConnections[0].connectionId },
-                        roomId
-                    );
-                };
             };
+
             const myIframe = document.getElementById(iframeId) as HTMLIFrameElement;
             myIframe.addEventListener('load', onIframeLoaded);
-        } //hasStart if statement
+        }
     }, [hasStart, hasInit]);
 
     useEffect(() => {
