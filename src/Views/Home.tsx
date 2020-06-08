@@ -61,7 +61,7 @@ interface IGameCardProps {
     thumbnail: string,
     description: string,
     link: string,
-    roomid: string
+    roomid?: string
 }
 
 const GameCard = ({ name, thumbnail, description, link, roomid }: IGameCardProps) => {
@@ -105,7 +105,7 @@ const GameCard = ({ name, thumbnail, description, link, roomid }: IGameCardProps
 };
 
 interface IHomeProps {
-    roomid: string
+    roomid?: string
 }
 
 const Home = ({ roomid }: IHomeProps) => {
