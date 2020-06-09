@@ -29,6 +29,8 @@ const GameView = () => {
         undefined,
         roomid,
     );
+
+    // const isGuest = false;
 	
     return (
         <>
