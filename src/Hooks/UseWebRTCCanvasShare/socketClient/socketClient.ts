@@ -1,6 +1,6 @@
 import { Socket } from 'socket.io';
 import {v4 as uuidv4} from "uuid";
-import {getPeerConnectionById, stop} from "./webRTCHelpers";
+import {getPeerConnectionById, stop} from "../webRTCHelpers";
 
 type SetIsStarted = (nextIsStarted: boolean) => void;
 type SetIsInitiator = (nextIsInitiator: boolean) => void;
@@ -600,6 +600,18 @@ const initSocketClient = (
             { type: 'bye', connectionId: peerConnections[0].connectionId },
             roomId
         );
+    };
+
+    return () => {
+        if (peerConnections[0]) {
+            stop(peerConnections[0].connectionId, peerConnections);
+            sendMessage(
+                //@ts-ignore
+                socket,
+                {type: 'bye', connectionId: peerConnections[0].connectionId},
+                roomId
+            );
+        }
     };
 };
 

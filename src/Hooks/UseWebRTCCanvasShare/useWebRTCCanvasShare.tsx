@@ -20,7 +20,7 @@ import {Socket} from 'socket.io';
 import {v4 as uuidv4} from 'uuid';
 
 import { stop } from './webRTCHelpers';
-import initSocketClient, {sendMessage} from "./socketClient";
+import initSocketClient, {sendMessage} from "./socketClient/socketClient";
 
 function click(x: number, y: number) {
     var ev = new MouseEvent('click', {
@@ -55,7 +55,7 @@ const initElementReferences = (myIframe: HTMLIFrameElement, remoteCursorId: stri
 interface Return {
     isGuest: boolean;
     start: () => void;
-    stop: () => void;
+    stop: React.MutableRefObject<() => void>;
     gameLog: string[];
 }
 
@@ -72,6 +72,7 @@ const useWebRTCCanvasShare = (
     const [isGuest, setIsGuest] = useState(false);
     const [hasStart, setHasStart] = useState(startOnLoad);
     const [gameLog, setGameLog] = useState<string[]>(['one', 'two', 'three']);
+    const externalStop = useRef<() => void>(() => {console.error('externalStop not inited')});
     const updateGameLog: UpdateGameLog = updateGameLogFactory(setGameLog);
     const peerConnections: PeerConnection[] = [];
 
@@ -82,21 +83,8 @@ const useWebRTCCanvasShare = (
         }
     };
 
-    const externalStop = () => {
-        if (peerConnections[0]) {
-            stop(peerConnections[0].connectionId, peerConnections);
-            sendMessage(
-                //@ts-ignore
-                socket,
-                {type: 'bye', connectionId: peerConnections[0].connectionId},
-                roomId
-            );
-        }
-    };
-
     useEffect(() => {
         const myIframe = document.getElementById(iframeId) as HTMLIFrameElement;
-        console.log('iframe: ', myIframe)
 
         if (hasStart && !hasInit) {
             setHasInit(true);
@@ -113,7 +101,7 @@ const useWebRTCCanvasShare = (
                     remoteVideoId
                 );
 
-                initSocketClient(
+                externalStop.current = initSocketClient(
                     roomId,
                     peerConnections,
                     myIframe,
@@ -133,7 +121,9 @@ const useWebRTCCanvasShare = (
 
     useEffect(() => {
         return () => {
-            externalStop();
+            if (externalStop.current){
+                externalStop.current();
+            }
         };
     }, []);
 
