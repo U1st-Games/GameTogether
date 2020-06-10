@@ -16,22 +16,22 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
 import React from 'react';
-import useWebRTCCanvasShare from "../useWebRTCCanvasShare";
+import useWebRTCCanvasShare from "../../Hooks/UseWebRTCCanvasShare/useWebRTCCanvasShare";
 import {useParams} from "react-router-dom";
 
 const GameView = () => {
     const { gamename, roomid } = useParams();
 
-   /* const {isGuest} = useWebRTCCanvasShare(
+   const {isGuest} = useWebRTCCanvasShare(
         'gameIframe',
         'remoteCursor',
         'remoteVideo',
         undefined,
         roomid,
-    ); */
-	
-	const isGuest = false;
+    );
 
+    // const isGuest = false;
+	
     return (
         <>
             <iframe

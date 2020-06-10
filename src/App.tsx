@@ -104,7 +104,6 @@ function App() {
   );
 }
 
-
 const AppWrapper = () => (
     <Router>
       <App/>
