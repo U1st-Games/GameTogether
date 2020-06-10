@@ -46,7 +46,7 @@ const useStyles = makeStyles({
     },
 });
 
-function fireEvent(eventName) { //Fires an event to google analytics
+function fireEvent(eventName: string) { //Fires an event to google analytics
     console.log("EVENT: "+eventName);
     const trackingID = "INSERT_TRACKING_NUMBER"; //Tracking ID needs to be added here
     ReactGA.initialize(trackingID);
@@ -56,7 +56,15 @@ function fireEvent(eventName) { //Fires an event to google analytics
     })
 }
 
-const GameCard = ({ name, thumbnail, description, link, roomid }) => {
+interface IGameCardProps {
+    name: string,
+    thumbnail: string,
+    description: string,
+    link: string,
+    roomid?: string
+}
+
+const GameCard = ({ name, thumbnail, description, link, roomid }: IGameCardProps) => {
     const classes = useStyles();
     const history = useHistory();
     return (
@@ -96,7 +104,11 @@ const GameCard = ({ name, thumbnail, description, link, roomid }) => {
     );
 };
 
-const Home = ({ roomid }) => {
+interface IHomeProps {
+    roomid?: string
+}
+
+const Home = ({ roomid }: IHomeProps) => {
     console.log('home rendeerd');
     return (
         <HomeContainer>
