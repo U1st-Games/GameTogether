@@ -44,9 +44,9 @@ const sendKeypressToAllGuests = (peerConnections: PeerConnection[], name: string
     });
 };
 
-export function sendMessage(socket: Socket, message: any, roomid: string) {
+export function sendMessage(socket: Socket, message: any, roomid: string, event = 'message') {
     console.log('Client sending message: ', message);
-    socket.emit('message', roomid, message);
+    socket.emit(event, roomid, message);
 }
 
 //@ts-ignore
@@ -598,18 +598,21 @@ const initSocketClient = (
             //@ts-ignore
             socket,
             { type: 'bye', connectionId: peerConnections[0].connectionId },
-            roomId
+            roomId,
+            'bye'
         );
     };
 
     return () => {
+        console.log('externalStop called')
         if (peerConnections[0]) {
             stop(peerConnections[0].connectionId, peerConnections);
             sendMessage(
                 //@ts-ignore
                 socket,
                 {type: 'bye', connectionId: peerConnections[0].connectionId},
-                roomId
+                roomId,
+                'bye'
             );
         }
     };

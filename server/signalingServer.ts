@@ -1,8 +1,33 @@
-import {Socket} from "socket.io";
-import {store} from "./State/state";
-import {addRoomAction} from "./State/actions";
+/*
+GameTogether © Copyright, Nang Development Limited 2020. All Rights Reserved.
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ */
+
 import * as SocketIO from "socket.io";
+import {Room, Socket} from "socket.io";
+
+import {store} from "./State/state";
+import {
+    addHostToRoomAction,
+    addRoomWithHostSocketIdAction,
+} from "./State/actions";
+import {isHost} from "./State/selectors";
+
 const os = require("os");
+
+const getRoom = (io: SocketIO.Server, roomId: string): Room => io.sockets.adapter.rooms[roomId];
 
 const sendToRoomSansSender = (io: SocketIO.Server, event: string, roomId: string, data?: any) => {
     console.log(event);
@@ -10,9 +35,9 @@ const sendToRoomSansSender = (io: SocketIO.Server, event: string, roomId: string
 };
 
 const clientsInRoomCount = (io: SocketIO.Server, roomId: string): number => {
-    var clientsInRoom = io.sockets.adapter.rooms[roomId];
-    return clientsInRoom
-        ? Object.keys(clientsInRoom.sockets).length
+    const room = getRoom(io, roomId);
+    return room
+        ? Object.keys(room.sockets).length
         : 0;
 };
 
@@ -20,7 +45,8 @@ const createRoom = (socket: Socket, roomId: string) => {
     socket.join(roomId);
     console.log("Client ID " + socket.id + " created roomId " + roomId);
     socket.emit("created", roomId, socket.id);
-    //store.dispatch(addRoomAction(roomId, ___));
+    store.dispatch(addRoomWithHostSocketIdAction(roomId, socket.id));
+    store.dispatch(addHostToRoomAction(roomId, socket.id))
 };
 
 const joinRoom = (io: SocketIO.Server, socket: Socket, roomId: string) => {
@@ -47,6 +73,7 @@ const signalingServer = (io: SocketIO.Server) => {
         });
 
         socket.on("message", function(roomId, message) {
+            //console.log('message: ', message);
             sendToRoomSansSender(io, 'message', roomId, message);
         });
 
@@ -66,8 +93,8 @@ const signalingServer = (io: SocketIO.Server) => {
             console.log('ipaddr called');
         });
 
-        socket.on("bye", function() {
-            console.log("received bye");
+        socket.on("bye", function(roomId, message) {
+            console.log("isHost: ", isHost(socket.id));
         });
     });
 };

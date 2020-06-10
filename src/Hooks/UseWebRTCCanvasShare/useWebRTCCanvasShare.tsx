@@ -121,7 +121,9 @@ const useWebRTCCanvasShare = (
 
     useEffect(() => {
         return () => {
+            //debugger;
             if (externalStop.current){
+                console.log('external stop: ', externalStop.current);
                 externalStop.current();
             }
         };

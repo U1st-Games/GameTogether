@@ -19,7 +19,7 @@ import OpenTok from 'opentok';
 import {Express} from "express";
 import {selectRoomById} from "./State/selectors";
 import store, {Room} from "./State/state";
-import {addRoomAction} from "./State/actions";
+import {addRoomWithSessionIdAction} from "./State/actions";
 
 type SessionId = string;
 
@@ -65,7 +65,7 @@ const createSession = (): Promise<string> => {
 
 const createRoomData = async (roomId: string): Promise<string> => {
     const sessionId = await createSession();
-    store.dispatch(addRoomAction(roomId, sessionId));
+    store.dispatch(addRoomWithSessionIdAction(roomId, sessionId));
     return sessionId;
 };
 
@@ -78,8 +78,12 @@ const createRoom = async (roomId: string): Promise<RoomCallData> => {
     });
 };
 
-const getExistingRoomCallData = (room: Room): RoomCallData => {
+const getExistingRoomCallData = (room: Room): RoomCallData=> {
     const sessionId = room.sessionId;
+    if (!sessionId) {
+        console.error('No existing room call data');
+        return { sessionId: '', token: '' };
+    }
     const token = generateToken(sessionId);
     return ({
         sessionId,
