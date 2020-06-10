@@ -19,10 +19,12 @@ type AddRoomWithSessionIdActionType = 'ADD_ROOM_WITH_SESSION_ID';
 type AddRoomWithHostSocketIdActionType = 'ADD_ROOM_WITH_HOST_SOCKET_ID';
 type RemoveRoomActionType = 'REMOVE_ROOM';
 type AddHostToRoomRoomActionType = 'ADD_HOST_TO_ROOM';
+type RemoveHostFromRoomActionType = 'REMOVE_HOST_FROM_ROOM';
 type ActionType = AddRoomWithSessionIdActionType
     | AddRoomWithHostSocketIdActionType
     | RemoveRoomActionType
-    | AddHostToRoomRoomActionType;
+    | AddHostToRoomRoomActionType
+    | RemoveHostFromRoomActionType;
 
 interface BaseAction {
     type: ActionType;
@@ -40,6 +42,11 @@ export interface AddRoomWithHostSocketIdAction extends BaseAction {
     socketId: string;
 };
 
+export interface RemoveHostFromRoomAction extends BaseAction {
+    type: 'REMOVE_HOST_FROM_ROOM';
+    roomId: string;
+};
+
 export interface RemoveRoomAction extends BaseAction {
     type: 'REMOVE_ROOM';
     roomId: string;
@@ -53,6 +60,7 @@ export interface AddHostToRoomAction extends BaseAction {
 
 export type Action = AddRoomWithSessionIdAction
     | AddRoomWithHostSocketIdAction
+    | RemoveHostFromRoomAction
     | RemoveRoomAction
     | AddHostToRoomAction;
 
@@ -72,6 +80,11 @@ export const addRoomWithHostSocketIdAction = (roomId: string, socketId: string):
     type: 'ADD_ROOM_WITH_HOST_SOCKET_ID',
     roomId,
     socketId,
+});
+
+export const removeHostFromRoomAction = (roomId: string): RemoveHostFromRoomAction => ({
+    type: 'REMOVE_HOST_FROM_ROOM',
+    roomId,
 });
 
 export const removeRoomAction = (roomId: string): RemoveRoomAction => ({

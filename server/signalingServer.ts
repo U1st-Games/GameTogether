@@ -21,9 +21,10 @@ import {Room, Socket} from "socket.io";
 import {store} from "./State/state";
 import {
     addHostToRoomAction,
-    addRoomWithHostSocketIdAction,
+    addRoomWithHostSocketIdAction, removeHostFromRoomAction,
 } from "./State/actions";
 import {isHost} from "./State/selectors";
+import {ByeMessage} from "../src/types";
 
 const os = require("os");
 
@@ -93,8 +94,11 @@ const signalingServer = (io: SocketIO.Server) => {
             console.log('ipaddr called');
         });
 
-        socket.on("bye", function(roomId, message) {
+        socket.on("bye", function(roomId, message: ByeMessage) {
             console.log("isHost: ", isHost(socket.id));
+            if(isHost(socket.id)) {
+                store.dispatch(removeHostFromRoomAction(message.roomId));
+            }
         });
     });
 };

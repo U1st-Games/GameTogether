@@ -1,6 +1,24 @@
+/*
+GameTogether © Copyright, Nang Development Limited 2020. All Rights Reserved.
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ */
+
 import { Socket } from 'socket.io';
 import {v4 as uuidv4} from "uuid";
 import {getPeerConnectionById, stop} from "../webRTCHelpers";
+import {PeerConnection, UpdateGameLog} from "../../../types";
 
 type SetIsStarted = (nextIsStarted: boolean) => void;
 type SetIsInitiator = (nextIsInitiator: boolean) => void;
@@ -486,7 +504,7 @@ const initSocketClient = (
     updateGameLog: UpdateGameLog,
     userName: string,
     setIsGuest: (isGuest: boolean) => void,
-    socketUrl: string
+    socketUrl: string | undefined
 ) => {
     let localStream: MediaStream;
     let isInitiator = false;
@@ -610,7 +628,7 @@ const initSocketClient = (
             sendMessage(
                 //@ts-ignore
                 socket,
-                {type: 'bye', connectionId: peerConnections[0].connectionId},
+                {type: 'bye', connectionId: peerConnections[0].connectionId, roomId},
                 roomId,
                 'bye'
             );

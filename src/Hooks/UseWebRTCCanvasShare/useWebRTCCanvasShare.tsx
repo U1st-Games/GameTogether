@@ -21,6 +21,7 @@ import {v4 as uuidv4} from 'uuid';
 
 import { stop } from './webRTCHelpers';
 import initSocketClient, {sendMessage} from "./socketClient/socketClient";
+import {PeerConnection, UpdateGameLog} from "../../types";
 
 function click(x: number, y: number) {
     var ev = new MouseEvent('click', {
@@ -63,7 +64,7 @@ const useWebRTCCanvasShare = (
     iframeId: string,
     remoteCursorId: string,
     remoteVideoId: string,
-    socketUrl: string,
+    socketUrl: string | undefined,
     roomId: string,
     startOnLoad: boolean = true,
     userName: string = 'someone'
@@ -121,7 +122,7 @@ const useWebRTCCanvasShare = (
 
     useEffect(() => {
         return () => {
-            //debugger;
+            debugger;
             if (externalStop.current){
                 console.log('external stop: ', externalStop.current);
                 externalStop.current();
