@@ -240,23 +240,23 @@ const createDataChannel = (
     mousePositionDataChannel.onclose = () => {
         console.log('Mouse position The Data Channel is Closed');
     };
-    if (isHost) {
-        canvas.addEventListener('mousemove', (e: MouseEvent) => {
-            try {
-                mousePositionDataChannel.send(JSON.stringify(normalizeMousePosition(canvas, e)));
-            } catch (e) {
-                console.error('failed to send mouse position');
-            }
-        });
-    } else {
-        videoElement.addEventListener('mousemove', e => {
-            try {
-                mousePositionDataChannel.send(JSON.stringify(normalizeMousePosition(videoElement, e)));
-            } catch (e) {
-                console.error('failed to send mouse position');
-            }
-        });
-    }
+    // if (isHost) {
+    //     canvas.addEventListener('mousemove', (e: MouseEvent) => {
+    //         try {
+    //             mousePositionDataChannel.send(JSON.stringify(normalizeMousePosition(canvas, e)));
+    //         } catch (e) {
+    //             console.error('failed to send mouse position');
+    //         }
+    //     });
+    // } else {
+    //     videoElement.addEventListener('mousemove', e => {
+    //         try {
+    //             mousePositionDataChannel.send(JSON.stringify(normalizeMousePosition(videoElement, e)));
+    //         } catch (e) {
+    //             console.error('failed to send mouse position');
+    //         }
+    //     });
+    // }
 
     return keyDataChannel;
 };
@@ -518,6 +518,8 @@ const initSocketClient = (
     const setIsChannelReady: SetIsChannelReady = (nextIsChannelReady) => {
         isChannelReady = nextIsChannelReady;
     };
+
+    setIsGuest(false);
 
     //@ts-ignore
     socket = window.io.connect(socketUrl);

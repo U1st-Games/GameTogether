@@ -30,9 +30,9 @@ const os = require("os");
 
 const getRoom = (io: SocketIO.Server, roomId: string): Room => io.sockets.adapter.rooms[roomId];
 
-const sendToRoomSansSender = (io: SocketIO.Server, event: string, roomId: string, data?: any) => {
+const sendToRoomSansSender = (socket: Socket, event: string, roomId: string, data?: any) => {
     console.log('sendToRoomSansSender: ', event);
-    io.to(roomId).emit(event, data);
+    socket.to(roomId).emit(event, data);
 };
 
 const clientsInRoomCount = (io: SocketIO.Server, roomId: string): number => {
@@ -50,9 +50,9 @@ const createRoom = (socket: Socket, roomId: string) => {
     store.dispatch(addHostToRoomAction(roomId, socket.id))
 };
 
-const joinRoom = (io: SocketIO.Server, socket: Socket, roomId: string) => {
+const joinRoom = (socket: Socket, roomId: string) => {
     console.log("Client ID " + socket.id + " joined roomId " + roomId);
-    sendToRoomSansSender(io,'join', roomId, roomId);
+    sendToRoomSansSender(socket,'join', roomId, roomId);
     socket.join(roomId);
     socket.emit("joined", roomId, socket.id);
 };
@@ -62,20 +62,20 @@ const signalingServer = (io: SocketIO.Server) => {
         console.log("connection");
 
         socket.on("gotUserMedia", function(roomId) {
-            sendToRoomSansSender(io, 'gotUserMedia', roomId, roomId);
+            sendToRoomSansSender(socket, 'gotUserMedia', roomId, roomId);
         });
 
         socket.on("offer", function(roomId, message) {
-            sendToRoomSansSender(io, 'offer', roomId, message);
+            sendToRoomSansSender(socket, 'offer', roomId, message);
         });
 
         socket.on("answer", function(roomId, message) {
-            sendToRoomSansSender(io, 'answer', roomId, message);
+            sendToRoomSansSender(socket, 'answer', roomId, message);
         });
 
         socket.on("message", function(roomId, message) {
             //console.log('message: ', message);
-            sendToRoomSansSender(io, 'message', roomId, message);
+            sendToRoomSansSender(socket, 'message', roomId, message);
         });
 
         socket.on("create or join", function(roomId) {
@@ -86,7 +86,7 @@ const signalingServer = (io: SocketIO.Server) => {
             if (numClients === 0) {
                 createRoom(socket, roomId);
             } else {
-                joinRoom(io, socket, roomId);
+                joinRoom(socket, roomId);
             }
         });
 
@@ -99,12 +99,7 @@ const signalingServer = (io: SocketIO.Server) => {
                 store.dispatch(removeHostFromRoomAction(message.roomId));
                 //handleHostLeaving();
             }
-            sendToRoomSansSender(io, 'bye', roomId);
-
-            // setTimeout(function () {
-            //     console.log('boo');
-            // }, 1000);
-
+            sendToRoomSansSender(socket, 'bye', roomId);
         });
 
         socket.on('disconnect', (roomId) => {
