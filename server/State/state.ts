@@ -23,7 +23,7 @@ import {
     AddHostToRoomAction,
     RemoveRoomAction,
     AddRoomWithHostSocketIdAction,
-    AddRoomWithSessionIdAction
+    AddRoomWithSessionIdAction, RemoveHostFromRoomAction
 } from "./actions";
 
 export interface Room {
@@ -100,8 +100,6 @@ const handleAddRoomWithSessionId = (state: State, action: AddRoomWithSessionIdAc
 };
 
 const handleAddRoomWithHostSocketId = (state: State, action: AddRoomWithHostSocketIdAction): State => {
-    console.log('handleAddRoomWithHostSocketId');
-    console.log('**: ', !state.rooms.filter(room => room.roomId === action.roomId).length);
     if (!state.rooms.filter(room => room.roomId === action.roomId).length) {
         const transform = {
             rooms: (rooms: Room[]): Room[] => [{ roomId: action.roomId, hostSocketId: action.socketId }]
@@ -126,6 +124,24 @@ const handleAddRoomWithHostSocketId = (state: State, action: AddRoomWithHostSock
     }
 };
 
+const handleRemoveHostFromRoom = (state: State, action: RemoveHostFromRoomAction): State => {
+        const transform = {
+            rooms: (rooms: Room[]): Room[] => {
+                return rooms.map(room => {
+                    if (room.roomId === action.roomId) {
+                        return ({
+                            roomId: room.roomId,
+                            sessionId: room.sessionId,
+                            hostSoscketId: '',
+                        })
+                    } else {
+                        return room;
+                    }
+                });
+            }
+        };
+        return evolve(transform, state);
+};
 
 function state(state = defaultState, action: Action) {
     switch (action.type) {
@@ -137,6 +153,8 @@ function state(state = defaultState, action: Action) {
             return handleRemoveRoom(state, action);
         case 'ADD_HOST_TO_ROOM':
             return handleAddHostToRoom(state, action);
+        case 'REMOVE_HOST_FROM_ROOM':
+            return handleRemoveHostFromRoom(state, action);
         default:
             return state
     }

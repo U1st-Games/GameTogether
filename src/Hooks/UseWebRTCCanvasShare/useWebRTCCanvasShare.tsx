@@ -16,11 +16,8 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
 import {useEffect, useState, useRef} from 'react';
-import {Socket} from 'socket.io';
-import {v4 as uuidv4} from 'uuid';
-
-import { stop } from './webRTCHelpers';
 import initSocketClient, {sendMessage} from "./socketClient/socketClient";
+import {PeerConnection, UpdateGameLog} from "../../types";
 
 function click(x: number, y: number) {
     var ev = new MouseEvent('click', {
@@ -63,7 +60,7 @@ const useWebRTCCanvasShare = (
     iframeId: string,
     remoteCursorId: string,
     remoteVideoId: string,
-    socketUrl: string,
+    socketUrl: string | undefined,
     roomId: string,
     startOnLoad: boolean = true,
     userName: string = 'someone'
@@ -112,6 +109,7 @@ const useWebRTCCanvasShare = (
                     userName,
                     setIsGuest,
                     socketUrl,
+                    externalStop
                 );
             };
 
@@ -121,9 +119,7 @@ const useWebRTCCanvasShare = (
 
     useEffect(() => {
         return () => {
-            //debugger;
             if (externalStop.current){
-                console.log('external stop: ', externalStop.current);
                 externalStop.current();
             }
         };

@@ -1,6 +1,24 @@
+/*
+GameTogether © Copyright, Nang Development Limited 2020. All Rights Reserved.
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ */
+
 import { Socket } from 'socket.io';
 import {v4 as uuidv4} from "uuid";
 import {getPeerConnectionById, stop} from "../webRTCHelpers";
+import {PeerConnection, UpdateGameLog} from "../../../types";
 
 type SetIsStarted = (nextIsStarted: boolean) => void;
 type SetIsInitiator = (nextIsInitiator: boolean) => void;
@@ -222,23 +240,23 @@ const createDataChannel = (
     mousePositionDataChannel.onclose = () => {
         console.log('Mouse position The Data Channel is Closed');
     };
-    if (isHost) {
-        canvas.addEventListener('mousemove', (e: MouseEvent) => {
-            try {
-                mousePositionDataChannel.send(JSON.stringify(normalizeMousePosition(canvas, e)));
-            } catch (e) {
-                console.error('failed to send mouse position');
-            }
-        });
-    } else {
-        videoElement.addEventListener('mousemove', e => {
-            try {
-                mousePositionDataChannel.send(JSON.stringify(normalizeMousePosition(videoElement, e)));
-            } catch (e) {
-                console.error('failed to send mouse position');
-            }
-        });
-    }
+    // if (isHost) {
+    //     canvas.addEventListener('mousemove', (e: MouseEvent) => {
+    //         try {
+    //             mousePositionDataChannel.send(JSON.stringify(normalizeMousePosition(canvas, e)));
+    //         } catch (e) {
+    //             console.error('failed to send mouse position');
+    //         }
+    //     });
+    // } else {
+    //     videoElement.addEventListener('mousemove', e => {
+    //         try {
+    //             mousePositionDataChannel.send(JSON.stringify(normalizeMousePosition(videoElement, e)));
+    //         } catch (e) {
+    //             console.error('failed to send mouse position');
+    //         }
+    //     });
+    // }
 
     return keyDataChannel;
 };
@@ -486,7 +504,8 @@ const initSocketClient = (
     updateGameLog: UpdateGameLog,
     userName: string,
     setIsGuest: (isGuest: boolean) => void,
-    socketUrl: string
+    socketUrl: string | undefined,
+    externalStop:  React.MutableRefObject<() => void>,
 ) => {
     let localStream: MediaStream;
     let isInitiator = false;
@@ -499,6 +518,8 @@ const initSocketClient = (
     const setIsChannelReady: SetIsChannelReady = (nextIsChannelReady) => {
         isChannelReady = nextIsChannelReady;
     };
+
+    setIsGuest(false);
 
     //@ts-ignore
     socket = window.io.connect(socketUrl);
@@ -578,6 +599,32 @@ const initSocketClient = (
         }
     });
 
+    socket.on('bye', function() {
+        console.log('bye recieved');
+        externalStop.current = initSocketClient(
+            roomId,
+            peerConnections,
+            myIframe,
+            cursor,
+            remoteVideo,
+            canvass,
+            updateGameLog,
+            userName,
+            setIsGuest,
+            socketUrl,
+            externalStop
+        );
+    });
+
+    socket.on('disconnect', (reason: string) => {
+        console.log('disconnect: ', reason);
+        if (reason === 'io server disconnect') {
+            // the disconnection was initiated by the server, you need to reconnect manually
+            //socket.connect();
+        }
+        // else the socket will automatically try to reconnect
+    });
+
     function doAnswer() {
         console.log('Sending answer to peer.');
         peerConnections[peerConnections.length - 1]?.createAnswer().then(
@@ -604,16 +651,17 @@ const initSocketClient = (
     };
 
     return () => {
-        console.log('externalStop called')
+        console.log('externalStop called');
+        sendMessage(
+            //@ts-ignore
+            socket,
+            {type: 'bye', roomId},
+            roomId,
+            'bye'
+        );
         if (peerConnections[0]) {
             stop(peerConnections[0].connectionId, peerConnections);
-            sendMessage(
-                //@ts-ignore
-                socket,
-                {type: 'bye', connectionId: peerConnections[0].connectionId},
-                roomId,
-                'bye'
-            );
+
         }
     };
 };
