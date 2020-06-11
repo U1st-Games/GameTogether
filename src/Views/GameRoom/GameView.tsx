@@ -33,8 +33,7 @@ const GameView = () => {
 
     return (
         <>
-            <Prompt message={(location) => {
-                //stop.current();
+            <Prompt message={() => {
                 return 'Are you sure you want to leave the game?';
             }}
             />
