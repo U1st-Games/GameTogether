@@ -622,16 +622,17 @@ const initSocketClient = (
     };
 
     return () => {
-        console.log('externalStop called')
+        console.log('externalStop called');
+        sendMessage(
+            //@ts-ignore
+            socket,
+            {type: 'bye', roomId},
+            roomId,
+            'bye'
+        );
         if (peerConnections[0]) {
             stop(peerConnections[0].connectionId, peerConnections);
-            sendMessage(
-                //@ts-ignore
-                socket,
-                {type: 'bye', connectionId: peerConnections[0].connectionId, roomId},
-                roomId,
-                'bye'
-            );
+
         }
     };
 };

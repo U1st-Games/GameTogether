@@ -16,13 +16,14 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
 import React from 'react';
+import {useParams, Prompt} from "react-router-dom";
+
 import useWebRTCCanvasShare from "../../Hooks/UseWebRTCCanvasShare/useWebRTCCanvasShare";
-import {useParams} from "react-router-dom";
 
 const GameView = () => {
-    const { gamename, roomid } = useParams();
+    const {gamename, roomid} = useParams();
 
-   const {isGuest} = useWebRTCCanvasShare(
+    const {isGuest, stop} = useWebRTCCanvasShare(
         'gameIframe',
         'remoteCursor',
         'remoteVideo',
@@ -30,10 +31,13 @@ const GameView = () => {
         roomid,
     );
 
-    // const isGuest = false;
-	
     return (
         <>
+            <Prompt message={(location) => {
+                //stop.current();
+                return 'Are you sure you want to leave the game?';
+            }}
+            />
             <iframe
                 id={'gameIframe'}
                 src={`/${gamename}/index.html`} width={"100%"} height={"100%"}
