@@ -23,13 +23,15 @@ import useWebRTCCanvasShare from "../../Hooks/UseWebRTCCanvasShare/useWebRTCCanv
 const GameView = () => {
     const {gamename, roomid} = useParams();
 
-    const {isGuest, stop} = useWebRTCCanvasShare(
+    const {isGuest} = useWebRTCCanvasShare(
         'gameIframe',
         'remoteCursor',
         'remoteVideo',
         undefined,
         roomid,
     );
+
+    console.log('GameView isGuest: ', isGuest);
 
     return (
         <>

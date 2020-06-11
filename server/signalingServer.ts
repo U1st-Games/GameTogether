@@ -31,7 +31,7 @@ const os = require("os");
 const getRoom = (io: SocketIO.Server, roomId: string): Room => io.sockets.adapter.rooms[roomId];
 
 const sendToRoomSansSender = (io: SocketIO.Server, event: string, roomId: string, data?: any) => {
-    console.log(event);
+    console.log('sendToRoomSansSender: ', event);
     io.to(roomId).emit(event, data);
 };
 
@@ -95,10 +95,20 @@ const signalingServer = (io: SocketIO.Server) => {
         });
 
         socket.on("bye", function(roomId, message: ByeMessage) {
-            console.log("isHost: ", isHost(socket.id));
             if(isHost(socket.id)) {
                 store.dispatch(removeHostFromRoomAction(message.roomId));
+                //handleHostLeaving();
             }
+            sendToRoomSansSender(io, 'bye', roomId);
+
+            // setTimeout(function () {
+            //     console.log('boo');
+            // }, 1000);
+
+        });
+
+        socket.on('disconnect', (roomId) => {
+            console.log('disconnect: ', roomId)
         });
     });
 };

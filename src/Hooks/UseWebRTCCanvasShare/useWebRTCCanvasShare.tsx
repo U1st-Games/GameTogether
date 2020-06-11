@@ -109,6 +109,7 @@ const useWebRTCCanvasShare = (
                     userName,
                     setIsGuest,
                     socketUrl,
+                    externalStop
                 );
             };
 
@@ -119,7 +120,6 @@ const useWebRTCCanvasShare = (
     useEffect(() => {
         return () => {
             if (externalStop.current){
-                console.log('external stop: ', externalStop.current);
                 externalStop.current();
             }
         };

@@ -504,7 +504,8 @@ const initSocketClient = (
     updateGameLog: UpdateGameLog,
     userName: string,
     setIsGuest: (isGuest: boolean) => void,
-    socketUrl: string | undefined
+    socketUrl: string | undefined,
+    externalStop:  React.MutableRefObject<() => void>,
 ) => {
     let localStream: MediaStream;
     let isInitiator = false;
@@ -595,6 +596,24 @@ const initSocketClient = (
             handleRemoteHangup(message.connectionId);
         }
     });
+
+    socket.on('bye', function() {
+        console.log('bye recieved');
+        externalStop.current = initSocketClient(
+            roomId,
+            peerConnections,
+            myIframe,
+            cursor,
+            remoteVideo,
+            canvass,
+            updateGameLog,
+            userName,
+            setIsGuest,
+            socketUrl,
+            externalStop
+        );
+    });
+
 
     function doAnswer() {
         console.log('Sending answer to peer.');
