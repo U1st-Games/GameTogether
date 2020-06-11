@@ -616,6 +616,14 @@ const initSocketClient = (
         );
     });
 
+    socket.on('disconnect', (reason: string) => {
+        console.log('disconnect: ', reason);
+        if (reason === 'io server disconnect') {
+            // the disconnection was initiated by the server, you need to reconnect manually
+            //socket.connect();
+        }
+        // else the socket will automatically try to reconnect
+    });
 
     function doAnswer() {
         console.log('Sending answer to peer.');

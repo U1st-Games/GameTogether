@@ -98,8 +98,12 @@ const signalingServer = (io: SocketIO.Server) => {
             if(isHost(socket.id)) {
                 store.dispatch(removeHostFromRoomAction(message.roomId));
                 //handleHostLeaving();
+                sendToRoomSansSender(socket, 'bye', roomId);
+                io.of('/').in(roomId).clients((error: any, socketIds: any) => {
+                    if (error) throw error;
+                    socketIds.forEach((socketId: string) => io.sockets.sockets[socketId].leave(roomId));
+                });
             }
-            sendToRoomSansSender(socket, 'bye', roomId);
         });
 
         socket.on('disconnect', (roomId) => {
