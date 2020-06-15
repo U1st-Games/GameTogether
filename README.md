@@ -25,8 +25,12 @@ After you create a project with opentok you should be able to get your `PROJECT 
 
 Copy `.env.example` in the root of the project and rename it to `.env`. Paste in your values.
 
+You will also need to install heroku CLI, instructions [here](https://devcenter.heroku.com/articles/heroku-cli)
+
 In the project folder run `npm i` then `npm run start:dev`, then navigate to [http://localhost:3000](http://localhost:3000).
 Note you may end up on localhost:8080 but this will be serving the app currently in the `build` folder.
+
+Please send me your github handle on discord (@Noel), so I can add you to our github organisation.
 
 I am not sure how much documentation people need or want, so please don't hesitate to
 ask me (@Noel on discord) any questions or request additions or clarification to 
