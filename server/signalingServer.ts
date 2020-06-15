@@ -57,58 +57,63 @@ const joinRoom = (socket: Socket, roomId: string) => {
     socket.emit("joined", roomId, socket.id);
 };
 
+const signalingServerHandler = (io: SocketIO.Server, socket: Socket) => {
+    console.log("connection");
+
+    socket.on("gotUserMedia", function(roomId) {
+        sendToRoomSansSender(socket, 'gotUserMedia', roomId, roomId);
+    });
+
+    socket.on("offer", function(roomId, message) {
+        sendToRoomSansSender(socket, 'offer', roomId, message);
+    });
+
+    socket.on("answer", function(roomId, message) {
+        sendToRoomSansSender(socket, 'answer', roomId, message);
+    });
+
+    socket.on("message", function(roomId, message) {
+        //console.log('message: ', message);
+        sendToRoomSansSender(socket, 'message', roomId, message);
+    });
+
+    socket.on("create or join", function(roomId) {
+        console.log("Received request to create or join room " + roomId);
+        const numClients = clientsInRoomCount(io, roomId);
+        console.log("Room " + roomId + " now has " + numClients + " client(s)");
+
+        if (numClients === 0) {
+            createRoom(socket, roomId);
+        } else {
+            joinRoom(socket, roomId);
+        }
+    });
+
+    socket.on("ipaddr", function() {
+        console.log('ipaddr called');
+    });
+
+    socket.on("bye", function(roomId, message: ByeMessage) {
+        if(isHost(socket.id)) {
+            store.dispatch(removeHostFromRoomAction(message.roomId));
+            //handleHostLeaving();
+            sendToRoomSansSender(socket, 'bye', roomId);
+            io.of('/').in(roomId).clients((error: any, socketIds: any) => {
+                if (error) throw error;
+                socketIds.forEach((socketId: string) => io.sockets.sockets[socketId].leave(roomId));
+            });
+        }
+    });
+
+    socket.on('disconnect', (roomId) => {
+        console.log('disconnect: ', roomId)
+    });
+}
+
 const signalingServer = (io: SocketIO.Server) => {
     io.sockets.on("connection", function(socket) {
         console.log("connection");
-
-        socket.on("gotUserMedia", function(roomId) {
-            sendToRoomSansSender(socket, 'gotUserMedia', roomId, roomId);
-        });
-
-        socket.on("offer", function(roomId, message) {
-            sendToRoomSansSender(socket, 'offer', roomId, message);
-        });
-
-        socket.on("answer", function(roomId, message) {
-            sendToRoomSansSender(socket, 'answer', roomId, message);
-        });
-
-        socket.on("message", function(roomId, message) {
-            //console.log('message: ', message);
-            sendToRoomSansSender(socket, 'message', roomId, message);
-        });
-
-        socket.on("create or join", function(roomId) {
-            console.log("Received request to create or join room " + roomId);
-            const numClients = clientsInRoomCount(io, roomId);
-            console.log("Room " + roomId + " now has " + numClients + " client(s)");
-
-            if (numClients === 0) {
-                createRoom(socket, roomId);
-            } else {
-                joinRoom(socket, roomId);
-            }
-        });
-
-        socket.on("ipaddr", function() {
-            console.log('ipaddr called');
-        });
-
-        socket.on("bye", function(roomId, message: ByeMessage) {
-            if(isHost(socket.id)) {
-                store.dispatch(removeHostFromRoomAction(message.roomId));
-                //handleHostLeaving();
-                sendToRoomSansSender(socket, 'bye', roomId);
-                io.of('/').in(roomId).clients((error: any, socketIds: any) => {
-                    if (error) throw error;
-                    socketIds.forEach((socketId: string) => io.sockets.sockets[socketId].leave(roomId));
-                });
-            }
-        });
-
-        socket.on('disconnect', (roomId) => {
-            console.log('disconnect: ', roomId)
-        });
+        signalingServerHandler(io, socket);
     });
 };
 
