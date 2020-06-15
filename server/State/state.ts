@@ -132,7 +132,7 @@ const handleRemoveHostFromRoom = (state: State, action: RemoveHostFromRoomAction
                         return ({
                             roomId: room.roomId,
                             sessionId: room.sessionId,
-                            hostSoscketId: '',
+                            hostSocketId: '',
                         })
                     } else {
                         return room;

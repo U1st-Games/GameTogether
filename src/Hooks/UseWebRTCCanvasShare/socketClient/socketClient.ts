@@ -1,30 +1,26 @@
-/*
-GameTogether © Copyright, Nang Development Limited 2020. All Rights Reserved.
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License
-along with this program.  If not, see <https://www.gnu.org/licenses/>.
- */
-
 import { Socket } from 'socket.io';
-import {v4 as uuidv4} from "uuid";
-import {getPeerConnectionById, stop} from "../webRTCHelpers";
-import {PeerConnection, UpdateGameLog} from "../../../types";
+import { v4 as uuidv4 } from 'uuid';
+import { getPeerConnectionById, stop } from '../webRTCHelpers';
+
+export type UpdateGameLog = (nexMessage: string) => void;
+
+export interface PeerConnection extends RTCPeerConnection {
+    connectionId: string;
+    dataChannel: RTCDataChannel;
+    addStream: any;
+}
+
+export interface ByeMessage {
+    type: 'bye';
+    connectionId: string;
+    roomId: string;
+}
 
 type SetIsStarted = (nextIsStarted: boolean) => void;
 type SetIsInitiator = (nextIsInitiator: boolean) => void;
 type SetIsChannelReady = (nextIsChannelReady: boolean) => void;
 
-let socket: any;
+const socketEvents = ['gotUserMedia', 'answer', 'offer', 'created', 'full', 'join', 'joined', 'log', 'message', 'bye'];
 
 // WASD = 87, 65, 83, 68
 // arrow keys = 37, 38, 39, 40
@@ -32,15 +28,16 @@ const clientKeyMap = {
     87: 38,
     65: 37,
     83: 40,
-    68: 39
-}
+    68: 39,
+};
+
+let socket: Socket;
 
 const setPeerConnectionId = (pc: PeerConnection, connectionId: string) => {
     pc.connectionId = connectionId;
 };
 
 const deepClone = (objectToClone: any) => JSON.parse(JSON.stringify(objectToClone));
-
 
 type sendKeypressFn = (name: string, keyCode: number, dataChannel: RTCDataChannel) => void;
 const sendKeypress: sendKeypressFn = (name, keyCode, dataChannel) => {
@@ -105,12 +102,12 @@ const hostDataChannelHandler = (
     cursor: Element,
     updateGameLog: UpdateGameLog,
     peerConnections: PeerConnection[]
-) => ({channel}: { channel: any }) => {
+) => ({ channel }: { channel: any }) => {
     channel.onmessage = (e: any) => {
-        console.log('onDataChannelHandler: ', e.data);
+        //console.log('onDataChannelHandler: ', e.data);
 
         if (channel.label === 'keyPress') {
-            console.log('keyPress: ', e.data);
+            //console.log('keyPress: ', e.data);
 
             const keypressData = JSON.parse(e.data);
             const recievedKeycode = keypressData.keyCode;
@@ -141,7 +138,7 @@ const hostDataChannelHandler = (
 
             if (recievedKeycode in clientKeyMap) {
                 //@ts-ignore
-                simulateKey(clientKeyMap[recievedKeycode])
+                simulateKey(clientKeyMap[recievedKeycode]);
             }
         }
         if (channel.label === 'mousePosition') {
@@ -160,10 +157,10 @@ const onDataChannelHandler = (myIframe: HTMLIFrameElement, cursor: Element, upda
     channel: any;
 }) => {
     channel.onmessage = (e: any) => {
-        console.log('onDataChannelHandler: ', e.data);
+        //console.log('onDataChannelHandler: ', e.data);
 
         if (channel.label === 'keyPress') {
-            console.log('keyPress: ', e.data);
+            //console.log('keyPress: ', e.data);
             const keypressData = JSON.parse(e.data);
             updateGameLog(keypressData.name + ' pressed ' + keypressData.keyCode);
         }
@@ -193,7 +190,7 @@ const normalizeMousePosition = (displayElement: HTMLCanvasElement | HTMLVideoEle
     // console.log('three: ', normalizedWidth);
     // console.log('four: ', normalizedHeight);
     // console.log('five: ', displayElement);
-    return {normalizedWidth, normalizedHeight};
+    return { normalizedWidth, normalizedHeight };
 };
 
 const createDataChannel = (
@@ -212,7 +209,7 @@ const createDataChannel = (
         console.log('Key Data Channel Error:', error);
     };
     keyDataChannel.onopen = () => {
-        keyDataChannel.send('Key Hello World!');
+        //keyDataChannel.send('Key Hello World!');
     };
     keyDataChannel.onclose = () => {
         console.log('Key The Data Channel is Closed');
@@ -261,6 +258,10 @@ const createDataChannel = (
     return keyDataChannel;
 };
 
+const removePeerConnection = (peerConnections: PeerConnection[], connectionId: string) => {
+    peerConnections = peerConnections.filter(peerConnection => peerConnection.connectionId != connectionId);
+};
+
 const createPeerConnection = (
     socket: Socket,
     myIframe: HTMLIFrameElement,
@@ -282,6 +283,14 @@ const createPeerConnection = (
         pc.onaddstream = handleRemoteStreamAdded(remoteVideo);
         //@ts-ignore
         pc.onremovestream = handleRemoteStreamRemoved;
+
+        pc.oniceconnectionstatechange = function() {
+            console.log('iceconnectionstatechange');
+            if (pc.iceConnectionState == 'disconnected') {
+                console.log('Disconnected');
+                stop(pc.connectionId, peerConnections);
+            }
+        };
 
         if (isHost) {
             pc.ondatachannel = hostDataChannelHandler(myIframe, cursor, updateGameLog, peerConnections);
@@ -317,7 +326,6 @@ const handleCreateOfferError = (event: any) => {
     console.log('createOffer() error: ', event);
 };
 
-
 const addPeerConnection = (
     peerConnections: PeerConnection[],
     socket: Socket,
@@ -352,7 +360,6 @@ const doCall = (pc: PeerConnection, socket: Socket, roomid: string) => {
     //@ts-ignore
     pc.createOffer(setLocalAndSendMessage(pc, socket, roomid), handleCreateOfferError);
 };
-
 
 type StartFn = (
     setIsStarted: (arg0: boolean) => void,
@@ -432,7 +439,7 @@ const initHost: InitHostFn = (
     });
 
     myIframe?.contentWindow?.addEventListener('keydown', (e: any) => {
-        console.log('host keydown: ', e);
+        //console.log('host keydown: ', e);
         if (e.isTrusted) {
             updateGameLog(userName + ' pressed: ' + e.keyCode);
         }
@@ -494,6 +501,22 @@ const initGuest = (
     });
 };
 
+const closeAllPeerConnections = (peerConnections: PeerConnection[]) => {
+    peerConnections.map((peerConnection: PeerConnection) => {
+        peerConnection.close();
+        return null;
+    });
+    peerConnections.length = 0;
+};
+
+const teardown = (peerConnections: PeerConnection[]) => {
+    closeAllPeerConnections(peerConnections);
+    console.log('teardown: ', peerConnections);
+    // socketEvents.map(eventName => {
+    //     socket?.off(eventName);
+    // });
+};
+
 const initSocketClient = (
     roomId: string,
     peerConnections: PeerConnection[],
@@ -505,17 +528,17 @@ const initSocketClient = (
     userName: string,
     setIsGuest: (isGuest: boolean) => void,
     socketUrl: string | undefined,
-    externalStop:  React.MutableRefObject<() => void>,
+    externalStop: React.MutableRefObject<() => void>
 ) => {
     let localStream: MediaStream;
     let isInitiator = false;
     let isStarted = false;
-    const setIsStarted: SetIsStarted = (nextIsStarted) => {
+    const setIsStarted: SetIsStarted = nextIsStarted => {
         isStarted = nextIsStarted;
     };
 
     let isChannelReady = false;
-    const setIsChannelReady: SetIsChannelReady = (nextIsChannelReady) => {
+    const setIsChannelReady: SetIsChannelReady = nextIsChannelReady => {
         isChannelReady = nextIsChannelReady;
     };
 
@@ -576,7 +599,7 @@ const initSocketClient = (
         );
         setIsChannelReady(true);
         setIsGuest(true);
-        socket.emit('gotUserMedia', room);
+        socket?.emit('gotUserMedia', room);
     });
 
     socket.on('log', function(array: any) {
@@ -593,7 +616,11 @@ const initSocketClient = (
                 sdpMLineIndex: message.label,
                 candidate: message.candidate,
             });
-            getPeerConnectionById(peerConnections, message.connectionId)?.addIceCandidate(candidate);
+            try {
+                getPeerConnectionById(peerConnections, message.connectionId)?.addIceCandidate(candidate);
+            } catch (e) {
+                console.error('error adding ice candidate: ', e);
+            }
         } else if (message.type === 'bye') {
             handleRemoteHangup(message.connectionId);
         }
@@ -601,6 +628,8 @@ const initSocketClient = (
 
     socket.on('bye', function() {
         console.log('bye recieved');
+        teardown(peerConnections);
+        //@ts-ignore
         externalStop.current = initSocketClient(
             roomId,
             peerConnections,
@@ -616,14 +645,14 @@ const initSocketClient = (
         );
     });
 
-    socket.on('disconnect', (reason: string) => {
-        console.log('disconnect: ', reason);
-        if (reason === 'io server disconnect') {
-            // the disconnection was initiated by the server, you need to reconnect manually
-            //socket.connect();
-        }
-        // else the socket will automatically try to reconnect
-    });
+    // socket.on('disconnect', (reason: string) => {
+    //   console.log('disconnect: ', reason);
+    //   if (reason === 'io server disconnect') {
+    //     // the disconnection was initiated by the server, you need to reconnect manually
+    //     //socket.connect();
+    //   }
+    //   // else the socket will automatically try to reconnect
+    // });
 
     function doAnswer() {
         console.log('Sending answer to peer.');
@@ -641,6 +670,7 @@ const initSocketClient = (
     }
 
     window.onbeforeunload = function() {
+        console.log('onbeforeunload');
         sendMessage(
             //@ts-ignore
             socket,
@@ -648,6 +678,7 @@ const initSocketClient = (
             roomId,
             'bye'
         );
+        teardown(peerConnections);
     };
 
     return () => {
@@ -655,14 +686,11 @@ const initSocketClient = (
         sendMessage(
             //@ts-ignore
             socket,
-            {type: 'bye', roomId},
+            { type: 'bye', roomId },
             roomId,
             'bye'
         );
-        if (peerConnections[0]) {
-            stop(peerConnections[0].connectionId, peerConnections);
-
-        }
+        teardown(peerConnections);
     };
 };
 
