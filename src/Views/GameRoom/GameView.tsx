@@ -31,8 +31,6 @@ const GameView = () => {
         roomid,
     );
 
-    console.log('GameView isGuest: ', isGuest);
-
     return (
         <>
             <Prompt message={() => {

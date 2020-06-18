@@ -65,8 +65,6 @@ const handleAddHostToRoom = (state: State, action: AddHostToRoomAction): State =
     return evolve(transform, state);
 };
 
-
-
 const handleRemoveRoom = (state: State, action: RemoveRoomAction): State => (
     {
         ...state,
