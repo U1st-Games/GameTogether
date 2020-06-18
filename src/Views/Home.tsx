@@ -16,7 +16,6 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
 import React from 'react';
-import ReactGA from 'react-ga';
 import styled from 'styled-components';
 import {
     useHistory,
@@ -33,6 +32,7 @@ import Button from '@material-ui/core/Button';
 import Typography from '@material-ui/core/Typography';
 
 import { Container, GameInfo } from '../Shared';
+import {fireEvent} from '../analytics/analytics'
 
 const HomeContainer = styled(Container)`
     flex-wrap: wrap;
@@ -45,16 +45,6 @@ const useStyles = makeStyles({
         marginBottom: 20
     },
 });
-
-function fireEvent(eventName: string) { //Fires an event to google analytics
-    console.log("EVENT: "+eventName);
-    const trackingID = "INSERT_TRACKING_NUMBER"; //Tracking ID needs to be added here
-    ReactGA.initialize(trackingID);
-    ReactGA.event({
-        category: eventName,
-        action: "User did something",
-    })
-}
 
 interface IGameCardProps {
     name: string,
@@ -92,7 +82,7 @@ const GameCard = ({ name, thumbnail, description, link, roomid }: IGameCardProps
                     color="primary"
                     variant={"contained"}
                     onClick={() => {
-                        fireEvent("User created new game")
+                        fireEvent("New game", `User is playing ${name}`);
                         history.push(`/${roomid || uuidv4()}/${link}`)
                     }}
                     style={{ margin: '0 auto', backgroundColor: 'black' }}
@@ -109,7 +99,6 @@ interface IHomeProps {
 }
 
 const Home = ({ roomid }: IHomeProps) => {
-    console.log('home rendeerd');
     return (
         <HomeContainer>
             {GameInfo.map((gameinfo) => {
