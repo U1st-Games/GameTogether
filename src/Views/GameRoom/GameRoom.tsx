@@ -14,8 +14,7 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
-
-import React, { useEffect } from 'react';
+import React, {useEffect, useState} from 'react';
 import useOpenTok from 'react-use-opentok';
 import styled from 'styled-components';
 import {
@@ -23,16 +22,14 @@ import {
     Switch,
     useParams,
 } from "react-router-dom";
+import axios from 'axios';
 
 import Home from '../Home';
 import GameView from './GameView';
 import Controls from '../../Components/Controls/Controls';
 import Me from './Me';
-import OtherParticipants from "./OtherParticipants";
-
-var apiKey = "46617242";
-var sessionId = "1_MX40NjYxNzI0Mn5-MTU4NTI3ODQ1MTU3NH43Rm84SWRBbkN2QWh5dkUyUGJMZWlPTE1-fg";
-var token = "T1==cGFydG5lcl9pZD00NjYxNzI0MiZzaWc9NGFmMGJlNWJhYWExYjMxNDZhZWQwNDFlZGE4YjFiYjQ1ZjA0ZDIxODpzZXNzaW9uX2lkPTFfTVg0ME5qWXhOekkwTW41LU1UVTROVEkzT0RRMU1UVTNOSDQzUm04NFNXUkJia04yUVdoNWRrVXlVR0pNWldsUFRFMS1mZyZjcmVhdGVfdGltZT0xNTkwNTQ0OTI4Jm5vbmNlPTAuMDI4NzU2MTc1MjU4MTc2NDImcm9sZT1wdWJsaXNoZXImZXhwaXJlX3RpbWU9MTU5MzEzNjkyNyZpbml0aWFsX2xheW91dF9jbGFzc19saXN0PQ==";
+import OtherParticipants from "./OtherParticipants/OtherParticipants";
+import FullScreenView from "./FullScreenView/FullScreenView";
 
 
 const Container = styled.div`
@@ -59,11 +56,20 @@ const Mouse = styled.img`
     width: 20px;
 `;
 
+const joinOpentokSession = async (roomid: string, initSessionAndConnect: any) => {
+    try {
+        const response = await axios.get('/opentok/roomcalldata?roomId=' + roomid);
+        initSessionAndConnect(response.data);
+    } catch (error) {
+        console.error(error);
+    }
+};
+
 const GameRoom = () => {
-    const { roomid } = useParams();
+    const {roomid} = useParams();
+    const [fullScreenStreamId, setFullScreenStreamId] = useState('');
 
     const [opentokProps, opentokMethods] = useOpenTok();
-
     const {
         // connection info
         isSessionInitialized,
@@ -77,7 +83,6 @@ const GameRoom = () => {
         subscribers,
         publisher,
     } = opentokProps;
-
     const {
         initSessionAndConnect,
         disconnectSession,
@@ -88,12 +93,8 @@ const GameRoom = () => {
         sendSignal,
     } = opentokMethods;
 
-    useEffect(() => {
-        initSessionAndConnect({
-            apiKey,
-            sessionId,
-            token,
-        });
+    useEffect( () => {
+        joinOpentokSession(roomid, initSessionAndConnect);
     }, [initSessionAndConnect]);
 
     return (
@@ -101,19 +102,27 @@ const GameRoom = () => {
             <MainArea>
                 <Switch>
                     <Route exact path="/:roomid">
-                        <Home roomid={roomid} />
+                        <Home roomid={roomid}/>
                     </Route>
                     <Route exact path="/:roomid/:gamename/">
-                        <GameView />
+                        <GameView/>
                     </Route>
                 </Switch>
-                <Controls />
+                {fullScreenStreamId
+                && <FullScreenView
+                    streamId={fullScreenStreamId}
+                    subscribe={subscribe}
+                    streams={streams}
+                    setFullScreenStreamId={setFullScreenStreamId}
+                />
+                }
+                <Controls {...{ unpublish, publisher, publish }} />
             </MainArea>
             <SideBar>
-                <Me {...{publish}} />
-                <OtherParticipants {...{ streams, publisher, subscribe}} />
+                <Me {...{publish, publisher}} />
+                <OtherParticipants {...{streams, publisher, subscribe, setFullScreenStreamId}} />
             </SideBar>
-            <Mouse src="/mouse.png" id="remoteCursor" />
+            <Mouse src="/mouse.png" id="remoteCursor"/>
         </Container>
     );
 };

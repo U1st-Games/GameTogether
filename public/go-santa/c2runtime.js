@@ -4750,7 +4750,7 @@ quat4.str=function(a){return"["+a[0]+", "+a[1]+", "+a[2]+", "+a[3]+"]"};
 	{
 		if (!renderViaCanvas || renderViaCanvas.width !== w || renderViaCanvas.height !== h)
 		{
-			renderViaCanvas = document.createElement("canvas");
+			renderViaCanvas = document.createElement("canvas").setAttribute("id", "myCanvas");
 			renderViaCanvas.width = w;
 			renderViaCanvas.height = h;
 			renderViaCtx = renderViaCanvas.getContext("2d");
