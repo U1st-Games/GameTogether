@@ -1,5 +1,7 @@
 import { Socket } from 'socket.io';
 import { v4 as uuidv4 } from 'uuid';
+import axios from 'axios';
+
 import { getPeerConnectionById, stop } from '../webRTCHelpers';
 
 export type UpdateGameLog = (nexMessage: string) => void;
@@ -258,11 +260,7 @@ const createDataChannel = (
     return keyDataChannel;
 };
 
-const removePeerConnection = (peerConnections: PeerConnection[], connectionId: string) => {
-    peerConnections = peerConnections.filter(peerConnection => peerConnection.connectionId != connectionId);
-};
-
-const createPeerConnection = (
+const createPeerConnection = async (
     socket: Socket,
     myIframe: HTMLIFrameElement,
     cursor: HTMLElement,
@@ -272,10 +270,15 @@ const createPeerConnection = (
     isHost: boolean,
     updateGameLog: UpdateGameLog,
     peerConnections: PeerConnection[]
-): PeerConnection | undefined => {
+): Promise<PeerConnection | undefined> => {
     try {
         console.log('createPeerConnection');
-        const pc = new RTCPeerConnection() as PeerConnection;
+
+        const response = await axios.get('/stunturntoken');
+        const configuration = { iceServers: response.data.iceServers };
+        console.log('configuration: ', configuration);
+
+        const pc = new RTCPeerConnection(configuration) as PeerConnection;
         //@ts-ignore
         pc.connectionId = uuidv4();
         pc.onicecandidate = handleIceCandidate(socket, pc, roomid);
@@ -287,8 +290,13 @@ const createPeerConnection = (
         pc.oniceconnectionstatechange = function() {
             console.log('iceconnectionstatechange');
             if (pc.iceConnectionState == 'disconnected') {
-                console.log('Disconnected');
-                stop(pc.connectionId, peerConnections);
+                console.log('Peer connection Disconnected !!!');
+                try {
+                    stop(pc.connectionId, peerConnections);
+                } catch (e) {
+                    console.error('stop error: ', e);
+                }
+                console.log('after stop');
             }
         };
 
@@ -326,7 +334,7 @@ const handleCreateOfferError = (event: any) => {
     console.log('createOffer() error: ', event);
 };
 
-const addPeerConnection = (
+const addPeerConnection = async (
     peerConnections: PeerConnection[],
     socket: Socket,
     myIframe: HTMLIFrameElement,
@@ -337,7 +345,7 @@ const addPeerConnection = (
     isHost: boolean,
     updateGameLog: UpdateGameLog
 ) => {
-    const newPeerConnection = createPeerConnection(
+    const newPeerConnection = await createPeerConnection(
         socket,
         myIframe,
         cursor,
@@ -374,7 +382,7 @@ type StartFn = (
     updateGameLog: UpdateGameLog
 ) => void;
 
-const Start: StartFn = (
+const Start: StartFn = async (
     setIsStarted,
     peerConnections,
     socket,
@@ -386,7 +394,7 @@ const Start: StartFn = (
     localStream,
     updateGameLog
 ) => {
-    addPeerConnection(peerConnections, socket, myIframe, cursor, remoteVideo, roomid, canvas, true, updateGameLog);
+    await addPeerConnection(peerConnections, socket, myIframe, cursor, remoteVideo, roomid, canvas, true, updateGameLog);
     peerConnections[peerConnections.length - 1]?.addStream(localStream);
     setIsStarted(true);
     doCall(peerConnections[peerConnections.length - 1], socket, roomid);
@@ -460,7 +468,7 @@ const initHost: InitHostFn = (
     });
 };
 
-const initGuest = (
+const initGuest = async (
     socket: any,
     peerConnections: any,
     doAnswer: any,
@@ -473,7 +481,7 @@ const initGuest = (
     userName: string
 ) => {
     let hasInit = false;
-    addPeerConnection(peerConnections, socket, myIframe, cursor, remoteVideo, roomid, canvas, false, updateGameLog);
+    await addPeerConnection(peerConnections, socket, myIframe, cursor, remoteVideo, roomid, canvas, false, updateGameLog);
 
     socket.on('offer', function(message: any) {
         if (!hasInit) {
@@ -545,7 +553,7 @@ const initSocketClient = (
     setIsGuest(false);
 
     //@ts-ignore
-    socket = window.io.connect(socketUrl);
+    socket = window.io.connect(socketUrl, { timeout: 600000 });
 
     //@ts-ignore
     localStream = canvass.captureStream();
@@ -582,10 +590,10 @@ const initSocketClient = (
         setIsChannelReady(true);
     });
 
-    socket.on('joined', function(room: string) {
+    socket.on('joined', async function(room: string) {
         console.log('joined: ' + room);
 
-        initGuest(
+        await initGuest(
             socket,
             peerConnections,
             doAnswer,
