@@ -42,7 +42,7 @@ const GameView = () => {
                 src={`/${gamename}/index.html`} width={"100%"} height={"100%"}
                 style={{display: isGuest ? 'none' : 'initial', border: 'none'}}
             />
-            <video id={"remoteVideo"} autoPlay muted playsInline/>
+            <video id={"remoteVideo"} muted playsInline/>
         </>
     );
 };
