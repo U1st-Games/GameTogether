@@ -27,7 +27,7 @@ const GameView = () => {
         'gameIframe',
         'remoteCursor',
         'remoteVideo',
-        undefined,
+        'https://sheltered-coast-08667.herokuapp.com/',
         roomid,
     );
 
