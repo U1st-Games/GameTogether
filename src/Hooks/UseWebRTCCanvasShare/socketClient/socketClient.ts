@@ -275,7 +275,7 @@ const createPeerConnection = async (
         console.log('createPeerConnection');
 
         const response = await axios.get('/stunturntoken');
-        const configuration = { iceServers: [response.data.iceServers[0]] };
+        const configuration = { iceServers: response.data.iceServers };
         console.log('configuration: ', configuration);
 
         const pc = new RTCPeerConnection(configuration) as PeerConnection;
