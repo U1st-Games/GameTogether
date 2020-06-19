@@ -278,7 +278,7 @@ const createPeerConnection = async (
         const configuration = { iceServers: response.data.iceServers };
         console.log('configuration: ', configuration);
 
-        const pc = new RTCPeerConnection(configuration) as PeerConnection;
+        const pc = new RTCPeerConnection() as PeerConnection;
         //@ts-ignore
         pc.connectionId = uuidv4();
         pc.onicecandidate = handleIceCandidate(socket, pc, roomid);
