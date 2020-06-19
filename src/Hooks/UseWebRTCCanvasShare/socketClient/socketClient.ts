@@ -89,7 +89,7 @@ const handleIceCandidate = (socket: Socket, peerConnection: any, roomid: string)
 
 //@ts-ignore
 const handleRemoteStreamAdded = (remoteVideo: any) => (event: any) => {
-    console.log('Remote stream added.');
+    console.log('Remote stream added: ', event);
     //@ts-ignore
     remoteVideo.srcObject = event.stream;
 };
@@ -275,7 +275,7 @@ const createPeerConnection = async (
         console.log('createPeerConnection');
 
         const response = await axios.get('/stunturntoken');
-        const configuration = { iceServers: [response.data.iceServers[1]] };
+        const configuration = { iceServers: response.data.iceServers };
         console.log('configuration: ', configuration);
 
         const pc = new RTCPeerConnection(configuration) as PeerConnection;
