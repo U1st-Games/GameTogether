@@ -275,10 +275,10 @@ const createPeerConnection = async (
         console.log('createPeerConnection');
 
         const response = await axios.get('/stunturntoken');
-        const configuration = { iceServers: response.data.iceServers };
+        const configuration = { iceServers: [response.data.iceServers[0]] };
         console.log('configuration: ', configuration);
 
-        const pc = new RTCPeerConnection() as PeerConnection;
+        const pc = new RTCPeerConnection(configuration) as PeerConnection;
         //@ts-ignore
         pc.connectionId = uuidv4();
         pc.onicecandidate = handleIceCandidate(socket, pc, roomid);
