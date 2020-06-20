@@ -287,8 +287,8 @@ const createPeerConnection = async (
         //@ts-ignore
         pc.onremovestream = handleRemoteStreamRemoved;
 
-        pc.oniceconnectionstatechange = function() {
-            console.log('iceconnectionstatechange');
+        pc.oniceconnectionstatechange = function(ev) {
+            console.log('iceconnectionstatechange: ', ev);
             if (pc.iceConnectionState == 'disconnected') {
                 console.log('Peer connection Disconnected !!!');
                 try {
