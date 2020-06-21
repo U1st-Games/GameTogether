@@ -275,7 +275,7 @@ const createPeerConnection = async (
         console.log('createPeerConnection');
 
         const response = await axios.get('/stunturntoken');
-        const configuration = { iceServers: response.data.iceServers };
+        const configuration = { iceServers: response.data.iceServers, iceCandidatePoolSize: 1000 };
         /*
         var configuration = {
            'iceServers': [{
