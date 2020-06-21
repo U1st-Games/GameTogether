@@ -275,18 +275,23 @@ const createPeerConnection = async (
         console.log('createPeerConnection');
 
         const response = await axios.get('/stunturntoken');
-        //const configuration = { iceServers: response.data.iceServers };
+        const configuration = { iceServers: response.data.iceServers };
+        /*
         var configuration = {
            'iceServers': [{
              'urls': 'stun:stun.l.google.com:19302'
            }]
          };
+         */
         console.log('configuration: ', configuration);
 
         const pc = new RTCPeerConnection(configuration) as PeerConnection;
         //@ts-ignore
         pc.connectionId = uuidv4();
         pc.onicecandidate = handleIceCandidate(socket, pc, roomid);
+        pc.onicecandidateerror = (e) => {
+            console.log('icecandidateerror: ', e)
+        }
         //@ts-ignore
         pc.onaddstream = handleRemoteStreamAdded(remoteVideo);
         //@ts-ignore
