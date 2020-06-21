@@ -275,7 +275,7 @@ const createPeerConnection = async (
         console.log('createPeerConnection');
 
         const response = await axios.get('/stunturntoken');
-        const configuration = { iceServers: response.data.iceServers, iceCandidatePoolSize: 1000 };
+        const configuration = { iceServers: response.data.iceServers, iceCandidatePoolSize: 255 };
         /*
         var configuration = {
            'iceServers': [{
@@ -631,12 +631,14 @@ const initSocketClient = (
     socket.on('message', function(message) {
         //@ts-ignore
         console.log('Client received message:', message);
-        if (message.type === 'candidate' && isStarted) {
+        if (message.type === 'candidate') {
             var candidate = new RTCIceCandidate({
                 sdpMLineIndex: message.label,
                 candidate: message.candidate,
             });
             try {
+                const test = getPeerConnectionById(peerConnections, message.connectionId);
+                console.log('*test*', test);
                 getPeerConnectionById(peerConnections, message.connectionId)?.addIceCandidate(candidate);
             } catch (e) {
                 console.error('error adding ice candidate: ', e);
