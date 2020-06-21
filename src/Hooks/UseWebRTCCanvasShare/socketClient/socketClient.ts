@@ -275,7 +275,12 @@ const createPeerConnection = async (
         console.log('createPeerConnection');
 
         const response = await axios.get('/stunturntoken');
-        const configuration = { iceServers: response.data.iceServers };
+        //const configuration = { iceServers: response.data.iceServers };
+        var configuration = {
+           'iceServers': [{
+             'urls': 'stun:stun.l.google.com:19302'
+           }]
+         };
         console.log('configuration: ', configuration);
 
         const pc = new RTCPeerConnection(configuration) as PeerConnection;
@@ -441,9 +446,11 @@ const initHost: InitHostFn = (
             updateGameLog
         );
     });
-    socket.on('answer', function(message: any) {
+    socket.on('answer', async function(message: any) {
         console.log('answer: ', message);
         peerConnections[peerConnections.length - 1]?.setRemoteDescription(new RTCSessionDescription(message));
+        const test = await peerConnections[peerConnections.length - 1]?.getStats();
+        console.log('test: ', test.forEach(x => console.log('x: ' + JSON.stringify(x))));
     });
 
     myIframe?.contentWindow?.addEventListener('keydown', (e: any) => {
