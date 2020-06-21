@@ -28,7 +28,10 @@ export const removePeerConnectionById = (
     peerConnections: PeerConnection[],
     peerConnectionId: string
 ) => {
-    peerConnections = peerConnections.filter(pc => pc.connectionId !== peerConnectionId);
+    var index = peerConnections.map(x => {
+        return x.connectionId;
+    }).indexOf(peerConnectionId);
+    peerConnections.splice(index, 1);
 };
 
 export const stop = (connectionId: string, peerConnections: PeerConnection[]) => {
