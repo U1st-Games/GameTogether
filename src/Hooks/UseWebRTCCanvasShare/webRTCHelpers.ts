@@ -35,7 +35,6 @@ export const removePeerConnectionById = (
 };
 
 export const stop = (connectionId: string, peerConnections: PeerConnection[]) => {
-    console.log('stop before: ', peerConnections);
     const peerConnection = getPeerConnectionById(peerConnections, connectionId);
     if (!peerConnection) {
         console.error('no peer connection');
@@ -44,5 +43,4 @@ export const stop = (connectionId: string, peerConnections: PeerConnection[]) =>
     peerConnection.dataChannel.close();
     peerConnection.close();
     removePeerConnectionById(peerConnections, connectionId);
-    console.log('stop after: ', peerConnections);
 };
