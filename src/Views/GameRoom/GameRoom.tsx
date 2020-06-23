@@ -113,8 +113,6 @@ const GameRoom = () => {
         }
     }, [isSessionInitialized, isSessionConnected])
 
-    console.log('opentokProps: ', opentokProps);
-
     return (
         <Container>
             <MainArea>

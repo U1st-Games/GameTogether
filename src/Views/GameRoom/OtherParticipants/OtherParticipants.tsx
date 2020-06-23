@@ -65,6 +65,11 @@ const OtherParticipant = (props: any) => {
     );
 };
 
+const filterStreams = (streams: any, publisher: any) =>
+    streams
+        .filter((stream: any) => stream.id !== getPublisherId(publisher))
+        .filter((stream: any) => !((stream.videoType === 'screen') && (stream.publisher !== null)));
+
 interface OtherParticipantsProps {
     streams: any;
     publisher: any;
@@ -73,10 +78,10 @@ interface OtherParticipantsProps {
 }
 const OtherParticipants = (props: OtherParticipantsProps) => {
     const { streams, publisher, subscribe, setFullScreenStreamId } = props;
+    console.log('streams: ', streams);
     return (
         <div>
-            {streams
-                .filter((stream: any) => stream.id !== getPublisherId(publisher))
+            {filterStreams(streams, publisher)
                 .map((stream: any) => <OtherParticipant {...{stream, subscribe, setFullScreenStreamId}} />)}
         </div>
     );
