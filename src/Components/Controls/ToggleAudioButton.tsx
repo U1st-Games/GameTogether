@@ -1,11 +1,10 @@
-import React from 'react';
+import React, {useState} from 'react';
 import { createStyles, makeStyles, Theme } from '@material-ui/core/styles';
 
 import Fab from '@material-ui/core/Fab';
 import Mic from '@material-ui/icons/Mic';
 import MicOff from '@material-ui/icons/MicOff';
 import Tooltip from '@material-ui/core/Tooltip';
-import {handleTurnOnCamera, isVideoEnabled} from "../../Views/GameRoom/utils";
 
 const useStyles = makeStyles((theme: Theme) =>
     createStyles({
@@ -15,31 +14,21 @@ const useStyles = makeStyles((theme: Theme) =>
     })
 );
 
-const isAudioEnabled = (publisher: any): boolean => {
-    console.log('publisher: ', publisher);
-    return true;
-}
-
-const TurnOffAudio = (publisher: any) => {
-    publisher.publishAudio(false);
-};
-
 const handleAudioClicked = (
     publisher: any,
-    hasAudio: boolean,
-    setHasAudio: (arg0: any) => void,
+    hasAudio: any,
+    setHasAudio: any,
     ) => () => {
-    console.log('publisher: ', publisher);
-    const actualPublisher = publisher.camera || publisher.screen;
-    actualPublisher.publishAudio(!hasAudio);
-    setHasAudio((prev: any) => !prev);
+    publisher.camera.publishAudio(!hasAudio);
+    setHasAudio(!hasAudio);
 };
 
 export default function ToggleAudioButton(
-    props: { publisher: any, hasAudio: boolean, setHasAudio: (arg0: boolean) => void }
+    props: { publisher: any }
     ) {
-    const { publisher, hasAudio, setHasAudio } = props;
+    const { publisher } = props;
     const classes = useStyles();
+    const [ hasAudio, setHasAudio ] = useState(true);
 
     return (
         <Tooltip
@@ -49,7 +38,7 @@ export default function ToggleAudioButton(
             onClick={handleAudioClicked(publisher, hasAudio, setHasAudio)}
         >
             <Fab className={classes.fab} disabled={!publisher}>
-                {hasAudio ? <Mic />: <MicOff />}
+                {hasAudio ? <MicOff />: <Mic />}
             </Fab>
         </Tooltip>
     );

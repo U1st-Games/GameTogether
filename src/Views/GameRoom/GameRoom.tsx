@@ -57,9 +57,10 @@ const Mouse = styled.img`
 `;
 
 const joinOpentokSession = async (roomid: string, initSessionAndConnect: any) => {
+    var pubOptions = {publishAudio:true, publishVideo:false};
     try {
         const response = await axios.get('/opentok/roomcalldata?roomId=' + roomid);
-        initSessionAndConnect(response.data);
+        initSessionAndConnect({...response.data, pubOptions});
     } catch (error) {
         console.error(error);
     }
@@ -97,6 +98,23 @@ const GameRoom = () => {
         joinOpentokSession(roomid, initSessionAndConnect);
     }, [initSessionAndConnect]);
 
+    useEffect(() => {
+        if(isSessionInitialized && isSessionConnected) {
+            publish({
+                name: 'camera',
+                element: 'me',
+                options: {
+                    publishVideo: false,
+                    publishAudio: true,
+                    width: '300px',
+                    height: '169px',
+                }
+            });
+        }
+    }, [isSessionInitialized, isSessionConnected])
+
+    console.log('opentokProps: ', opentokProps);
+
     return (
         <Container>
             <MainArea>
@@ -116,7 +134,7 @@ const GameRoom = () => {
                     setFullScreenStreamId={setFullScreenStreamId}
                 />
                 }
-                <Controls {...{ unpublish, publisher, publish }} />
+                <Controls {...{ unpublish, publisher, publish, opentokProps }} />
             </MainArea>
             <SideBar>
                 <Me {...{publish, publisher}} />

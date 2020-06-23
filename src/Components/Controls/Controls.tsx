@@ -39,15 +39,16 @@ interface ControlsProps {
     unpublish: (streamName: string) => void;
     publisher: any;
     publish: any;
+    opentokProps: any;
 }
 
 export default function Controls(props: ControlsProps) {
-    const { unpublish, publisher, publish } = props;
+    const { unpublish, publisher, publish, opentokProps } = props;
     const [hasAudio, setHasAudio] = useState(true);
     return (
         <Container>
             <ToggleAudioButton {...{publisher, hasAudio, setHasAudio}} />
-            <ToggleVideoButton {...{unpublish, publisher, publish}} />
+            <ToggleVideoButton {...{unpublish, publisher, publish, opentokProps}} />
             <ToggleScreenShareButton {...{unpublish, publisher, publish}} />
             <EndCallButton />
         </Container>

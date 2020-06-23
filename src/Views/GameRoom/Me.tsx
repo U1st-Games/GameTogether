@@ -30,7 +30,7 @@ const Me = (props: MeProps) => {
     const { publish, publisher } = props;
     return (
         <Container id="me" >
-            {!isVideoOrScreenEnabled(publisher) && (
+            {/*!isVideoOrScreenEnabled(publisher) && (
                 <>
                     <Button
                         variant="contained" color="primary"
@@ -45,7 +45,7 @@ const Me = (props: MeProps) => {
                         Turn on screen sharing
                     </Button>
                 </>
-            )}
+            )*/}
         </Container>
     );
 };
