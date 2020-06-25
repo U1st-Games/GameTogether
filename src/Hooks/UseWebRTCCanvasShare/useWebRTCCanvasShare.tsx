@@ -42,7 +42,7 @@ const updateGameLogFactory = (setGameLog: any) => (nextMessage: string) => {
 };
 
 const initElementReferences = (myIframe: HTMLIFrameElement, remoteCursorId: string, remoteVideoId: string) => {
-    const canvass = myIframe?.contentWindow?.document.getElementById('myCanvas') as HTMLCanvasElement;
+    const canvass = myIframe?.contentWindow?.document.getElementById('canvas') as HTMLCanvasElement;
     const cursor = document.querySelector('#' + remoteCursorId) as HTMLElement;
     const remoteVideo = document.querySelector('#' + remoteVideoId) as HTMLVideoElement;
 

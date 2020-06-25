@@ -33,10 +33,10 @@ export const GameInfo: IGameInfo[] = [
         link: 'pacman-canvas'
     },
     {
-        name: 'Connect4',
+        name: 'Checkers',
         thumbnail: 'https://i.pinimg.com/236x/ed/41/bf/ed41bfb164e636474b3ec9fd175a410f--perler-patterns-bead-patterns.jpg',
         description: '',
-        link: 'c4-master'
+        link: 'checkers'
     }
 ];
 

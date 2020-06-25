@@ -21,7 +21,7 @@
     "connect-four",
     "game"
   ],
-  "main": "./dist/index.html",
+  "main": "../index.html",
   "source": "./src/app.ts",
   "files": [
     "dist/"
