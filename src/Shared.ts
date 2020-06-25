@@ -22,7 +22,8 @@ interface IGameInfo {
 	name: string,
 	thumbnail: string,
 	description: string,
-	link: string
+	link: string,
+    canvasId: string
 }
 
 export const GameInfo: IGameInfo[] = [
@@ -30,15 +31,20 @@ export const GameInfo: IGameInfo[] = [
         name: 'Pacman',
         thumbnail: 'https://i.pinimg.com/236x/ed/41/bf/ed41bfb164e636474b3ec9fd175a410f--perler-patterns-bead-patterns.jpg',
         description: '',
-        link: 'pacman-canvas'
+        link: 'pacman-canvas',
+        canvasId: 'myCanvas'
     },
     {
         name: 'Checkers',
         thumbnail: 'https://i.pinimg.com/236x/ed/41/bf/ed41bfb164e636474b3ec9fd175a410f--perler-patterns-bead-patterns.jpg',
         description: '',
-        link: 'checkers'
+        link: 'checkers',
+        canvasId: 'canvas'
     }
 ];
+
+export const getCanvasIdByLink = (gameInfo: IGameInfo[], link: string) =>
+    gameInfo.find(x => x.link === link)?.canvasId;
 
 export const Container = styled.div`
     display: flex;

@@ -19,6 +19,7 @@ import React from 'react';
 import {useParams, Prompt} from "react-router-dom";
 
 import useWebRTCCanvasShare from "../../Hooks/UseWebRTCCanvasShare/useWebRTCCanvasShare";
+import {GameInfo, getCanvasIdByLink} from "../../Shared";
 
 const GameView = () => {
     const {gamename, roomid} = useParams();
@@ -29,6 +30,7 @@ const GameView = () => {
         'remoteVideo',
         undefined,
         roomid,
+        getCanvasIdByLink(GameInfo, gamename) || 'pacman-canvas'
     );
 
     //const isGuest = false;
