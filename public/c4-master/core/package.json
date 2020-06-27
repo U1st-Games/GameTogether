@@ -1,0 +1,48 @@
+{
+  "name": "@kenrick95/c4",
+  "version": "4.0.0",
+  "description": "Building blocks for a Connect Four game",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/kenrick95/c4.git"
+  },
+  "author": {
+    "name": "Kenrick",
+    "email": "kenrick95@gmail.com",
+    "url": "https://kenrick95.org"
+  },
+  "bugs": {
+    "url": "https://github.com/kenrick95/c4/issues"
+  },
+  "homepage": "https://github.com/kenrick95/c4",
+  "license": "MIT",
+  "keywords": [
+    "c4",
+    "connect-four",
+    "game"
+  ],
+  "main": "./dist/lib.ts",
+  "source": "./src/lib.ts",
+  "files": [
+    "src/",
+    "dist/"
+  ],
+  "scripts": {
+    "build": "yarn clean && parcel build ./src/lib.ts",
+    "clean": "shx rm -rf dist/",
+    "prettier": "prettier --write \"./**/*.?(ts|html|scss|css)\"",
+    "test": "jest"
+  },
+  "devDependencies": {
+    "@types/jest": "^25.2.1",
+    "jest": "^25.3.0",
+    "parcel-bundler": "^1.12.4",
+    "prettier": "^2.0.4",
+    "shx": "^0.3.2",
+    "ts-jest": "^25.4.0",
+    "typescript": "^3.8.3"
+  },
+  "resolutions": {
+    "minimist": "^1.2.2"
+  }
+}

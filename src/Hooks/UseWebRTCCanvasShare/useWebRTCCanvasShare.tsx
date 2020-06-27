@@ -41,8 +41,13 @@ const updateGameLogFactory = (setGameLog: any) => (nextMessage: string) => {
     });
 };
 
-const initElementReferences = (myIframe: HTMLIFrameElement, remoteCursorId: string, remoteVideoId: string) => {
-    const canvass = myIframe?.contentWindow?.document.getElementById('myCanvas') as HTMLCanvasElement;
+const initElementReferences = (
+    myIframe: HTMLIFrameElement,
+    remoteCursorId: string,
+    remoteVideoId: string,
+    canvasId: string
+) => {
+    const canvass = myIframe?.contentWindow?.document.getElementById(canvasId) as HTMLCanvasElement;
     const cursor = document.querySelector('#' + remoteCursorId) as HTMLElement;
     const remoteVideo = document.querySelector('#' + remoteVideoId) as HTMLVideoElement;
 
@@ -62,6 +67,7 @@ const useWebRTCCanvasShare = (
     remoteVideoId: string,
     socketUrl: string | undefined,
     roomId: string,
+    canvasId: string,
     startOnLoad: boolean = true,
     userName: string = 'someone'
 ): Return => {
@@ -95,7 +101,8 @@ const useWebRTCCanvasShare = (
                 const {canvass, cursor, remoteVideo} = initElementReferences(
                     myIframe,
                     remoteCursorId,
-                    remoteVideoId
+                    remoteVideoId,
+                    canvasId
                 );
 
                 externalStop.current = initSocketClient(

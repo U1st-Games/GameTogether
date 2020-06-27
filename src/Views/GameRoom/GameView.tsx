@@ -17,8 +17,16 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import React from 'react';
 import {useParams, Prompt} from "react-router-dom";
+import styled from "styled-components";
 
 import useWebRTCCanvasShare from "../../Hooks/UseWebRTCCanvasShare/useWebRTCCanvasShare";
+import {GameInfo, getCanvasIdByLink} from "../../Shared";
+
+const RemoteVideo = styled.video`
+    width: 100%;
+    height: 100%;
+    background: black;
+`;
 
 const GameView = () => {
     const {gamename, roomid} = useParams();
@@ -27,9 +35,12 @@ const GameView = () => {
         'gameIframe',
         'remoteCursor',
         'remoteVideo',
-        'https://sheltered-coast-08667.herokuapp.com/',
+        undefined,
         roomid,
+        getCanvasIdByLink(GameInfo, gamename) || 'pacman-canvas'
     );
+
+    //const isGuest = false;
 
     return (
         <>
@@ -42,7 +53,7 @@ const GameView = () => {
                 src={`/${gamename}/index.html`} width={"100%"} height={"100%"}
                 style={{display: isGuest ? 'none' : 'initial', border: 'none'}}
             />
-            <video id={"remoteVideo"} autoPlay muted playsInline/>
+            <RemoteVideo id={"remoteVideo"} autoPlay muted playsInline/>
         </>
     );
 };

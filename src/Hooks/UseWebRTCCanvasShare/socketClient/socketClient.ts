@@ -271,18 +271,28 @@ const createPeerConnection = async (
     updateGameLog: UpdateGameLog,
     peerConnections: PeerConnection[]
 ): Promise<PeerConnection | undefined> => {
+    let response;
+
+    try {
+        response = await axios.get('/stunturntoken');
+    } catch (e) {
+        console.log('error getting stun token: ', e);
+    }
+
     try {
         console.log('createPeerConnection');
+        let iceServers;
 
-        const response = await axios.get('/stunturntoken');
-        const configuration = { iceServers: response.data.iceServers, iceCandidatePoolSize: 1000 };
-        /*
-        var configuration = {
-           'iceServers': [{
-             'urls': 'stun:stun.l.google.com:19302'
-           }]
-         };
-         */
+        if(response) {
+            iceServers = response.data.iceServers;
+        } else {
+            iceServers = [{
+                'urls': 'stun:stun.l.google.com:19302'
+            }];
+        }
+
+        const configuration = { iceServers, iceCandidatePoolSize: 255 };
+
         console.log('configuration: ', configuration);
 
         const pc = new RTCPeerConnection(configuration) as PeerConnection;
@@ -454,8 +464,6 @@ const initHost: InitHostFn = (
     socket.on('answer', async function(message: any) {
         console.log('answer: ', message);
         peerConnections[peerConnections.length - 1]?.setRemoteDescription(new RTCSessionDescription(message));
-        const test = await peerConnections[peerConnections.length - 1]?.getStats();
-        console.log('test: ', test.forEach(x => console.log('x: ' + JSON.stringify(x))));
     });
 
     myIframe?.contentWindow?.addEventListener('keydown', (e: any) => {
@@ -631,7 +639,7 @@ const initSocketClient = (
     socket.on('message', function(message) {
         //@ts-ignore
         console.log('Client received message:', message);
-        if (message.type === 'candidate' && isStarted) {
+        if (message.type === 'candidate') {
             var candidate = new RTCIceCandidate({
                 sdpMLineIndex: message.label,
                 candidate: message.candidate,
