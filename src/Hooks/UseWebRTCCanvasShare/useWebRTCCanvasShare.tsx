@@ -106,6 +106,8 @@ const useWebRTCCanvasShare = (
                 );
                 canvass.style.position = 'relative';
 
+                console.log('remotePosition: ', remoteVideo);
+
                 externalStop.current = initSocketClient(
                     roomId,
                     peerConnections,

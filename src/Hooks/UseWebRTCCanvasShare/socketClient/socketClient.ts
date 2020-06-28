@@ -115,6 +115,16 @@ const createElement = (connectionId: string, canvass: HTMLCanvasElement, iFrame:
     return div;
 }
 
+const denormailzePosition = (canvas: HTMLCanvasElement, normalizedWidth: number, normalizedHeight: number) => {
+    const width = canvas.offsetWidth;
+    const height = canvas.offsetHeight;
+
+    const deNormalizedWidth = width * normalizedWidth;
+    const deNormalizedHeight = height * normalizedHeight;
+
+    return { deNormalizedHeight, deNormalizedWidth };
+}
+
 const hostDataChannelHandler = (
     myIframe: HTMLIFrameElement,
     cursor: Element,
@@ -167,18 +177,25 @@ const hostDataChannelHandler = (
             let mouseElement = myIframe?.contentWindow?.document.getElementById(pc.connectionId);
 
             if(!mouseElement) {
-                console.log('create mouse element')
+                console.log('create mouse element');
                 mouseElement = createElement(pc.connectionId, canvass, myIframe);
             }
 
             const mousePositionData = JSON.parse(e.data);
 
-            //const split = e.data && e.data.split(',');
-            console.log('probe: ', mouseElement);
+            const {
+                deNormalizedWidth,
+                deNormalizedHeight
+            } = denormailzePosition(
+                canvass,
+                mousePositionData.normalizedWidth,
+                mousePositionData.normalizedHeight
+            );
+
             //@ts-ignore
-            mouseElement.style.left = mousePositionData.normalizedWidth + 'px';
+            mouseElement.style.left = deNormalizedWidth + 'px';
             //@ts-ignore
-            mouseElement.style.top = mousePositionData.normalizedHeight + 'px';
+            mouseElement.style.top = deNormalizedHeight + 'px';
         }
     };
 };
@@ -216,18 +233,9 @@ const normalizeMousePosition = (displayElement: HTMLCanvasElement | HTMLVideoEle
     const displayElementWidth = displayElement.offsetWidth;
     const displayElementHeight = displayElement.offsetHeight;
 
-    const normalizedWidth = mouseEvent.clientX / displayElementWidth;
-    const normalizedHeight = mouseEvent.clientY / displayElementHeight;
+    const normalizedWidth = mouseEvent.offsetX / displayElementWidth;
+    const normalizedHeight = mouseEvent.offsetY / displayElementHeight;
 
-    console.log('mouseEvent: ', mouseEvent);
-    console.log('mouseEventX: ', mouseEvent.clientX);
-    console.log('mouseEventY: ', mouseEvent.clientY);
-
-    // console.log('one: ', displayElementWidth);
-    // console.log('two: ', displayElementHeight);
-    // console.log('three: ', normalizedWidth);
-    // console.log('four: ', normalizedHeight);
-    // console.log('five: ', displayElement);
     return { normalizedWidth, normalizedHeight };
 };
 
@@ -303,6 +311,7 @@ const createDataChannel = (
     } else {
         videoElement.addEventListener('mousemove', e => {
             try {
+                console.log('mousemove: ', e);
                 mousePositionDataChannel.send(
                     createMousePositionNetworkData(normalizeMousePosition(videoElement, e), pc.connectionId)
                 );
