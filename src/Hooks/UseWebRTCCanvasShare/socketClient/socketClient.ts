@@ -99,11 +99,29 @@ const handleRemoteStreamRemoved = event => {
     console.log('Remote stream removed. Event: ', event);
 };
 
+const createElement = (connectionId: string, canvass: HTMLCanvasElement, iFrame: HTMLIFrameElement) => {
+    const div = document.createElement('div');
+    div.style.width = '50px';
+    div.style.height = '50px';
+    div.style.backgroundColor = 'red';
+    div.style.position = 'absolute';
+    div.style.zIndex = '100';
+    //div.id = 'connectionId';
+    div.id = connectionId;
+//    canvass.appendChild(div);
+    let canvasContainer = iFrame?.contentWindow?.document.getElementById('canvas-container');
+    canvasContainer?.appendChild(div);
+    console.log('canvascontaienr: ', canvasContainer);
+    return div;
+}
+
 const hostDataChannelHandler = (
     myIframe: HTMLIFrameElement,
     cursor: Element,
     updateGameLog: UpdateGameLog,
-    peerConnections: PeerConnection[]
+    peerConnections: PeerConnection[],
+    pc: PeerConnection,
+    canvass: HTMLCanvasElement
 ) => ({ channel }: { channel: any }) => {
     channel.onmessage = (e: any) => {
         console.log('channel: ', channel);
@@ -146,11 +164,21 @@ const hostDataChannelHandler = (
             }
         }
         if (channel.label === 'mousePosition') {
-            const split = e.data && e.data.split(',');
+            let mouseElement = myIframe?.contentWindow?.document.getElementById(pc.connectionId);
+
+            if(!mouseElement) {
+                console.log('create mouse element')
+                mouseElement = createElement(pc.connectionId, canvass, myIframe);
+            }
+
+            const mousePositionData = JSON.parse(e.data);
+
+            //const split = e.data && e.data.split(',');
+            console.log('probe: ', mouseElement);
             //@ts-ignore
-            cursor.style.left = split[0] + 'px';
+            mouseElement.style.left = mousePositionData.normalizedWidth + 'px';
             //@ts-ignore
-            cursor.style.top = split[1] + 'px';
+            mouseElement.style.top = mousePositionData.normalizedHeight + 'px';
         }
     };
 };
@@ -158,11 +186,14 @@ const hostDataChannelHandler = (
 const onDataChannelHandler = (
     myIframe: HTMLIFrameElement,
     cursor: Element,
-    updateGameLog: UpdateGameLog) => ({
+    updateGameLog: UpdateGameLog,
+    pc: PeerConnection
+) => ({
                                                                                                                   channel,
                                                                                                               }: {
     channel: any;
-}) => {
+},
+) => {
     channel.onmessage = (e: any) => {
         //console.log('onDataChannelHandler: ', e.data);
 
@@ -293,7 +324,8 @@ const createPeerConnection = async (
     canvas: HTMLCanvasElement,
     isHost: boolean,
     updateGameLog: UpdateGameLog,
-    peerConnections: PeerConnection[]
+    peerConnections: PeerConnection[],
+    canvass: HTMLCanvasElement
 ): Promise<PeerConnection | undefined> => {
     let response;
 
@@ -345,9 +377,9 @@ const createPeerConnection = async (
         };
 
         if (isHost) {
-            pc.ondatachannel = hostDataChannelHandler(myIframe, cursor, updateGameLog, peerConnections);
+            pc.ondatachannel = hostDataChannelHandler(myIframe, cursor, updateGameLog, peerConnections, pc, canvass);
         } else {
-            pc.ondatachannel = onDataChannelHandler(myIframe, cursor, updateGameLog);
+            pc.ondatachannel = onDataChannelHandler(myIframe, cursor, updateGameLog, pc);
         }
 
         console.log('Created RTCPeerConnnection');
@@ -398,7 +430,8 @@ const addPeerConnection = async (
         canvas,
         isHost,
         updateGameLog,
-        peerConnections
+        peerConnections,
+        canvas
     );
     if (newPeerConnection) {
         peerConnections.push(newPeerConnection);
