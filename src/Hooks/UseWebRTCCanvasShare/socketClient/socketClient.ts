@@ -106,7 +106,9 @@ const hostDataChannelHandler = (
     peerConnections: PeerConnection[]
 ) => ({ channel }: { channel: any }) => {
     channel.onmessage = (e: any) => {
-        //console.log('onDataChannelHandler: ', e.data);
+        console.log('channel: ', channel);
+        console.log('event: ', e);
+        console.log('onDataChannelHandler: ', e.data);
 
         if (channel.label === 'keyPress') {
             //console.log('keyPress: ', e.data);
@@ -144,16 +146,19 @@ const hostDataChannelHandler = (
             }
         }
         if (channel.label === 'mousePosition') {
-            // const split = e.data && e.data.split(',');
-            // //@ts-ignore
-            // cursor.style.left = split[0] + 'px';
-            // //@ts-ignore
-            // cursor.style.top = split[1] + 'px';
+            const split = e.data && e.data.split(',');
+            //@ts-ignore
+            cursor.style.left = split[0] + 'px';
+            //@ts-ignore
+            cursor.style.top = split[1] + 'px';
         }
     };
 };
 
-const onDataChannelHandler = (myIframe: HTMLIFrameElement, cursor: Element, updateGameLog: UpdateGameLog) => ({
+const onDataChannelHandler = (
+    myIframe: HTMLIFrameElement,
+    cursor: Element,
+    updateGameLog: UpdateGameLog) => ({
                                                                                                                   channel,
                                                                                                               }: {
     channel: any;
@@ -167,11 +172,11 @@ const onDataChannelHandler = (myIframe: HTMLIFrameElement, cursor: Element, upda
             updateGameLog(keypressData.name + ' pressed ' + keypressData.keyCode);
         }
         if (channel.label === 'mousePosition') {
-            // const split = e.data && e.data.split(',');
-            // //@ts-ignore
-            // cursor.style.left = split[0] + 'px';
-            // //@ts-ignore
-            // cursor.style.top = split[1] + 'px';
+            const split = e.data && e.data.split(',');
+            //@ts-ignore
+            cursor.style.left = split[0] + 'px';
+            //@ts-ignore
+            cursor.style.top = split[1] + 'px';
         }
     };
 };
@@ -195,8 +200,23 @@ const normalizeMousePosition = (displayElement: HTMLCanvasElement | HTMLVideoEle
     return { normalizedWidth, normalizedHeight };
 };
 
+const createMousePositionNetworkData = (
+    normalizedMousePosition: any,
+    connectionId: any,
+    ) => {
+    return JSON.stringify({...normalizedMousePosition, connectionId});
+}
+
+const createKeypressNetworkData = () => {
+
+}
+
+const createMouseClickNetworkData = () => {
+
+}
+
 const createDataChannel = (
-    pc: RTCPeerConnection,
+    pc: PeerConnection,
     canvas: HTMLCanvasElement,
     videoElement: HTMLVideoElement,
     isHost: boolean,
@@ -217,14 +237,14 @@ const createDataChannel = (
         console.log('Key The Data Channel is Closed');
     };
     //@ts-ignore
-    // document.onclick = e => {
-    //   console.log('onClick');
-    //   try {
-    //     keyDataChannel.send(e.clientX + ',' + e.clientY);
-    //   } catch (e) {
-    //     console.error('failed to send click');
-    //   }
-    // };
+    document.onclick = e => {
+      console.log('onClick');
+      try {
+        keyDataChannel.send(e.clientX + ',' + e.clientY);
+      } catch (e) {
+        console.error('failed to send click');
+      }
+    };
 
     const mousePositionDataChannel = pc.createDataChannel('mousePosition', {
         ordered: false,
@@ -239,23 +259,27 @@ const createDataChannel = (
     mousePositionDataChannel.onclose = () => {
         console.log('Mouse position The Data Channel is Closed');
     };
-    // if (isHost) {
-    //     canvas.addEventListener('mousemove', (e: MouseEvent) => {
-    //         try {
-    //             mousePositionDataChannel.send(JSON.stringify(normalizeMousePosition(canvas, e)));
-    //         } catch (e) {
-    //             console.error('failed to send mouse position');
-    //         }
-    //     });
-    // } else {
-    //     videoElement.addEventListener('mousemove', e => {
-    //         try {
-    //             mousePositionDataChannel.send(JSON.stringify(normalizeMousePosition(videoElement, e)));
-    //         } catch (e) {
-    //             console.error('failed to send mouse position');
-    //         }
-    //     });
-    // }
+    if (isHost) {
+        canvas.addEventListener('mousemove', (e: MouseEvent) => {
+            try {
+                mousePositionDataChannel.send(
+                    createMousePositionNetworkData(normalizeMousePosition(canvas, e), pc.connectionId)
+                );
+            } catch (e) {
+                console.error('failed to send mouse position');
+            }
+        });
+    } else {
+        videoElement.addEventListener('mousemove', e => {
+            try {
+                mousePositionDataChannel.send(
+                    createMousePositionNetworkData(normalizeMousePosition(videoElement, e), pc.connectionId)
+                );
+            } catch (e) {
+                console.error('failed to send mouse position');
+            }
+        });
+    }
 
     return keyDataChannel;
 };
