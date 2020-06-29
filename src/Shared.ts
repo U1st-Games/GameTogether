@@ -55,5 +55,4 @@ export const Container = styled.div`
     padding: 20px;
     box-sizing: border-box;
     text-align: center;
-    overflow-y: auto;
 `;

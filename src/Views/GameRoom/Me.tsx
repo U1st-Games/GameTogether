@@ -28,7 +28,6 @@ const Container = styled.div`
     justify-content: space-evenly;
     flex-direction: column;
     box-sizing: border-box;
-    scroll-y: auto;
 `;
 
 interface MeProps {

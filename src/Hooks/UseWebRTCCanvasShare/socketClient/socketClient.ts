@@ -107,12 +107,14 @@ const createElement = (connectionId: string, canvass: HTMLCanvasElement, iFrame:
     div.style.backgroundColor = 'red';
     div.style.position = 'absolute';
     div.style.zIndex = '100';
-    //div.id = 'connectionId';
     div.id = connectionId;
-//    canvass.appendChild(div);
-    let canvasContainer = iFrame?.contentWindow?.document.getElementById('canvas-container');
-    canvasContainer?.appendChild(div);
-    console.log('canvascontaienr: ', canvasContainer);
+    //let canvasContainer = iFrame?.contentWindow?.document.getElementById('canvas-container');
+    let canvasContainer = iFrame?.contentWindow?.document.querySelectorAll('[data-canvas-container="true"]')[0];
+    if (!canvasContainer) {
+        console.error('Unable to create mouse element, can not find canvas container');
+        return div;
+    }
+    canvasContainer.appendChild(div);
     return div;
 }
 
