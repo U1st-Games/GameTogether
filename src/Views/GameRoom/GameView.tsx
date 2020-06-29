@@ -24,14 +24,11 @@ import {GameInfo, getCanvasIdByLink} from "../../Shared";
 
 const RemoteVideo = styled.video`
     background: black;
-    width: 540px;
-    height: 390px;
+    position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
 `;
-
-/*
-width: 100%;
-    height: 100%;
- */
 
 const GameView = () => {
     const {gamename, roomid} = useParams();

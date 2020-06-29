@@ -92,6 +92,7 @@ const handleRemoteStreamAdded = (remoteVideo: any) => (event: any) => {
     console.log('Remote stream added: ', event);
     //@ts-ignore
     remoteVideo.srcObject = event.stream;
+    remoteVideo.style.display = 'initial';
 };
 
 //@ts-ignore
@@ -101,8 +102,8 @@ const handleRemoteStreamRemoved = event => {
 
 const createElement = (connectionId: string, canvass: HTMLCanvasElement, iFrame: HTMLIFrameElement) => {
     const div = document.createElement('div');
-    div.style.width = '50px';
-    div.style.height = '50px';
+    div.style.width = '10px';
+    div.style.height = '10px';
     div.style.backgroundColor = 'red';
     div.style.position = 'absolute';
     div.style.zIndex = '100';
@@ -635,6 +636,8 @@ const initSocketClient = (
     const setIsChannelReady: SetIsChannelReady = nextIsChannelReady => {
         isChannelReady = nextIsChannelReady;
     };
+
+    remoteVideo.style.display = 'none';
 
     setIsGuest(false);
 

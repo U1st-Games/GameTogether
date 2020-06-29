@@ -14,6 +14,7 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
+
 import React, {useEffect, useState} from 'react';
 import useOpenTok from 'react-use-opentok';
 import styled from 'styled-components';
@@ -42,11 +43,19 @@ const Container = styled.div`
 const MainArea = styled.div`
     flex: 1;
     position: relative;
+    display: flex;
+    flex-direction: column;
 `;
 
 const SideBar = styled.div`
     width: 300px;
     position: relative;
+    overflow-y: auto;
+`;
+
+const ScreenArea = styled.div`
+   flex: 1;
+   position: relative;
 `;
 
 const Mouse = styled.img`
@@ -116,22 +125,24 @@ const GameRoom = () => {
     return (
         <Container>
             <MainArea>
-                <Switch>
-                    <Route exact path="/:roomid">
-                        <Home roomid={roomid}/>
-                    </Route>
-                    <Route exact path="/:roomid/:gamename/">
-                        <GameView/>
-                    </Route>
-                </Switch>
-                {fullScreenStreamId
-                && <FullScreenView
-                    streamId={fullScreenStreamId}
-                    subscribe={subscribe}
-                    streams={streams}
-                    setFullScreenStreamId={setFullScreenStreamId}
-                />
-                }
+                <ScreenArea>
+                    <Switch>
+                        <Route exact path="/:roomid">
+                            <Home roomid={roomid}/>
+                        </Route>
+                        <Route exact path="/:roomid/:gamename/">
+                            <GameView/>
+                        </Route>
+                    </Switch>
+                    {fullScreenStreamId
+                    && <FullScreenView
+                        streamId={fullScreenStreamId}
+                        subscribe={subscribe}
+                        streams={streams}
+                        setFullScreenStreamId={setFullScreenStreamId}
+                    />
+                    }
+                </ScreenArea>
                 <Controls {...{ unpublish, publisher, publish, opentokProps }} />
             </MainArea>
             <SideBar>

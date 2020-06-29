@@ -33,13 +33,16 @@ import GameRoom from './Views/GameRoom/GameRoom';
 
 import './App.css';
 
-const MainContainer = styled.div`
-      background: url(https://wallpaperaccess.com/full/242332.jpg) no-repeat center center fixed; 
+/*
+      background: url(https://wallpaperaccess.com/full/242332.jpg) no-repeat center center fixed;
   -webkit-background-size: cover;
   -moz-background-size: cover;
   -o-background-size: cover;
   background-size: cover;
-  
+ */
+
+const MainContainer = styled.div`
+    background: black;
   height: 100%;
   width: 100%;
 `;

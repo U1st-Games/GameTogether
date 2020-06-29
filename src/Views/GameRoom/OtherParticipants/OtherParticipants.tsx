@@ -15,12 +15,6 @@ const Stream = styled.div`
     align-items: center;
     justify-content: space-evenly;
     flex-direction: column;
-    background-color: black;
-    background-image: url(/blank-profile-picture.png);
-    background-repeat: no-repeat;
-    background-position: center;
-    background-size: auto 100%;
-    border: 1px solid white;
     box-sizing: border-box;
 `;
 

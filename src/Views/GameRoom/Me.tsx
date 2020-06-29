@@ -1,7 +1,22 @@
+/*
+GameTogether © Copyright, Nang Development Limited 2020. All Rights Reserved.
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ */
+
 import React from 'react';
 import styled from 'styled-components';
-import Button from '@material-ui/core/Button';
-import {handleTurnOnCamera, handleTurnOnScreenSharing, isVideoOrScreenEnabled} from "./utils";
 
 type publishFn = (arg0: any) => void;
 
@@ -12,13 +27,8 @@ const Container = styled.div`
     align-items: center;
     justify-content: space-evenly;
     flex-direction: column;
-    background-color: black;
-    background-image: url(/blank-profile-picture.png);
-    background-repeat: no-repeat;
-    background-position: center;
-    background-size: auto 100%;
-    border: 1px solid white;
     box-sizing: border-box;
+    scroll-y: auto;
 `;
 
 interface MeProps {
@@ -27,26 +37,8 @@ interface MeProps {
 }
 
 const Me = (props: MeProps) => {
-    const { publish, publisher } = props;
     return (
-        <Container id="me" >
-            {/*!isVideoOrScreenEnabled(publisher) && (
-                <>
-                    <Button
-                        variant="contained" color="primary"
-                        onClick={handleTurnOnCamera(publish)}
-                    >
-                        Turn on camera
-                    </Button>
-                    <Button
-                        variant="contained" color="primary"
-                        onClick={handleTurnOnScreenSharing(publish)}
-                    >
-                        Turn on screen sharing
-                    </Button>
-                </>
-            )*/}
-        </Container>
+        <Container id="me" />
     );
 };
 
