@@ -25,6 +25,7 @@ export interface KeypressData {
 export interface MousepositionData {
     normalizedWidth: number;
     normalizedHeight: number;
+    connectionId: string;
 }
 
 export interface MouseclickData {

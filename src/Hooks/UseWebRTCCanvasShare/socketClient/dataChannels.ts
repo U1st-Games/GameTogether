@@ -15,9 +15,13 @@ const normalizeMousePosition = (displayElement: HTMLCanvasElement | HTMLVideoEle
 const createMousePositionNetworkData = (
     normalizedMousePosition: any,
     connectionId: any,
-) => {
-    return JSON.stringify({...normalizedMousePosition, connectionId});
-}
+): DataChannelMessage => ({
+    type: 'mousePosition',
+    data: {
+        ...normalizedMousePosition,
+        connectionId
+    }
+})
 
 export const createKeypressNetworkData = (name: string, keyCode: number): DataChannelMessage => ({
     type: 'keypress',
@@ -117,7 +121,8 @@ export const createDataChannel = (
     if (isHost) {
         canvas.addEventListener('mousemove', (e: MouseEvent) => {
             try {
-                fastDataChannel.send(
+                fastSend(
+                    pc,
                     createMousePositionNetworkData(normalizeMousePosition(canvas, e), pc.connectionId)
                 );
             } catch (e) {
@@ -128,7 +133,8 @@ export const createDataChannel = (
         videoElement.addEventListener('mousemove', e => {
             try {
                 console.log('mousemove: ', e);
-                fastDataChannel.send(
+                fastSend(
+                    pc,
                     createMousePositionNetworkData(normalizeMousePosition(videoElement, e), pc.connectionId)
                 );
             } catch (e) {

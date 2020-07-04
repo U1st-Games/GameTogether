@@ -189,7 +189,6 @@ const hostDataChannelHandler = (
         if (channel.label === 'fast') {
             const parsedData = JSON.parse(e.data);
             const dataType = parsedData.type;
-            //console.log('parsed data: ', parsedData)
 
             if(dataType == 'keypress') {
                 handleKeypress(updateGameLog, peerConnections, parsedData, myIframe);
