@@ -27,12 +27,8 @@ const Container = styled.div`
     display: flex;
     align-items: center;
     justify-content: center;
-    position: absolute;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    height:  150px;
-    background: rgba(0, 0, 0, 0.5);
+    height: 100px;
+    background: black;
 `;
 
 interface ControlsProps {

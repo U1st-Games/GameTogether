@@ -23,9 +23,11 @@ import useWebRTCCanvasShare from "../../Hooks/UseWebRTCCanvasShare/useWebRTCCanv
 import {GameInfo, getCanvasIdByLink} from "../../Shared";
 
 const RemoteVideo = styled.video`
-    width: 100%;
-    height: 100%;
     background: black;
+    position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
 `;
 
 const GameView = () => {
