@@ -40,7 +40,8 @@ export const stop = (connectionId: string, peerConnections: PeerConnection[]) =>
         console.error('no peer connection');
         return;
     }
-    peerConnection.dataChannel.close();
+    peerConnection.dataChannels.fastDataChannel.close();
+    peerConnection.dataChannels.reliableDataChannel.close();
     peerConnection.close();
     removePeerConnectionById(peerConnections, connectionId);
 };

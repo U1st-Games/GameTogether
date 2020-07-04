@@ -3,14 +3,11 @@ import { v4 as uuidv4 } from 'uuid';
 import axios from 'axios';
 
 import { getPeerConnectionById, stop } from '../webRTCHelpers';
+import {DataChannelMessage, DataChannels, KeypressData, MousepositionData, PeerConnection} from "../../../types";
+import {createDataChannel, createKeypressNetworkData, fastBroadcast, fastSend} from "./dataChannels";
+import {create} from "domain";
 
 export type UpdateGameLog = (nexMessage: string) => void;
-
-export interface PeerConnection extends RTCPeerConnection {
-    connectionId: string;
-    dataChannel: RTCDataChannel;
-    addStream: any;
-}
 
 export interface ByeMessage {
     type: 'bye';
@@ -40,26 +37,6 @@ const setPeerConnectionId = (pc: PeerConnection, connectionId: string) => {
 };
 
 const deepClone = (objectToClone: any) => JSON.parse(JSON.stringify(objectToClone));
-
-type sendKeypressFn = (name: string, keyCode: number, dataChannel: RTCDataChannel) => void;
-const sendKeypress: sendKeypressFn = (name, keyCode, dataChannel) => {
-    try {
-        dataChannel.send(
-            JSON.stringify({
-                name,
-                keyCode,
-            })
-        );
-    } catch (e) {
-        console.error('Failed to send keypress: ', e);
-    }
-};
-
-const sendKeypressToAllGuests = (peerConnections: PeerConnection[], name: string, keyCode: number) => {
-    peerConnections.map(pc => {
-        sendKeypress(name, keyCode, pc.dataChannel);
-    });
-};
 
 export function sendMessage(socket: Socket, message: any, roomid: string, event = 'message') {
     console.log('Client sending message: ', message);
@@ -108,7 +85,6 @@ const createElement = (connectionId: string, canvass: HTMLCanvasElement, iFrame:
     div.style.position = 'absolute';
     div.style.zIndex = '100';
     div.id = connectionId;
-    //let canvasContainer = iFrame?.contentWindow?.document.getElementById('canvas-container');
     let canvasContainer = iFrame?.contentWindow?.document.querySelectorAll('[data-canvas-container="true"]')[0];
     if (!canvasContainer) {
         console.error('Unable to create mouse element, can not find canvas container');
@@ -128,6 +104,77 @@ const denormailzePosition = (canvas: HTMLCanvasElement, normalizedWidth: number,
     return { deNormalizedHeight, deNormalizedWidth };
 }
 
+const handleKeypress = (
+    updateGameLog: UpdateGameLog,
+    peerConnections: PeerConnection[],
+    data: DataChannelMessage,
+    myIframe: HTMLIFrameElement,
+) => {
+    const keypressData = data.data as KeypressData;
+    const recievedKeycode = keypressData.keyCode;
+
+    console.log('recievedkeycode: ', keypressData);
+
+    updateGameLog(keypressData.name + ' pressed: ' + recievedKeycode);
+    fastBroadcast(peerConnections, createKeypressNetworkData(keypressData.name, recievedKeycode));
+
+    //@ts-ignore
+    function simulateKey(keyCode, type, modifiers) {
+        console.log('simulate key');
+        var evtName = typeof type === 'string' ? 'key' + type : 'keydown';
+        //@ts-ignore
+        var modifier = typeof modifiers === 'object' ? modifier : {};
+
+        //@ts-ignore
+        var event = myIframe.contentWindow.document.createEvent('HTMLEvents');
+        event.initEvent(evtName, true, false);
+        //@ts-ignore
+        event.keyCode = keyCode;
+
+        for (var i in modifiers) {
+            //@ts-ignore
+            event[i] = modifiers[i];
+        }
+        //@ts-ignore
+        myIframe.contentWindow.document.dispatchEvent(event);
+    }
+
+    if (recievedKeycode in clientKeyMap) {
+        //@ts-ignore
+        simulateKey(clientKeyMap[recievedKeycode]);
+    }
+}
+
+const handleMousePositionUpdate = (
+    myIframe: HTMLIFrameElement,
+    pc: PeerConnection,
+    canvass: HTMLCanvasElement,
+    data: DataChannelMessage,
+) => {
+    let mouseElement = myIframe?.contentWindow?.document.getElementById(pc.connectionId);
+
+    if(!mouseElement) {
+        console.log('create mouse element');
+        mouseElement = createElement(pc.connectionId, canvass, myIframe);
+    }
+
+    const mousePositionData = data.data as MousepositionData;
+
+    const {
+        deNormalizedWidth,
+        deNormalizedHeight
+    } = denormailzePosition(
+        canvass,
+        mousePositionData.normalizedWidth,
+        mousePositionData.normalizedHeight
+    );
+
+    //@ts-ignore
+    mouseElement.style.left = deNormalizedWidth + 'px';
+    //@ts-ignore
+    mouseElement.style.top = deNormalizedHeight + 'px';
+}
+
 const hostDataChannelHandler = (
     myIframe: HTMLIFrameElement,
     cursor: Element,
@@ -137,68 +184,21 @@ const hostDataChannelHandler = (
     canvass: HTMLCanvasElement
 ) => ({ channel }: { channel: any }) => {
     channel.onmessage = (e: any) => {
-        console.log('channel: ', channel);
-        console.log('event: ', e);
         console.log('onDataChannelHandler: ', e.data);
 
-        if (channel.label === 'keyPress') {
-            //console.log('keyPress: ', e.data);
+        if (channel.label === 'fast') {
+            const parsedData = JSON.parse(e.data);
+            const dataType = parsedData.type;
+            //console.log('parsed data: ', parsedData)
 
-            const keypressData = JSON.parse(e.data);
-            const recievedKeycode = keypressData.keyCode;
-
-            updateGameLog(keypressData.name + ' pressed: ' + recievedKeycode);
-            sendKeypressToAllGuests(peerConnections, keypressData.name, recievedKeycode);
-
-            //@ts-ignore
-            function simulateKey(keyCode, type, modifiers) {
-                console.log('simulate key');
-                var evtName = typeof type === 'string' ? 'key' + type : 'keydown';
-                //@ts-ignore
-                var modifier = typeof modifiers === 'object' ? modifier : {};
-
-                //@ts-ignore
-                var event = myIframe.contentWindow.document.createEvent('HTMLEvents');
-                event.initEvent(evtName, true, false);
-                //@ts-ignore
-                event.keyCode = keyCode;
-
-                for (var i in modifiers) {
-                    //@ts-ignore
-                    event[i] = modifiers[i];
-                }
-                //@ts-ignore
-                myIframe.contentWindow.document.dispatchEvent(event);
+            if(dataType == 'keypress') {
+                handleKeypress(updateGameLog, peerConnections, parsedData, myIframe);
             }
 
-            if (recievedKeycode in clientKeyMap) {
-                //@ts-ignore
-                simulateKey(clientKeyMap[recievedKeycode]);
-            }
-        }
-        if (channel.label === 'mousePosition') {
-            let mouseElement = myIframe?.contentWindow?.document.getElementById(pc.connectionId);
-
-            if(!mouseElement) {
-                console.log('create mouse element');
-                mouseElement = createElement(pc.connectionId, canvass, myIframe);
+            if(dataType == 'mousePosition') {
+                handleMousePositionUpdate(myIframe, pc, canvass, parsedData);
             }
 
-            const mousePositionData = JSON.parse(e.data);
-
-            const {
-                deNormalizedWidth,
-                deNormalizedHeight
-            } = denormailzePosition(
-                canvass,
-                mousePositionData.normalizedWidth,
-                mousePositionData.normalizedHeight
-            );
-
-            //@ts-ignore
-            mouseElement.style.left = deNormalizedWidth + 'px';
-            //@ts-ignore
-            mouseElement.style.top = deNormalizedHeight + 'px';
         }
     };
 };
@@ -230,101 +230,6 @@ const onDataChannelHandler = (
             cursor.style.top = split[1] + 'px';
         }
     };
-};
-
-const normalizeMousePosition = (displayElement: HTMLCanvasElement | HTMLVideoElement, mouseEvent: MouseEvent) => {
-    const displayElementWidth = displayElement.offsetWidth;
-    const displayElementHeight = displayElement.offsetHeight;
-
-    const normalizedWidth = mouseEvent.offsetX / displayElementWidth;
-    const normalizedHeight = mouseEvent.offsetY / displayElementHeight;
-
-    return { normalizedWidth, normalizedHeight };
-};
-
-const createMousePositionNetworkData = (
-    normalizedMousePosition: any,
-    connectionId: any,
-    ) => {
-    return JSON.stringify({...normalizedMousePosition, connectionId});
-}
-
-const createKeypressNetworkData = () => {
-
-}
-
-const createMouseClickNetworkData = () => {
-
-}
-
-const createDataChannel = (
-    pc: PeerConnection,
-    canvas: HTMLCanvasElement,
-    videoElement: HTMLVideoElement,
-    isHost: boolean,
-    updateGameLog: UpdateGameLog
-) => {
-    //setup click data channel
-    const keyDataChannel = pc.createDataChannel('keyPress', {
-        ordered: false,
-        maxRetransmits: 0,
-    });
-    keyDataChannel.onerror = error => {
-        console.log('Key Data Channel Error:', error);
-    };
-    keyDataChannel.onopen = () => {
-        //keyDataChannel.send('Key Hello World!');
-    };
-    keyDataChannel.onclose = () => {
-        console.log('Key The Data Channel is Closed');
-    };
-    //@ts-ignore
-    document.onclick = e => {
-      console.log('onClick');
-      try {
-        keyDataChannel.send(e.clientX + ',' + e.clientY);
-      } catch (e) {
-        console.error('failed to send click');
-      }
-    };
-
-    const mousePositionDataChannel = pc.createDataChannel('mousePosition', {
-        ordered: false,
-        maxRetransmits: 0,
-    });
-    mousePositionDataChannel.onerror = error => {
-        console.log('Mouse position Data Channel Error:', error);
-    };
-    mousePositionDataChannel.onopen = () => {
-        mousePositionDataChannel.send('Mouse position Hello World!');
-    };
-    mousePositionDataChannel.onclose = () => {
-        console.log('Mouse position The Data Channel is Closed');
-    };
-    if (isHost) {
-        canvas.addEventListener('mousemove', (e: MouseEvent) => {
-            try {
-                mousePositionDataChannel.send(
-                    createMousePositionNetworkData(normalizeMousePosition(canvas, e), pc.connectionId)
-                );
-            } catch (e) {
-                console.error('failed to send mouse position');
-            }
-        });
-    } else {
-        videoElement.addEventListener('mousemove', e => {
-            try {
-                console.log('mousemove: ', e);
-                mousePositionDataChannel.send(
-                    createMousePositionNetworkData(normalizeMousePosition(videoElement, e), pc.connectionId)
-                );
-            } catch (e) {
-                console.error('failed to send mouse position');
-            }
-        });
-    }
-
-    return keyDataChannel;
 };
 
 const createPeerConnection = async (
@@ -396,7 +301,7 @@ const createPeerConnection = async (
 
         console.log('Created RTCPeerConnnection');
         //createMouseDataChannel(pc);
-        pc.dataChannel = createDataChannel(pc, canvas, remoteVideo, isHost, updateGameLog);
+        pc.dataChannels = createDataChannel(pc, canvas, remoteVideo, isHost, updateGameLog);
         return pc as PeerConnection;
     } catch (e) {
         console.log('Failed to create PeerConnection, exception: ' + e.message);
@@ -546,9 +451,7 @@ const initHost: InitHostFn = (
         try {
             //@ts-ignore
             if (e.isTrusted) {
-                peerConnections.map(pc => {
-                    sendKeypress(userName, e.keyCode, pc.dataChannel);
-                });
+                fastBroadcast(peerConnections, createKeypressNetworkData(userName, e.keyCode))
             }
             //@ts-ignore
         } catch (e) {
@@ -583,15 +486,12 @@ const initGuest = async (
     });
 
     window.document.addEventListener('keydown', (e: any) => {
-        //console.log('keypress: ', peerConnections[0]);
         //@ts-ignore
         e = e || window.event;
         // use e.keyCode
         try {
             //@ts-ignore
-            sendKeypress(userName, e.keyCode, peerConnections[0].dataChannel);
-            //peerConnections[0].dataChannel.send(e.keyCode);
-            //@ts-ignore
+            fastSend(peerConnections[0], createKeypressNetworkData(userName, e.keyCode))
         } catch (e) {
             console.error('failed to send keypress: ', e);
         }
