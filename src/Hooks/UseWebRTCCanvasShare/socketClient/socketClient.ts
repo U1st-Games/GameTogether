@@ -65,53 +65,32 @@ const handleIceCandidate = (socket: Socket, peerConnection: any, roomid: string)
     }
 };
 
-/*
-    const [width, setWidth] = useState<number | undefined>(undefined);
-    const [height, setHeight] = useState<number | undefined>(undefined);
-    const GameViewContainerEl = useRef<HTMLDivElement>(null);
-    useEffect(() => {
-            console.log('GameViewContianerEl: ', GameViewContainerEl.current?.getBoundingClientRect());
-            const boundingRect = GameViewContainerEl.current?.getBoundingClientRect();
-            if (!boundingRect) return;
-            const {width, height} = boundingRect;
-
-            if (height < width) {
-                setHeight(height);
-            };
-
-            if (width < height) {
-                setWidth(width);
-            };
-        }
-    );
- */
-
 //@ts-ignore
 const handleRemoteStreamAdded = (remoteVideo: any, ContainerElement: RefObject<HTMLElement>) => (event: any) => {
-    console.log('Remote stream added: ', event);
-    //const aspectRatio = event.stream.getVideoTracks()[0].getSettings().aspectRatio;
-    const aspectRatio = event.stream.getVideoTracks()[0].getSettings().aspectRatio;
-    console.log('aspect ratio: ', aspectRatio);
-
-    if(!ContainerElement.current) {
-        console.error('No container element');
-    }
-
-    const boundingRect = ContainerElement?.current?.getBoundingClientRect();
-    if (!boundingRect) return;
-
-    const containerElementWidth = boundingRect.width;
-    const containerElementHeight = boundingRect.height;
-
-    if(aspectRatio > 1) {
-        remoteVideo.width = containerElementWidth;
-    } else {
-        remoteVideo.height = containerElementHeight;
-    }
-
+    remoteVideo.style.display = 'initial';
     //@ts-ignore
     remoteVideo.srcObject = event.stream;
-    remoteVideo.style.display = 'initial';
+    remoteVideo.onplay = function() {
+        console.log('Remote stream added: ', event);
+        const aspectRatio = event.stream.getVideoTracks()[0].getSettings().aspectRatio;
+        console.log('aspect ratio: ', aspectRatio);
+
+        if(!ContainerElement.current) {
+            console.error('No container element');
+        }
+
+        const boundingRect = ContainerElement?.current?.getBoundingClientRect();
+        if (!boundingRect) return;
+
+        const containerElementWidth = boundingRect.width;
+        const containerElementHeight = boundingRect.height;
+
+        if(aspectRatio > 1) {
+            remoteVideo.width = containerElementWidth;
+        } else {
+            remoteVideo.height = containerElementHeight;
+        }
+    };
 };
 
 //@ts-ignore
@@ -354,8 +333,6 @@ const createPeerConnection = async (
 
         const configuration = { iceServers, iceCandidatePoolSize: 255 };
 
-        console.log('configuration: ', configuration);
-
         const pc = new RTCPeerConnection(configuration) as PeerConnection;
         //@ts-ignore
         pc.connectionId = uuidv4();
@@ -365,11 +342,13 @@ const createPeerConnection = async (
         }
         //@ts-ignore
         pc.onaddstream = handleRemoteStreamAdded(remoteVideo, containerElement);
+
         //@ts-ignore
         pc.onremovestream = handleRemoteStreamRemoved;
 
         pc.oniceconnectionstatechange = function(ev) {
             console.log('iceconnectionstatechange: ', ev);
+
             if (pc.iceConnectionState == 'disconnected') {
                 console.log('Peer connection Disconnected !!!');
                 try {
@@ -379,6 +358,7 @@ const createPeerConnection = async (
                 }
                 console.log('after stop');
             }
+
         };
 
         if (isHost) {
