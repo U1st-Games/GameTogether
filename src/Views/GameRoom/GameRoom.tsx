@@ -37,14 +37,16 @@ const Container = styled.div`
     width: 100vw;
     height: calc(100% - 64px);
     display: flex;
-    overflow: hidden;
 `;
 
-const MainArea = styled.div`
-    flex: 1;
+/*
+flex: 1;
     position: relative;
     display: flex;
     flex-direction: column;
+ */
+const MainArea = styled.div`
+    width: calc(100% - 320px);
 `;
 
 const SideBar = styled.div`
@@ -56,6 +58,7 @@ const SideBar = styled.div`
 const ScreenArea = styled.div`
    flex: 1;
    position: relative;
+   height: calc(100% - 120px);
 `;
 
 const Mouse = styled.img`

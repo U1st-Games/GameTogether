@@ -175,6 +175,47 @@ const handleMousePositionUpdate = (
     mouseElement.style.top = deNormalizedHeight + 'px';
 }
 
+function click(x: number, y: number, el: HTMLElement){
+    var canvasBCR = el.getBoundingClientRect();
+    const mouseEvent = new MouseEvent(
+        'click',
+        {
+            bubbles: true,
+            cancelable: true,
+            clientX: canvasBCR.left + x,
+            clientY: canvasBCR.top + y
+        }
+    );
+    console.log('Event: ', mouseEvent);
+    el.dispatchEvent(mouseEvent);
+}
+
+const handleMouseClick = (
+    myIframe: HTMLIFrameElement,
+    pc: PeerConnection,
+    canvass: HTMLCanvasElement,
+    data: DataChannelMessage,
+) => {
+    let mouseElement = myIframe?.contentWindow?.document.getElementById(pc.connectionId);
+    const mousePositionData = data.data as MousepositionData;
+
+    const {
+        deNormalizedWidth,
+        deNormalizedHeight
+    } = denormailzePosition(
+        canvass,
+        mousePositionData.normalizedWidth,
+        mousePositionData.normalizedHeight
+    );
+
+    //@ts-ignore
+    mouseElement.style.left = deNormalizedWidth + 'px';
+    //@ts-ignore
+    mouseElement.style.top = deNormalizedHeight + 'px';
+
+    click(deNormalizedWidth, deNormalizedHeight, canvass);
+}
+
 const hostDataChannelHandler = (
     myIframe: HTMLIFrameElement,
     cursor: Element,
@@ -184,12 +225,12 @@ const hostDataChannelHandler = (
     canvass: HTMLCanvasElement
 ) => ({ channel }: { channel: any }) => {
     channel.onmessage = (e: any) => {
+        console.log('channel: ', channel);
         console.log('onDataChannelHandler: ', e.data);
+        const parsedData = JSON.parse(e.data);
+        const dataType = parsedData.type;
 
         if (channel.label === 'fast') {
-            const parsedData = JSON.parse(e.data);
-            const dataType = parsedData.type;
-
             if(dataType == 'keypress') {
                 handleKeypress(updateGameLog, peerConnections, parsedData, myIframe);
             }
@@ -197,7 +238,12 @@ const hostDataChannelHandler = (
             if(dataType == 'mousePosition') {
                 handleMousePositionUpdate(myIframe, pc, canvass, parsedData);
             }
+        }
 
+        if (channel.label === 'reliable') {
+            if(dataType == 'mouseClick') {
+                handleMouseClick(myIframe, pc, canvass, parsedData);
+            }
         }
     };
 };
@@ -537,6 +583,8 @@ const initSocketClient = (
     const setIsChannelReady: SetIsChannelReady = nextIsChannelReady => {
         isChannelReady = nextIsChannelReady;
     };
+
+    canvass.addEventListener('click', () => {console.log('click')});
 
     remoteVideo.style.display = 'none';
 

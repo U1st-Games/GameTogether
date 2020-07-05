@@ -22,12 +22,27 @@ import styled from "styled-components";
 import useWebRTCCanvasShare from "../../Hooks/UseWebRTCCanvasShare/useWebRTCCanvasShare";
 import {GameInfo, getCanvasIdByLink} from "../../Shared";
 
+/*
+
+ */
+
 const RemoteVideo = styled.video`
-    background: black;
-    position: absolute;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
+  object-fit: contain;
+`;
+
+const VideoContainer = styled.div`
+      background-color: red;
+  width: 100%;
+  padding-top: 80%;
+  position: relative; 
+`;
+
+const GameViewContainer = styled.div`
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
 `;
 
 const GameView = () => {
@@ -37,7 +52,7 @@ const GameView = () => {
         'gameIframe',
         'remoteCursor',
         'remoteVideo',
-        undefined,
+        'https://sheltered-coast-08667.herokuapp.com/',
         roomid,
         getCanvasIdByLink(GameInfo, gamename) || 'pacman-canvas'
     );
@@ -45,7 +60,7 @@ const GameView = () => {
     //const isGuest = false;
 
     return (
-        <>
+        <GameViewContainer>
             <Prompt message={() => {
                 return 'Are you sure you want to leave the game?';
             }}
@@ -55,8 +70,8 @@ const GameView = () => {
                 src={`/${gamename}/index.html`} width={"100%"} height={"100%"}
                 style={{display: isGuest ? 'none' : 'initial', border: 'none'}}
             />
-            <RemoteVideo id={"remoteVideo"} autoPlay muted playsInline/>
-        </>
+                <RemoteVideo id={"remoteVideo"} autoPlay muted playsInline/>
+        </GameViewContainer>
     );
 };
 

@@ -23,14 +23,21 @@ const createMousePositionNetworkData = (
     }
 })
 
+const createMouseClickNetworkData = (
+    normalizedMousePosition: any,
+    connectionId: any,
+): DataChannelMessage => ({
+    type: 'mouseClick',
+    data: {
+        ...normalizedMousePosition,
+        connectionId
+    }
+})
+
 export const createKeypressNetworkData = (name: string, keyCode: number): DataChannelMessage => ({
     type: 'keypress',
     data: { name, keyCode }
 });
-
-const createMouseClickNetworkData = () => {
-
-}
 
 export const reliableBroadcast = (
     peerConnections: PeerConnection[],
@@ -56,6 +63,13 @@ export const fastSend = (
     data: DataChannelMessage,
 ) => {
     peerConnection.dataChannels.fastDataChannel.send(JSON.stringify(data));
+};
+
+export const reliableSend = (
+    peerConnection: PeerConnection,
+    data: DataChannelMessage,
+) => {
+    peerConnection.dataChannels.reliableDataChannel.send(JSON.stringify(data));
 };
 
 type sendKeypressFn = (name: string, keyCode: number, dataChannel: any) => void;
@@ -97,16 +111,17 @@ export const createDataChannel = (
     };
 
     //@ts-ignore
-    /*
-    document.onclick = e => {
-        console.log('onClick');
-        try {
-            keyDataChannel.send(e.clientX + ',' + e.clientY);
-        } catch (e) {
-            console.error('failed to send click');
-        }
-    };
-     */
+    // document.onclick = e => {
+    //     console.log('onClick: ', e);
+    //     try {
+    //         reliableSend(
+    //             pc,
+    //             createMouseClickNetworkData(normalizeMousePosition(canvas, e), pc.connectionId)
+    //         );
+    //     } catch (e) {
+    //         console.error('failed to send click');
+    //     }
+    // };
 
     fastDataChannel.onerror = error => {
         console.log('Mouse position Data Channel Error:', error);
@@ -139,6 +154,16 @@ export const createDataChannel = (
                 );
             } catch (e) {
                 console.error('failed to send mouse position');
+            }
+        });
+        videoElement.addEventListener('click', e => {
+            try {
+                reliableSend(
+                    pc,
+                    createMouseClickNetworkData(normalizeMousePosition(videoElement, e), pc.connectionId)
+                );
+            } catch (e) {
+                console.error('failed to send click');
             }
         });
     }
