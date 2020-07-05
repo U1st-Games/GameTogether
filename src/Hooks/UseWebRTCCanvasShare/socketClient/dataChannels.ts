@@ -147,7 +147,6 @@ export const createDataChannel = (
     } else {
         videoElement.addEventListener('mousemove', e => {
             try {
-                console.log('mousemove: ', e);
                 fastSend(
                     pc,
                     createMousePositionNetworkData(normalizeMousePosition(videoElement, e), pc.connectionId)

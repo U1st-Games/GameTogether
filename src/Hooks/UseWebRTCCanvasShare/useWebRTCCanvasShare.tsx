@@ -68,6 +68,7 @@ const useWebRTCCanvasShare = (
     socketUrl: string | undefined,
     roomId: string,
     canvasId: string,
+    containerElement: React.Ref<HTMLElement>,
     startOnLoad: boolean = true,
     userName: string = 'someone'
 ): Return => {
@@ -119,7 +120,8 @@ const useWebRTCCanvasShare = (
                     userName,
                     setIsGuest,
                     socketUrl,
-                    externalStop
+                    externalStop,
+                    containerElement
                 );
             };
 

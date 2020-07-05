@@ -6,6 +6,7 @@ import { getPeerConnectionById, stop } from '../webRTCHelpers';
 import {DataChannelMessage, DataChannels, KeypressData, MousepositionData, PeerConnection} from "../../../types";
 import {createDataChannel, createKeypressNetworkData, fastBroadcast, fastSend} from "./dataChannels";
 import {create} from "domain";
+import {RefObject} from "react";
 
 export type UpdateGameLog = (nexMessage: string) => void;
 
@@ -64,9 +65,50 @@ const handleIceCandidate = (socket: Socket, peerConnection: any, roomid: string)
     }
 };
 
+/*
+    const [width, setWidth] = useState<number | undefined>(undefined);
+    const [height, setHeight] = useState<number | undefined>(undefined);
+    const GameViewContainerEl = useRef<HTMLDivElement>(null);
+    useEffect(() => {
+            console.log('GameViewContianerEl: ', GameViewContainerEl.current?.getBoundingClientRect());
+            const boundingRect = GameViewContainerEl.current?.getBoundingClientRect();
+            if (!boundingRect) return;
+            const {width, height} = boundingRect;
+
+            if (height < width) {
+                setHeight(height);
+            };
+
+            if (width < height) {
+                setWidth(width);
+            };
+        }
+    );
+ */
+
 //@ts-ignore
-const handleRemoteStreamAdded = (remoteVideo: any) => (event: any) => {
+const handleRemoteStreamAdded = (remoteVideo: any, ContainerElement: RefObject<HTMLElement>) => (event: any) => {
     console.log('Remote stream added: ', event);
+    //const aspectRatio = event.stream.getVideoTracks()[0].getSettings().aspectRatio;
+    const aspectRatio = event.stream.getVideoTracks()[0].getSettings().aspectRatio;
+    console.log('aspect ratio: ', aspectRatio);
+
+    if(!ContainerElement.current) {
+        console.error('No container element');
+    }
+
+    const boundingRect = ContainerElement?.current?.getBoundingClientRect();
+    if (!boundingRect) return;
+
+    const containerElementWidth = boundingRect.width;
+    const containerElementHeight = boundingRect.height;
+
+    if(aspectRatio > 1) {
+        remoteVideo.width = containerElementWidth;
+    } else {
+        remoteVideo.height = containerElementHeight;
+    }
+
     //@ts-ignore
     remoteVideo.srcObject = event.stream;
     remoteVideo.style.display = 'initial';
@@ -287,7 +329,8 @@ const createPeerConnection = async (
     isHost: boolean,
     updateGameLog: UpdateGameLog,
     peerConnections: PeerConnection[],
-    canvass: HTMLCanvasElement
+    canvass: HTMLCanvasElement,
+    containerElement: React.Ref<HTMLElement>
 ): Promise<PeerConnection | undefined> => {
     let response;
 
@@ -321,7 +364,7 @@ const createPeerConnection = async (
             console.log('icecandidateerror: ', e)
         }
         //@ts-ignore
-        pc.onaddstream = handleRemoteStreamAdded(remoteVideo);
+        pc.onaddstream = handleRemoteStreamAdded(remoteVideo, containerElement);
         //@ts-ignore
         pc.onremovestream = handleRemoteStreamRemoved;
 
@@ -381,7 +424,8 @@ const addPeerConnection = async (
     roomid: string,
     canvas: HTMLCanvasElement,
     isHost: boolean,
-    updateGameLog: UpdateGameLog
+    updateGameLog: UpdateGameLog,
+    containerElement: React.Ref<HTMLElement>
 ) => {
     const newPeerConnection = await createPeerConnection(
         socket,
@@ -393,7 +437,8 @@ const addPeerConnection = async (
         isHost,
         updateGameLog,
         peerConnections,
-        canvas
+        canvas,
+        containerElement
     );
     if (newPeerConnection) {
         peerConnections.push(newPeerConnection);
@@ -418,7 +463,8 @@ type StartFn = (
     roomid: string,
     canvas: HTMLCanvasElement,
     localStream: MediaStream,
-    updateGameLog: UpdateGameLog
+    updateGameLog: UpdateGameLog,
+    containerElement: React.Ref<HTMLElement>
 ) => void;
 
 const Start: StartFn = async (
@@ -431,9 +477,21 @@ const Start: StartFn = async (
     roomid,
     canvas,
     localStream,
-    updateGameLog
+    updateGameLog,
+    containerElement
 ) => {
-    await addPeerConnection(peerConnections, socket, myIframe, cursor, remoteVideo, roomid, canvas, true, updateGameLog);
+    await addPeerConnection(
+        peerConnections,
+        socket,
+        myIframe,
+        cursor,
+        remoteVideo,
+        roomid,
+        canvas,
+        true,
+        updateGameLog,
+        containerElement
+    );
     peerConnections[peerConnections.length - 1]?.addStream(localStream);
     setIsStarted(true);
     doCall(peerConnections[peerConnections.length - 1], socket, roomid);
@@ -450,7 +508,8 @@ type InitHostFn = (
     canvas: HTMLCanvasElement,
     localStream: MediaStream,
     updateGameLog: UpdateGameLog,
-    userName: string
+    userName: string,
+    containerElement: React.Ref<HTMLElement>
 ) => void;
 
 const initHost: InitHostFn = (
@@ -464,7 +523,8 @@ const initHost: InitHostFn = (
     canvas,
     localStream,
     updateGameLog,
-    userName
+    userName,
+    containerElement
 ) => {
     socket.on('gotUserMedia', function() {
         Start(
@@ -477,7 +537,8 @@ const initHost: InitHostFn = (
             roomid,
             canvas,
             localStream,
-            updateGameLog
+            updateGameLog,
+            containerElement
         );
     });
     socket.on('answer', async function(message: any) {
@@ -515,10 +576,22 @@ const initGuest = async (
     roomid: string,
     canvas: HTMLCanvasElement,
     updateGameLog: UpdateGameLog,
-    userName: string
+    userName: string,
+    containerElement: React.Ref<HTMLElement>
 ) => {
     let hasInit = false;
-    await addPeerConnection(peerConnections, socket, myIframe, cursor, remoteVideo, roomid, canvas, false, updateGameLog);
+    await addPeerConnection(
+        peerConnections,
+        socket,
+        myIframe,
+        cursor,
+        remoteVideo,
+        roomid,
+        canvas,
+        false,
+        updateGameLog,
+        containerElement
+    );
 
     socket.on('offer', function(message: any) {
         if (!hasInit) {
@@ -570,7 +643,8 @@ const initSocketClient = (
     userName: string,
     setIsGuest: (isGuest: boolean) => void,
     socketUrl: string | undefined,
-    externalStop: React.MutableRefObject<() => void>
+    externalStop: React.MutableRefObject<() => void>,
+    containerElement: React.Ref<HTMLElement>
 ) => {
     let localStream: MediaStream;
     let isInitiator = false;
@@ -613,7 +687,8 @@ const initSocketClient = (
             canvass,
             localStream,
             updateGameLog,
-            userName
+            userName,
+            containerElement
         );
         isInitiator = true;
     });
@@ -641,7 +716,8 @@ const initSocketClient = (
             roomId,
             canvass,
             updateGameLog,
-            userName
+            userName,
+            containerElement
         );
         setIsChannelReady(true);
         setIsGuest(true);

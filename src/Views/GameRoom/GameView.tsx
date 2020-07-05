@@ -15,16 +15,12 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import React from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import {useParams, Prompt} from "react-router-dom";
 import styled from "styled-components";
 
 import useWebRTCCanvasShare from "../../Hooks/UseWebRTCCanvasShare/useWebRTCCanvasShare";
 import {GameInfo, getCanvasIdByLink} from "../../Shared";
-
-/*
-
- */
 
 const RemoteVideo = styled.video`
   object-fit: contain;
@@ -47,20 +43,20 @@ const GameViewContainer = styled.div`
 
 const GameView = () => {
     const {gamename, roomid} = useParams();
+    const GameViewContainerRef = useRef<HTMLDivElement>(null);
 
     const {isGuest} = useWebRTCCanvasShare(
-        'gameIframe',
-        'remoteCursor',
-        'remoteVideo',
-        'https://sheltered-coast-08667.herokuapp.com/',
-        roomid,
-        getCanvasIdByLink(GameInfo, gamename) || 'pacman-canvas'
-    );
-
-    //const isGuest = false;
+            'gameIframe',
+            'remoteCursor',
+            'remoteVideo',
+            'https://sheltered-coast-08667.herokuapp.com/',
+            roomid,
+            getCanvasIdByLink(GameInfo, gamename) || 'pacman-canvas',
+            GameViewContainerRef
+        );
 
     return (
-        <GameViewContainer>
+        <GameViewContainer id={"GameViewContainer"} ref={GameViewContainerRef}>
             <Prompt message={() => {
                 return 'Are you sure you want to leave the game?';
             }}
@@ -70,7 +66,12 @@ const GameView = () => {
                 src={`/${gamename}/index.html`} width={"100%"} height={"100%"}
                 style={{display: isGuest ? 'none' : 'initial', border: 'none'}}
             />
-                <RemoteVideo id={"remoteVideo"} autoPlay muted playsInline/>
+                <RemoteVideo
+                    id={"remoteVideo"}
+                    autoPlay
+                    muted
+                    playsInline
+                />
         </GameViewContainer>
     );
 };
