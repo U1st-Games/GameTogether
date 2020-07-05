@@ -46,7 +46,7 @@ flex: 1;
     flex-direction: column;
  */
 const MainArea = styled.div`
-    width: calc(100% - 320px);
+    width: calc(100% - 300px);
 `;
 
 const SideBar = styled.div`
