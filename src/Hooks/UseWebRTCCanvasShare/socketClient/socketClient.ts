@@ -612,6 +612,10 @@ const teardown = (peerConnections: PeerConnection[]) => {
     // });
 };
 
+const addMouseContainerDiv = () => {
+
+}
+
 const initSocketClient = (
     roomId: string,
     peerConnections: PeerConnection[],

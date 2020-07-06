@@ -61,6 +61,34 @@ interface Return {
     gameLog: string[];
 }
 
+const positionMouseContainer = (canvas: HTMLCanvasElement, iFrame: HTMLIFrameElement) => {
+    let canvasContainer = iFrame?.contentWindow?.document.querySelectorAll('[data-canvas-container="true"]')[0] as HTMLElement;
+    const canvasComputedStyle = iFrame.contentWindow?.getComputedStyle(canvas);
+
+    if (!canvasComputedStyle) {
+        console.error('unable to computer canvas style');
+        return;
+    }
+    const hasFixedPosition = canvasComputedStyle?.position === 'fixed';
+
+    if(hasFixedPosition) {
+        canvasContainer.style.position = 'fixed';
+
+        setTimeout(() => {
+            canvasContainer.style.top = canvasComputedStyle.top;
+            canvasContainer.style.right = canvasComputedStyle.right;
+            canvasContainer.style.bottom = canvasComputedStyle.bottom;
+            canvasContainer.style.left = canvasComputedStyle.left;
+        }, 0);
+    }
+
+    // var tempDiv = document.createElement('div');
+    // tempDiv.style.backgroundColor = randomColor();
+    // if (activeElem) {
+    //     activeElem.insertAdjacentElement('beforebegin',tempDiv);
+    // }
+}
+
 const useWebRTCCanvasShare = (
     iframeId: string,
     remoteCursorId: string,
@@ -105,9 +133,7 @@ const useWebRTCCanvasShare = (
                     remoteVideoId,
                     canvasId
                 );
-                canvass.style.position = 'relative';
-
-                console.log('remotePosition: ', remoteVideo);
+                positionMouseContainer(canvass, myIframe);
 
                 externalStop.current = initSocketClient(
                     roomId,
