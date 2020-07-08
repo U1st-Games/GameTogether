@@ -80,7 +80,7 @@ const positionMouseContainer = (canvas: HTMLCanvasElement, iFrame: HTMLIFrameEle
             canvasContainer.style.right = canvasComputedStyle.right;
             canvasContainer.style.bottom = canvasComputedStyle.bottom;
             canvasContainer.style.left = canvasComputedStyle.left;
-        }, 0);
+        }, 2000);
     }
 
     // var tempDiv = document.createElement('div');
@@ -170,11 +170,6 @@ const useWebRTCCanvasShare = (
                     canvasId
                 );
                 positionMouseContainer(canvass, myIframe);
-
-                canvass.addEventListener(
-                    'click',
-                    (e) => {console.log('synth click event: ', e)}
-                    );
 
                 externalStop.current = initSocketClient(
                     roomId,
