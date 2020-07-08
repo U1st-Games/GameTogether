@@ -86,9 +86,21 @@ const handleRemoteStreamAdded = (remoteVideo: any, ContainerElement: RefObject<H
         const containerElementHeight = boundingRect.height;
 
         if(aspectRatio > 1) {
-            remoteVideo.width = containerElementWidth;
+            const proposedWidth = containerElementWidth;
+            const proposedHeight = proposedWidth/aspectRatio;
+            if (proposedHeight > containerElementHeight) {
+                remoteVideo.height = containerElementHeight;
+            } else {
+                remoteVideo.width = containerElementWidth;
+            }
         } else {
-            remoteVideo.height = containerElementHeight;
+            const proposedWidth = containerElementWidth;
+            const proposedHeight = proposedWidth/aspectRatio;
+            if (proposedWidth > containerElementWidth) {
+                remoteVideo.width = containerElementWidth;
+            } else {
+                remoteVideo.height = containerElementHeight;
+            }
         }
     };
 };
@@ -225,7 +237,6 @@ function click(x: number, y: number, el: HTMLElement, myIframe: HTMLIFrameElemen
             clientY: canvasBCR.top + y
         }
     );
-    // el.dispatchEvent(mouseEvent1);
     el.dispatchEvent(mouseDown);
     el.dispatchEvent(mouseUp);
     el.dispatchEvent(mouseClick);
