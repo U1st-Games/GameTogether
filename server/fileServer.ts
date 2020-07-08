@@ -7,7 +7,7 @@ const fileServer = (app: Express) => {
         path.join(__dirname, '../build'),
         {
             setHeaders: (res, path) => {
-                if (path.endsWith('.html')) {
+                if (path.endsWith('.html') || path.endsWith('cache.manifest')) {
                     res.setHeader('Cache-Control', 'no-cache');
                 }
             },

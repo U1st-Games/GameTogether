@@ -45,7 +45,7 @@
   "scripts": {
     "start": "ts-node server/server.ts",
     "start:dev": "heroku local:run concurrently \"ts-node server/server.ts\" \"react-scripts start\"",
-    "start:server": "ts-node server/server.ts",
+    "start:server": "heroku local:run ts-node server/server.ts",
     "build": "react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject",
