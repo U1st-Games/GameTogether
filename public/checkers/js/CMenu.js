@@ -99,6 +99,7 @@ function CMenu(){
     
     this._onButPlayRelease = function(){
         this.unload();
+        console.log('button play release');
 
         $(s_oMain).trigger("start_session");
 

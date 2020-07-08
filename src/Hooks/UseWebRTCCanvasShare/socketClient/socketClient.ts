@@ -1,6 +1,7 @@
 import { Socket } from 'socket.io';
 import { v4 as uuidv4 } from 'uuid';
 import axios from 'axios';
+import $ from "jquery";
 
 import { getPeerConnectionById, stop } from '../webRTCHelpers';
 import {DataChannelMessage, DataChannels, KeypressData, MousepositionData, PeerConnection} from "../../../types";
@@ -196,9 +197,27 @@ const handleMousePositionUpdate = (
     mouseElement.style.top = deNormalizedHeight + 'px';
 }
 
-function click(x: number, y: number, el: HTMLElement){
+function click(x: number, y: number, el: HTMLElement, myIframe: HTMLIFrameElement){
     var canvasBCR = el.getBoundingClientRect();
-    const mouseEvent = new MouseEvent(
+    const mouseDown = new MouseEvent(
+        'mousedown',
+        {
+            bubbles: true,
+            cancelable: false,
+            clientX: canvasBCR.left + x,
+            clientY: canvasBCR.top + y,
+        }
+    );
+    const mouseUp = new MouseEvent(
+        'mouseup',
+        {
+            bubbles: true,
+            cancelable: false,
+            clientX: canvasBCR.left + x,
+            clientY: canvasBCR.top + y,
+        }
+    );
+    const mouseClick = new MouseEvent(
         'click',
         {
             bubbles: true,
@@ -207,8 +226,10 @@ function click(x: number, y: number, el: HTMLElement){
             clientY: canvasBCR.top + y
         }
     );
-    console.log('Event: ', mouseEvent);
-    el.dispatchEvent(mouseEvent);
+    // el.dispatchEvent(mouseEvent1);
+    el.dispatchEvent(mouseDown);
+    el.dispatchEvent(mouseUp);
+    el.dispatchEvent(mouseClick);
 }
 
 const handleMouseClick = (
@@ -234,7 +255,7 @@ const handleMouseClick = (
     //@ts-ignore
     mouseElement.style.top = deNormalizedHeight + 'px';
 
-    click(deNormalizedWidth, deNormalizedHeight, canvass);
+    click(deNormalizedWidth, deNormalizedHeight, canvass, myIframe);
 }
 
 const hostDataChannelHandler = (

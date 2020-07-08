@@ -15,6 +15,7 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+//@ts-nocheck
 import {useEffect, useState, useRef} from 'react';
 import initSocketClient, {sendMessage} from "./socketClient/socketClient";
 import {PeerConnection, UpdateGameLog} from "../../types";
@@ -89,6 +90,29 @@ const positionMouseContainer = (canvas: HTMLCanvasElement, iFrame: HTMLIFrameEle
     // }
 }
 
+var iframeConsole = {
+    __on : {},
+    addEventListener : function (name, callback) {
+        this.__on[name] = (this.__on[name] || []).concat(callback);
+        return this;
+    },
+    dispatchEvent : function (name, value) {
+        this.__on[name] = (this.__on[name] || []);
+        for (var i = 0, n = this.__on[name].length; i < n; i++) {
+            this.__on[name][i].call(this, value);
+        }
+        return this;
+    },
+    log: function () {
+        var a = [];
+        // For V8 optimization
+        for (var i = 0, n = arguments.length; i < n; i++) {
+            a.push(arguments[i]);
+        }
+        this.dispatchEvent("log", a);
+    }
+};
+
 const useWebRTCCanvasShare = (
     iframeId: string,
     remoteCursorId: string,
@@ -107,6 +131,14 @@ const useWebRTCCanvasShare = (
     const externalStop = useRef<() => void>(() => {console.error('externalStop not inited')});
     const updateGameLog: UpdateGameLog = updateGameLogFactory(setGameLog);
     const peerConnections: PeerConnection[] = [];
+
+    // window.addEventListener('message', function(response) {
+    //     // Make sure message is from our iframe, extensions like React dev tools might use the same technique and mess up our logs
+    //     if (response.data && response.data.source === 'iframe') {
+    //         // Do whatever you want here.
+    //         console.log(response.data.message);
+    //     }
+    // });
 
     //This is so consumer can control when the hook starts
     const start = () => {
@@ -127,6 +159,10 @@ const useWebRTCCanvasShare = (
                     return;
                 }
 
+                // myIframe.contentWindow.console.addEventListener("log", function (value) {
+                //     irameConsole.log.apply(null, value);
+                // });
+
                 const {canvass, cursor, remoteVideo} = initElementReferences(
                     myIframe,
                     remoteCursorId,
@@ -134,6 +170,11 @@ const useWebRTCCanvasShare = (
                     canvasId
                 );
                 positionMouseContainer(canvass, myIframe);
+
+                canvass.addEventListener(
+                    'click',
+                    (e) => {console.log('synth click event: ', e)}
+                    );
 
                 externalStop.current = initSocketClient(
                     roomId,

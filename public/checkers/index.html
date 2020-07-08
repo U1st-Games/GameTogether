@@ -48,6 +48,23 @@
     <body ondragstart="return false;" ondrop="return false;" >
 	<div style="position: fixed; background-color: transparent; top: 0px; left: 0px; width: 100%; height: 100%"></div>
           <script>
+              // Save the current console log function in case we need it.
+              const _log = console.log;
+              // Override the console
+              console.log = function(...rest) {
+                  // window.parent is the parent frame that made this window
+                  window.parent.postMessage(
+                      {
+                          source: 'iframe',
+                          message: rest,
+                      },
+                      '*'
+                  );
+                  // Finally applying the console statements to saved instance earlier
+                  _log.apply(console, arguments);
+              };
+
+
             $(document).ready(function(){
                      var oMain = new CMain({
                                             check_orientation: true,
