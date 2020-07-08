@@ -22,6 +22,7 @@ import App from './App';
 import * as serviceWorker from './serviceWorker';
 
 function noop() {}
+console.log('no console: ', process.env.REACT_APP_NO_CONSOLE);
 if (process.env.REACT_APP_NO_CONSOLE == 'true') {
     console.log = noop;
     console.warn = noop;
