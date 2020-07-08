@@ -21,6 +21,14 @@ import './index.css';
 import App from './App';
 import * as serviceWorker from './serviceWorker';
 
+function noop() {}
+if (process.env.REACT_APP_NO_CONSOLE == 'true') {
+    console.log = noop;
+    console.warn = noop;
+    console.error = noop;
+}
+
+
 ReactDOM.render(
   <React.StrictMode>
     <App />
