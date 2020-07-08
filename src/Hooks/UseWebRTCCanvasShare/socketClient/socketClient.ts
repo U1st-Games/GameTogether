@@ -1,7 +1,6 @@
 import { Socket } from 'socket.io';
 import { v4 as uuidv4 } from 'uuid';
 import axios from 'axios';
-import $ from "jquery";
 
 import { getPeerConnectionById, stop } from '../webRTCHelpers';
 import {DataChannelMessage, DataChannels, KeypressData, MousepositionData, PeerConnection} from "../../../types";

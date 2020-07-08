@@ -173,7 +173,6 @@ function CMain(oData){
     
 
     this.gotoGame = function(iType){
-        console.log('go to game');
         s_iGameType = iType;
 
         _oGame = new CGame(_oData);   						

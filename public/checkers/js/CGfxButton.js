@@ -84,7 +84,6 @@ function CGfxButton(iXPos,iYPos,oSprite, oParentContainer){
     };
     
     this.buttonDown = function(){
-        console.log('buttonDown')
         if(_bDisabled){
             return;
         }
