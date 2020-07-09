@@ -16,7 +16,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
 import {useEffect, useState, useRef} from 'react';
-import initSocketClient, {sendMessage} from "./socketClient/socketClient";
+import initSocketClient from "./socketClient/socketClient";
 import {PeerConnection, UpdateGameLog} from "../../types";
 
 const updateGameLogFactory = (setGameLog: any) => (nextMessage: string) => {

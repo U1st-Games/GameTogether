@@ -48,7 +48,11 @@ const FullScreenView = (props: FullScreenViewProps) => {
     useEffect(() => {
         subscribe({
             stream: getStreamById(streams, streamId),
-            element: 'fullscreen'
+            element: 'fullscreen',
+            options: {
+                audioVolume: 0,
+                showControls: false
+            }
         })
     }, []);
 

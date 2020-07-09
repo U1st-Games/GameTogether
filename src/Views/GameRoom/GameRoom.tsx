@@ -120,6 +120,7 @@ const GameRoom = () => {
                     publishAudio: true,
                     width: '300px',
                     height: '169px',
+                    name: 'john'
                 }
             });
         }

@@ -24,9 +24,9 @@ const Container = styled.div`
     position: relative;
 `;
 
-const TopButtonsContainer = styled.div`
+const BottomButtonsContainer = styled.div`
     position: absolute;
-    top: 0;
+    bottom: 0;
     left: 0;
     right: 0;
     height: 50px;
@@ -44,17 +44,17 @@ const OtherParticipant = (props: any) => {
     useEffect(() => {
         subscribe({
             stream,
-            element: stream.id
+            element: stream.id,
         })
     }, []);
 
     return (
         <Container>
-            <TopButtonsContainer>
-                <FullScreenButton onClick={fullScreenClickHandler(setFullScreenStreamId, stream.id)} />
-            </TopButtonsContainer>
             <Stream id={stream.id} key={stream.id}>
             </Stream>
+            <BottomButtonsContainer>
+                <FullScreenButton onClick={fullScreenClickHandler(setFullScreenStreamId, stream.id)} />
+            </BottomButtonsContainer>
         </Container>
     );
 };
