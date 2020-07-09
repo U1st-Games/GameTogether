@@ -34,12 +34,20 @@ const BottomButtonsContainer = styled.div`
     z-index: 1;
 `;
 
-const fullScreenClickHandler = (setFullScreenStreamId: (streamId: string) => void, streamId: string) => () => {
-    setFullScreenStreamId(streamId);
+const fullScreenClickHandler = (
+    setFullScreenStreamId: (streamId: string) => void,
+    streamId: string,
+    fullScreenStreamId: string
+) => () => {
+    if(streamId === fullScreenStreamId) {
+        setFullScreenStreamId('');
+    } else {
+        setFullScreenStreamId(streamId);
+    }
 };
 
 const OtherParticipant = (props: any) => {
-    const {stream, subscribe, setFullScreenStreamId} = props;
+    const {stream, subscribe, setFullScreenStreamId, fullScreenStreamId} = props;
 
     useEffect(() => {
         subscribe({
@@ -53,7 +61,11 @@ const OtherParticipant = (props: any) => {
             <Stream id={stream.id} key={stream.id}>
             </Stream>
             <BottomButtonsContainer>
-                <FullScreenButton onClick={fullScreenClickHandler(setFullScreenStreamId, stream.id)} />
+                <FullScreenButton
+                    onClick={fullScreenClickHandler(setFullScreenStreamId, stream.id, fullScreenStreamId)}
+                    fullScreenStreamId={fullScreenStreamId}
+                    streamId={stream.id}
+                />
             </BottomButtonsContainer>
         </Container>
     );
@@ -69,14 +81,18 @@ interface OtherParticipantsProps {
     publisher: any;
     subscribe: any;
     setFullScreenStreamId: (streamId: string) => void;
+    fullScreenStreamId: any;
 }
 const OtherParticipants = (props: OtherParticipantsProps) => {
-    const { streams, publisher, subscribe, setFullScreenStreamId } = props;
-    console.log('streams: ', streams);
+    const { streams, publisher, subscribe, setFullScreenStreamId, fullScreenStreamId } = props;
     return (
         <div>
             {filterStreams(streams, publisher)
-                .map((stream: any) => <OtherParticipant {...{stream, subscribe, setFullScreenStreamId}} />)}
+                .map((stream: any) =>
+                        <OtherParticipant
+                            {...{stream, subscribe, setFullScreenStreamId, fullScreenStreamId}}
+                        />
+                    )}
         </div>
     );
 };

@@ -151,7 +151,9 @@ const GameRoom = () => {
             </MainArea>
             <SideBar>
                 <Me {...{publish, publisher}} />
-                <OtherParticipants {...{streams, publisher, subscribe, setFullScreenStreamId}} />
+                <OtherParticipants
+                    {...{streams, publisher, subscribe, setFullScreenStreamId, fullScreenStreamId}}
+                />
             </SideBar>
             <Mouse src="/mouse.png" id="remoteCursor"/>
         </Container>

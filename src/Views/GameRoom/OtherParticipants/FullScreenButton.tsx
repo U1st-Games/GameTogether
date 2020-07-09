@@ -3,6 +3,8 @@ import { createStyles, makeStyles, Theme } from '@material-ui/core/styles';
 
 import Fab from '@material-ui/core/Fab';
 import FullscreenIcon from '@material-ui/icons/Fullscreen';
+import FullscreenExitIcon from '@material-ui/icons/FullscreenExit';
+
 import Tooltip from '@material-ui/core/Tooltip';
 
 const useStyles = makeStyles((theme: Theme) =>
@@ -13,8 +15,10 @@ const useStyles = makeStyles((theme: Theme) =>
     })
 );
 
-export default function FullScreenButton(props: { disabled?: boolean, onClick: () => void }) {
-    const { onClick } = props;
+export default function FullScreenButton(
+    props: { disabled?: boolean, onClick: () => void, fullScreenStreamId: string, streamId: string }
+    ) {
+    const { onClick, fullScreenStreamId, streamId } = props;
     const classes = useStyles();
 
     return (
@@ -30,7 +34,7 @@ export default function FullScreenButton(props: { disabled?: boolean, onClick: (
                 data-cy-audio-toggle
                 size={"small"}
             >
-                <FullscreenIcon />
+                {(fullScreenStreamId === streamId) ? <FullscreenExitIcon /> : <FullscreenIcon />}
             </Fab>
         </Tooltip>
     );
