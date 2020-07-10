@@ -126,6 +126,8 @@ const GameRoom = () => {
         }
     }, [isSessionInitialized, isSessionConnected])
 
+    console.log('subscribers: ', subscribers);
+
     return (
         <Container>
             <MainArea>
@@ -138,14 +140,16 @@ const GameRoom = () => {
                             <GameView/>
                         </Route>
                     </Switch>
-                    {fullScreenStreamId
-                    && <FullScreenView
-                        streamId={fullScreenStreamId}
-                        subscribe={subscribe}
-                        streams={streams}
-                        setFullScreenStreamId={setFullScreenStreamId}
-                    />
-                    }
+                    {fullScreenStreamId && (
+                        <FullScreenView
+                            streamId={fullScreenStreamId}
+                            subscribe={subscribe}
+                            unsubscribe={unsubscribe}
+                            streams={streams}
+                            setFullScreenStreamId={setFullScreenStreamId}
+                            session={session}
+                        />
+                    )}
                 </ScreenArea>
                 <Controls {...{ unpublish, publisher, publish, opentokProps }} />
             </MainArea>

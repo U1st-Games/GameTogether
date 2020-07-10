@@ -9,13 +9,14 @@ const getPublisherId = (publisher: any): string => {
 };
 
 const Stream = styled.div`
-    width: 300px;
-    height: 169px;
+    width: 100%;
+    height: 100%;
     display: flex;
     align-items: center;
     justify-content: space-evenly;
     flex-direction: column;
     box-sizing: border-box;
+    transition: all 0.5s;
 `;
 
 const Container = styled.div`
@@ -31,7 +32,7 @@ const BottomButtonsContainer = styled.div`
     right: 0;
     height: 50px;
     text-align: right;
-    z-index: 1;
+    z-index: 10;
 `;
 
 const fullScreenClickHandler = (
@@ -52,13 +53,13 @@ const OtherParticipant = (props: any) => {
     useEffect(() => {
         subscribe({
             stream,
-            element: stream.id,
+            element: `stream-${stream.id}`,
         })
     }, []);
 
     return (
-        <Container>
-            <Stream id={stream.id} key={stream.id}>
+        <Container id={`container-${stream.id}`}>
+            <Stream id={`stream-${stream.id}`} key={stream.id}>
             </Stream>
             <BottomButtonsContainer>
                 <FullScreenButton

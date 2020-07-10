@@ -49,7 +49,7 @@ const GameView = () => {
             'gameIframe',
             'remoteCursor',
             'remoteVideo',
-            'https://sheltered-coast-08667.herokuapp.com/',
+            undefined,
             roomid,
             getCanvasIdByLink(GameInfo, gamename) || 'pacman-canvas',
             GameViewContainerRef
