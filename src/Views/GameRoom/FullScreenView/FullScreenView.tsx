@@ -25,11 +25,11 @@ const FullScreenElement = styled.div`
 
 const TopButtonsContainer = styled.div`
     position: absolute;
-    top: 0;
+    bottom: 10px;
     left: 0;
     right: 0;
     height: 50px;
-    text-align: right;
+    text-align: center;
     z-index: 10;
 `;
 
