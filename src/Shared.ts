@@ -33,13 +33,6 @@ export const GameInfo: IGameInfo[] = [
         description: '',
         link: 'pacman',
         canvasId: 'myCanvas'
-    },
-    {
-        name: 'Checkers',
-        thumbnail: 'https://img.poki.com/cdn-cgi/image/quality=78,width=600,height=600,fit=cover,g=0.5x0.5,f=auto/082b7434-dc08-4892-98f8-3061111bf5e9.png',
-        description: '',
-        link: 'checkers',
-        canvasId: 'canvas'
     }
 ];
 
